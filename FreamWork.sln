@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FreamWork", "FreamWork\FreamWork.vcxproj", "{80265274-5C92-429E-AAE9-DDE41E2544AA}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "FreamWork", "FreamWork.vcxproj", "{80265274-5C92-429E-AAE9-DDE41E2544AA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -18,5 +18,7 @@ Global
 		{80265274-5C92-429E-AAE9-DDE41E2544AA}.Release|Win32.Build.0 = Release|Win32
 		{80265274-5C92-429E-AAE9-DDE41E2544AA}.Release|x64.ActiveCfg = Release|x64
 		{80265274-5C92-429E-AAE9-DDE41E2544AA}.Release|x64.Build.0 = Release|x64
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
 EndGlobal
