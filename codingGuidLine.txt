@@ -1,0 +1,9 @@
+  ファイル名: lower_snake_case.h / lower_snake_case.cpp
+  型名: UpperCamelCase
+  関数名: UpperCamelCase
+  変数名,引数: lower_snake_case
+  classのメンバ変数: lower_snake_case_
+  structのメンバ変数: lower_snake_case
+  定数: kUpperCamelCase
+  enum値: kUpperCamelCase
+  namespace: lower_snake_case
