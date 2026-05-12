@@ -92,13 +92,13 @@ void SwapChain::Present()
     swap_chain_->Present(1, 0);
 }
 
-ID3D12Resource* SwapChain::GetCurrentBackBuffer()
+ID3D12Resource* SwapChain::GetCurrentBackBuffer() const
 {
     uint32_t index = swap_chain_->GetCurrentBackBufferIndex();
     return render_targets_[index].Get();
 }
 
-D3D12_CPU_DESCRIPTOR_HANDLE SwapChain::GetCurrentRtvHandle()
+D3D12_CPU_DESCRIPTOR_HANDLE SwapChain::GetCurrentRtvHandle() const
 {
     D3D12_CPU_DESCRIPTOR_HANDLE handle =
         rtv_heap_->GetCPUDescriptorHandleForHeapStart();
