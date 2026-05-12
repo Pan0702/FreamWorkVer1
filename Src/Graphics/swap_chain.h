@@ -8,8 +8,8 @@ public:
     bool Initialize(IDXGIFactory6* factory, ID3D12Device* device, ID3D12CommandQueue* queue,
                     HWND hwnd, uint32_t width, uint32_t height);
     void Present();
-    ID3D12Resource* GetCurrentBackBuffer();
-    D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentRtvHandle();
+    ID3D12Resource* GetCurrentBackBuffer() const;
+    D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentRtvHandle() const;
 
 private:
     bool CreateSwapChain(IDXGIFactory6* factory, ID3D12CommandQueue* command_queue,
