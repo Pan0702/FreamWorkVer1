@@ -25,7 +25,7 @@ bool GraphicsDevice::Initialize(bool enable_debug_layer)
         MessageBox(NULL, L"Failed to create D3D12 device", L"Error", MB_OK);
         return false;
     }
-
+    
     return true;
 }
 
