@@ -95,6 +95,7 @@ bool GraphicsDevice::CreateAdapter()
 
 bool GraphicsDevice::CreateDevice()
 {
+    //TODO
     HRESULT hr = device_->QueryInterface(IID_PPV_ARGS(&device_));
     if (FAILED(hr))
     {

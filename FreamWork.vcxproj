@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="Src\Core\common.h" />
     <ClInclude Include="Src\Game\main.h" />
+    <ClInclude Include="Src\Graphics\command_list.h" />
     <ClInclude Include="Src\Graphics\command_queue.h" />
     <ClInclude Include="Src\Graphics\graphics_device.h" />
     <ClInclude Include="Src\Graphics\swap_chain.h" />
@@ -28,6 +29,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Game\main.cpp" />
+    <ClCompile Include="Src\Graphics\command_list.cpp" />
     <ClCompile Include="Src\Graphics\command_queue.cpp" />
     <ClCompile Include="Src\Graphics\graphics_device.cpp" />
     <ClCompile Include="Src\Graphics\swap_chain.cpp" />
