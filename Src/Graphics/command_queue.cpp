@@ -70,7 +70,11 @@ void CommandQueue::WaitForFence(uint64_t fence_value)
     {
         return;
     }
-    fence_->SetEventOnCompletion(fence_value, fence_event_);
+    HRESULT hr = fence_->SetEventOnCompletion(fence_value, fence_event_);
+    if (FAILED(hr))
+    {
+        return;
+    }
     WaitForSingleObject(fence_event_, INFINITE);
 }
 

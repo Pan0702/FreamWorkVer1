@@ -1,5 +1,4 @@
 #include "command_list.h"
-
 CommandList::CommandList()
 {
 }

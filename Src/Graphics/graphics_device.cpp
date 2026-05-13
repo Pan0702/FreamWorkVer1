@@ -96,8 +96,13 @@ bool GraphicsDevice::CreateAdapter()
 bool GraphicsDevice::CreateDevice()
 {
     //TODO
-    HRESULT hr = device_->QueryInterface(IID_PPV_ARGS(&device_));
+    HRESULT hr = D3D12CreateDevice(adapter_.Get(), D3D_FEATURE_LEVEL_12_0, _uuidof(ID3D12Device), nullptr);
     if (FAILED(hr))
+    {
+        return false;
+    }
+    HRESULT hr1 = device_->QueryInterface(IID_PPV_ARGS(&device_));
+    if (FAILED(hr1))
     {
         return false;
     }
