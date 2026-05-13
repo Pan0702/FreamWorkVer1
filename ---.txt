@@ -1,0 +1,516 @@
+  ---
+  Core層
+
+  Core/Common.h
+
+  - 役割: Win32とDX12を使う全TUに共通する前処理を1か所に集約。
+  - 記載内容:
+    - WIN32_LEAN_AND_MEAN / NOMINMAX / <windows.h> インクルード
+    - d3d12.h / dxgi1_6.h / d3dcompiler.h / dxgidebug.h
+  インクルード
+    - #pragma comment(lib, ...) で d3d12 / dxgi / d3dcompiler
+  を自動リンク
+    - Microsoft::WRL::ComPtr を使うための
+  <wrl/client.h>、エイリアス template<class T> using ComPtr =
+  Microsoft::WRL::ComPtr<T>;
+
+  Core/Types.h
+
+  - 役割: プロジェクト全体で型名を統一。
+  - 記載内容:
+    - using u8/u16/u32/u64 = ...; using i8.../f32/f64
+    - enum class Result { Ok, Fail, InvalidArg, OutOfMemory,
+  ... }
+    - 軽量な構造体: struct Rect { i32 x,y,w,h; }、struct
+  Viewport { f32 x,y,w,h,minZ,maxZ; }
+
+  Core/Assert.h
+
+  - 役割: 失敗時に止まる/ログするマクロ。
+  - 記載内容:
+    - FW_ASSERT(cond, msg): Debug時
+  __debugbreak()、Release時はログのみ
+    - HR_CHECK(hr): FAILED(hr) なら HRESULT
+  を文字列化してログ＋停止
+    - FW_VERIFY(cond): Release でも条件を評価する版
+
+  Core/Logger
+
+  - 役割:
+  標準化されたログ出力。Debug層含めすべての層が依存してよい。
+  - 公開API:
+    - static void Info(const char* fmt, ...)
+    - static void Warn(const char* fmt, ...)
+    - static void Error(const char* fmt, ...)
+  - 内部: vsnprintf で整形 → OutputDebugStringA ＋
+  必要ならコンソール。先頭にレベルタグ[INFO]等。
+  - 注意:
+  ヘッダオンリーにせず.cpp分離（インクルード爆発防止）。
+
+  Core/Math/Vec2 / Vec3 / Vec4
+
+  - 役割: SIMD未使用のシンプルな構造体ベクトル。
+  - メンバ: f32 x,y,z(,w);
+  - 公開API:
+    - 演算子: + - * /（ベクトル同士、スカラー）
+    - static Dot(a,b)、Cross(a,b)（Vec3のみ）
+    - Length() / LengthSq() / Normalized() / Normalize()
+    - 0除算チェック付きNormalize
+  - 注意:
+  メモリレイアウトはHLSLのfloat3と一致させる（連続f32×3）。
+
+  Core/Math/Mat4
+
+  - 役割: 4×4変換行列。行優先か列優先か最初に決める（HLSL既定の
+  列優先＋mul(M,v)に合わせると楽）。
+  - メンバ: f32 m[4][4] または Vec4 rows[4]
+  - 公開API:
+    - static Identity()
+    - static Translate(Vec3) / RotateX/Y/Z(rad) / Scale(Vec3)
+    - static LookAtLH(eye,target,up) / LookAtRH(...)
+    - static PerspectiveFovLH(fovY, aspect, n, f) /
+  OrthoLH(w,h,n,f)
+    - Transpose() / Inverse()
+    - operator* (Mat4×Mat4, Mat4×Vec4)
+  - 注意: HLSLに送る前にTransposeが要るかは行/列ルール次第。決
+  めて固定。
+
+  Core/Math/Quat
+
+  - 役割: 回転表現。ジンバルロック回避＆Slerp用。
+  - 公開API: FromAxisAngle / FromEuler / Slerp / ToMat4 /
+  operator*
+  - 優先度低: Mat4のRotate*だけで初期は足りる。
+
+  Core/Math/Color
+
+  - 役割: f32 RGBAとUNORM8変換。
+  - 公開API: Color(r,g,b,a)、static FromRGBA8(u32)、ToFloatPtr(
+  )（ClearRenderTargetViewに渡せるconst f32*）。
+
+  Core/Time
+
+  - 役割: フレーム時間計測。
+  - メンバ: LARGE_INTEGER m_freq, m_prev, m_start;
+  - 公開API: void Reset()、void Tick()、f32 DeltaTime()
+  const、f64 Elapsed() const、u32 FPS() const
+  - 記載すべき注意: Tickはループ先頭で1回だけ呼ぶ。DeltaTimeの
+  上限クランプ（0.1秒など）でブレークポイント後の暴走を防ぐ。
+
+  Core/FileIO
+
+  - 役割: バイナリ/テキスト読み込み。
+  - 公開API: static std::vector<u8> ReadAllBytes(path)、static
+  std::string ReadAllText(path)
+  - 注意: シェーダソースとモデル/テクスチャ両方で使う。失敗時は
+  空ベクタ＋Loggerにエラー。
+
+  ---
+  Platform層
+
+  Platform/Window
+
+  - 役割: HWND管理、メッセージポンプ、サイズ通知。
+  - メンバ: HWND m_hwnd; u32 m_w,m_h; bool m_shouldClose;
+  std::wstring m_className;
+  - 公開API:
+    - bool Create(const wchar_t* title, u32 w, u32 h):
+  RegisterClassExW → AdjustWindowRect
+  でクライアント領域基準にサイズ補正 →
+  CreateWindowExW。SetWindowLongPtr(GWLP_USERDATA, this)
+  でインスタンス紐付け。
+    - void Show(): ShowWindow(SW_SHOW) + UpdateWindow
+    - bool ProcessMessage(): PeekMessage(PM_REMOVE)
+  ループでTranslate/Dispatch。WM_QUITを見たらfalse返却。
+    - HWND GetHWND() const、u32 GetWidth/Height() const
+    - bool WasResized() / void
+  ClearResizeFlag()（リサイズ通知）
+  - 内部: static LRESULT CALLBACK WndProc(...)：GWLP_USERDATAか
+  らthis復元→メンバHandleMessageへ委譲。WM_DESTROY →
+  PostQuitMessage、WM_SIZEでサイズ更新フラグ。
+  - 注意: SwapChainがリサイズイベントを受け取れるよう、サイズ変
+  更フラグor観測者パターンが必要。
+
+  Platform/Input
+
+  - 役割: キー/マウス状態の毎フレームスナップショット。
+  - メンバ: bool m_keys[256]; bool m_prevKeys[256]; POINT
+  m_mousePos; POINT m_mousePrev; i32 m_wheel;
+  - 公開API:
+    - void Update(): GetKeyboardState → 現在→prev コピー
+    - bool IsKeyDown(int vk) / IsKeyPressed(int vk) /
+  IsKeyReleased(int vk)
+    - Vec2 GetMousePos() / Vec2 GetMouseDelta() / i32
+  GetWheel()
+  - 注意:
+  マウスホイールはWndProcからWM_MOUSEWHEELを中継する必要あり →
+  WindowからInputへの通知経路を決める。
+
+  ---
+  Graphics層（DX12薄ラッパ）
+
+  Graphics/GraphicsDevice
+
+  - 役割: ID3D12Device 生成と基本機能チェック。
+  - メンバ: ComPtr<ID3D12Device> m_device;
+  ComPtr<IDXGIFactory6> m_factory; ComPtr<IDXGIAdapter1>
+  m_adapter;
+  - 公開API:
+    - bool Initialize(bool enableDebugLayer):
+        i. Debug時 D3D12GetDebugInterface→EnableDebugLayer、DXG
+  I_CREATE_FACTORY_DEBUG
+      ii. CreateDXGIFactory2
+      iii.
+  EnumAdapterByGpuPreference(HIGH_PERFORMANCE)でアダプタ選択
+      iv. D3D12CreateDevice(adapter, FEATURE_LEVEL_12_0)
+      v. 失敗時はWARPフォールバック（任意）
+    - ID3D12Device* Get() const
+    - IDXGIFactory6* Factory() const（SwapChain作成で使う）
+  - 注意: ID3D12InfoQueueでメッセージ抑制設定もここで。
+
+  Graphics/CommandQueue
+
+  - 役割: ID3D12CommandQueue＋Fenceを束ねた送信窓口。
+  - メンバ: ComPtr<ID3D12CommandQueue> m_queue;
+  ComPtr<ID3D12Fence> m_fence; u64 m_fenceValue; HANDLE
+  m_event;
+  - 公開API:
+    - bool Initialize(device, D3D12_COMMAND_LIST_TYPE)
+    - u64 Signal(): m_fenceValue++; m_queue->Signal(m_fence,
+  m_fenceValue); → 返り値
+    - void WaitForValue(u64 v): m_fence->GetCompletedValue() <
+  v なら SetEventOnCompletion → WaitForSingleObject
+    - void WaitIdle(): Signal()→WaitForValue(返り値)
+    - void ExecuteCommandLists(count, lists)
+  - 注意: フレーム毎にSignal値を記録し、CommandListAllocatorの
+  リセット前に該当値の完了を待つ。
+
+  Graphics/SwapChain
+
+  - 役割: バックバッファ管理＋RTVヒープ＋Present。
+  - メンバ: ComPtr<IDXGISwapChain4> m_swap;
+  ComPtr<ID3D12Resource> m_buffers[N];
+  ComPtr<ID3D12DescriptorHeap> m_rtvHeap; UINT m_rtvSize; UINT
+  m_index; u32 m_w,m_h; DXGI_FORMAT m_format;
+  - 公開API:
+    - bool Initialize(factory, queue, hwnd, w, h, bufferCount,
+  format):
+        i. DXGI_SWAP_CHAIN_DESC1 を FLIP_DISCARD で構成
+      ii. factory->CreateSwapChainForHwnd → As<IDXGISwapChain4>
+      iii. RTV用 DescriptorHeap(RTV, bufferCount, false) 作成
+      iv. 各バックバッファ取得→CreateRenderTargetView
+    - void Present(u32 syncInterval)
+    - bool Resize(u32 w, u32 h):
+  GPU待ち→バッファ解放→ResizeBuffers→RTV再生成
+    - u32 CurrentIndex() / ID3D12Resource* CurrentBackBuffer()
+  / D3D12_CPU_DESCRIPTOR_HANDLE CurrentRTV()
+  - 注意: Resizeはアプリ全体のGPU完了待ちが前提。Window側のリサ
+  イズ通知と接続。
+
+  Graphics/Fence
+
+  - 役割: CommandQueue内蔵のFenceとは別に、特定リソースアップロ
+  ード待ちなど汎用同期用。
+  - 公開API: Initialize / Signal(queue) / WaitFor(value) /
+  IsCompleted(value)
+  - 注意: 多くの場合CommandQueueに組み込み済みで足りる。独立ク
+  ラスにするかは要検討。
+
+  Graphics/CommandListPool（または FrameCommandList）
+
+  - 役割: バックバッファ枚数ぶんのAllocator+1個のListを管理。フ
+  レーム頭で対応するAllocatorをReset。
+  - メンバ: ComPtr<ID3D12CommandAllocator> m_allocators[N];
+  ComPtr<ID3D12GraphicsCommandList> m_list;
+  - 公開API:
+    - Initialize(device, N, type)
+    - Begin(frameIndex): allocators[i]->Reset() →
+  list->Reset(allocator, nullptr)
+    - End(): list->Close()
+    - Get(): ID3D12GraphicsCommandList* 返却
+  - 注意: Reset前に対応Allocatorが使われたフレームのFence値完了
+  を確認すること。
+
+  Graphics/DescriptorHeap
+
+  - 役割: ヒープ＋線形アロケータ（最初は解放なし）。
+  - メンバ: ComPtr<ID3D12DescriptorHeap> m_heap; UINT m_inc;
+  UINT m_capacity, m_used; bool m_shaderVisible;
+  - 公開API:
+    - Initialize(device, type, capacity, shaderVisible)
+    - struct Handle { D3D12_CPU_DESCRIPTOR_HANDLE cpu;
+  D3D12_GPU_DESCRIPTOR_HANDLE gpu; UINT index; }
+    - Handle Allocate()：used++ し index
+  から先頭ハンドル＋オフセット計算
+    - ID3D12DescriptorHeap* Get()、UINT IncrementSize()
+  - 注意: RTV/DSVはshaderVisible=false必須、CBV/SRV/UAVはtrue。
+  ShaderVisibleなSamplerヒープは別ヒープ。
+
+  Graphics/RootSignature
+
+  - 役割: ルートパラメータをビルダーで組み立ててID3D12RootSigna
+  ture生成。
+  - 公開API（Builderパターン）:
+    - AddCBV(shaderRegister, space, visibility)
+    - AddSRVTable(shaderRegister, numDescriptors, visibility)
+    - AddUAVTable(...)、AddSampler(...)、AddStaticSampler(desc)
+    - Build(device) → ComPtr<ID3D12RootSignature>
+  - 記載すべき注意: D3DX12_ROOT_SIGNATURE_DESC をHELPER使わず手
+  で作るか、d3dx12.hに頼るか。自前主義なら手で構築。
+
+  Graphics/PipelineState
+
+  - 役割: GraphicsPSO/ComputePSO生成。
+  - 公開API:
+    - struct GraphicsPSODesc { ID3D12RootSignature* rs; Shader*
+   vs; Shader* ps; InputLayout layout; DXGI_FORMAT
+  rtvFormats[8]; UINT numRTV; DXGI_FORMAT dsvFormat;
+  D3D12_PRIMITIVE_TOPOLOGY_TYPE topology; bool depthEnable;
+  ...; }
+    - Build(device, desc) → ComPtr<ID3D12PipelineState>
+  - 記載: ラスタライザ/ブレンド/デプスのデフォルトを内部に持ち
+  、必要箇所のみ上書きできるようにする。
+
+  Graphics/Shader
+
+  - 役割: HLSLを実行時コンパイル。
+  - メンバ: ComPtr<ID3DBlob> m_blob;
+  - 公開API: bool CompileFromFile(path, entryPoint, target /*
+  "vs_5_1"等 */, defines)、const void* Data()、SIZE_T Size()
+  - 内部: D3DCompileFromFile、エラーBlobはLoggerへ出力。
+  - 注意:
+  target文字列はリテラル("vs_5_1"等)で受ける。ShaderModel
+  6を使うなら別途DXC検討（最初は不要）。
+
+  Graphics/GpuBuffer
+
+  - 役割: 汎用バッファ（Upload/Default）の基底。
+  - 公開API:
+    - CreateUpload(device, sizeBytes):
+  HeapType=UPLOAD、初期State=GENERIC_READ
+    - CreateDefault(device, sizeBytes, initialState):
+  HeapType=DEFAULT
+    - void* Map() / void Unmap() / D3D12_GPU_VIRTUAL_ADDRESS
+  GpuAddress() / SIZE_T Size()
+  - 注意: Defaultバッファへの初期データ転送は
+  Upload中継→CopyBufferRegion→Barrier
+  の手順。ヘルパとしてUpload(cmdList, src, size)を持つと便利。
+
+  Graphics/VertexBuffer / IndexBuffer
+
+  - 役割: GpuBufferを内部に持ち、ビューを返す。
+  - 公開API:
+    - VB: Create(device, data, vertexStride,
+  vertexCount)、const D3D12_VERTEX_BUFFER_VIEW& View()
+    - IB: Create(device, data, indexCount,
+  format=R16_UINT|R32_UINT)、const D3D12_INDEX_BUFFER_VIEW&
+  View()、u32 Count()
+
+  Graphics/ConstantBuffer（リングバッファ）
+
+  - 役割: フレーム毎の動的CB割当。固定サイズの巨大Uploadバッフ
+  ァを輪転利用。
+  - メンバ: GpuBuffer m_ring; u8* m_mapped; SIZE_T m_capacity;
+  SIZE_T m_offset; u64 m_frameMarkers[N];
+  - 公開API:
+    - Initialize(device, capacity)：作成＋常時Map
+    - struct Allocation { void* cpu; D3D12_GPU_VIRTUAL_ADDRESS
+  gpu; }
+    - Allocation Allocate(SIZE_T size):
+  256バイトアラインしてオフセット進行
+    - void NextFrame(): フレーム境界を記録（オプション）
+  - 注意: アラインメント忘れに注意。(size + 255) & ~255。
+
+  Graphics/Texture
+
+  - 役割: 2Dテクスチャ、RT、DSV。
+  - 公開API:
+    - CreateFromMemory(device, queue, pixels, w, h, format):
+  Default作成→Upload中継→UpdateSubresources相当を手書き→Barrier
+   COPY_DEST → PIXEL_SHADER_RESOURCE
+    - CreateRenderTarget(device, w, h, format, clearColor)
+    - CreateDepth(device, w, h, format=D32_FLOAT, clearDepth)
+    - CreateSRV(heap) / CreateRTV(heap) / CreateDSV(heap)
+  - 記載: 現在のステートをメンバで追跡（Barrier発行のため）。
+
+  Graphics/Sampler
+
+  - 役割: サンプラ生成。Static Samplerでも代替可。
+  - 公開API: static D3D12_SAMPLER_DESC LinearWrap() /
+  PointWrap() / LinearClamp()
+
+  Graphics/Barrier
+
+  - 役割: Resource
+  Barrierのヘルパ関数群（クラスではなくnamespaceでも可）。
+  - 公開API:
+    - Transition(list, resource, before, after,
+  subresource=ALL)
+    - UAV(list, resource)
+    - 複数バリアをまとめるBatch構造体（任意）
+  - 記載:
+  Texture側で現状ステートを保持しているなら、Transition(list,
+  tex, after)の形に統一できる。
+
+  ---
+  Resource層
+
+  Resource/TextureLoader
+
+  - 役割: 画像ファイル→ピクセル配列。
+  - 公開API: struct ImageData { std::vector<u8> pixels; u32
+  w,h; DXGI_FORMAT format; }、static ImageData
+  LoadFromFile(path)
+  - 記載:
+  WIC自前ロードはIWICImagingFactoryの呼び出し手順を整理。最初は
+  BMP/TGAパーサ自作のほうが学習目的に合うかも（要相談）。
+
+  Resource/MeshLoader
+
+  - 役割: OBJ等→頂点/インデックス。
+  - 公開API: struct MeshData { std::vector<Vertex> verts;
+  std::vector<u32> indices; }、static MeshData LoadOBJ(path)
+  - 記載: 法線・UVの有無、三角形化、マテリアル無視で開始。
+
+  Resource/ResourceManager
+
+  - 役割: パスをキーにした共有所有のキャッシュ。
+  - メンバ: std::unordered_map<std::wstring,
+  std::shared_ptr<Texture>> 等
+  - 公開API: std::shared_ptr<Texture>
+  GetOrLoadTexture(path)、std::shared_ptr<Mesh>
+  GetOrLoadMesh(path)
+
+  ---
+  Renderer層
+
+  Renderer/Mesh
+
+  - 役割: 描画可能な頂点+インデックスの単位。
+  - メンバ: VertexBuffer m_vb; IndexBuffer m_ib;
+  D3D_PRIMITIVE_TOPOLOGY m_topology;
+  - 公開API: void Bind(cmdList)、void DrawIndexed(cmdList,
+  instanceCount=1)
+
+  Renderer/Material
+
+  - 役割: PSO+RootSignature+定数+テクスチャの束。
+  - 公開API: void Bind(cmdList)、void SetTexture(slot,
+  tex)、void SetParam(name, value)
+  - 記載: 最初はPSO直結のシンプル構造でOK。マテリアルパラメータ
+  抽象化は後段。
+
+  Renderer/Camera
+
+  - 役割: View/Proj生成と更新。
+  - メンバ: Vec3 m_pos, m_forward, m_up; f32 m_fov, m_aspect,
+  m_near, m_far; Mat4 m_view, m_proj;
+  - 公開API: void SetPerspective(fov, aspect, n, f)、void
+  SetLookAt(eye, target, up)、void
+  Update()（行列再計算）、const Mat4&
+  View()/Proj()/ViewProj()、void Move(Vec3 d) / Rotate(yaw,
+  pitch)
+
+  Renderer/RenderTarget
+
+  - 役割: カラー+深度ターゲットの束ね。
+  - 公開API: void Clear(cmdList, color)、void
+  SetAsTarget(cmdList)、Texture& Color() / Depth()
+
+  Renderer/Renderer3D
+
+  - 役割: 3Dシーンの描画オーケストレータ。
+  - 公開API:
+    - BeginScene(camera, target):
+  ターゲットセット、CBにViewProj書き込み
+    - DrawMesh(mesh, material, worldMatrix):
+  MaterialBind→WorldCB割当→DrawIndexed
+    - EndScene(): Barrier等の後処理
+
+  Renderer/Renderer2D
+
+  - 役割: スプライト描画。バッチング前提。
+  - 公開API: Begin(camera2D)、DrawSprite(tex, pos, size, uv,
+  color, rotation)、End()
+  - 記載: 内部で動的頂点バッファ→4頂点/6インデックス×N →
+  同テクスチャを連続バッチ。
+
+  Renderer/Scene
+
+  - 役割: 描画対象のエンティティ集合。
+  - メンバ: std::vector<Entity> m_entities; std::vector<Light>
+  m_lights; Camera m_camera;
+  - 公開API: Update(dt)、Render(renderer3D)
+
+  Renderer/SceneManager
+
+  - 役割: シーン切替・スタック管理。
+  - 公開API: Push(scene)、Pop()、Change(scene)、Current()
+
+  ---
+  Engine層
+
+  Engine/Application
+
+  - 役割:
+  フレームワーク全体の所有者。サブシステム初期化順を保証。
+  - メンバ: Window m_window; GraphicsDevice m_device;
+  CommandQueue m_queue; SwapChain m_swap; CommandListPool
+  m_clPool; DescriptorHeap m_rtvHeap, m_dsvHeap, m_cbvSrvHeap,
+  m_samplerHeap; ConstantBuffer m_cbRing; Input m_input; Time
+  m_time; ResourceManager m_res; SceneManager m_scenes;
+  ImGuiManager m_imgui;
+  - 公開API:
+    - int Run(): 内部で Initialize → MainLoop → Shutdown
+  を呼び、終了コードを返す
+  - 記載すべき内部処理:
+    - Initialize: 上記メンバの順次Initialize。サブシステム間の
+  依存（Device→Queue→SwapChain）に注意。
+    - MainLoop: while(window.ProcessMessage()) { time.Tick();
+  input.Update(); scene.Update(dt); BeginFrame();
+  scene.Render(); imgui.Render(); EndFrame(); }
+    - BeginFrame/EndFrame: Allocator
+  Reset、Barrier、Present、Fence待ち
+    - Shutdown: GPU Idle待ち → 逆順解放
+  - 注意: コピー禁止。サブシステムの生成順＝メンバ宣言順＝破棄
+  逆順なので宣言順が重要。
+
+  Engine/EngineContext（任意）
+
+  - 役割: サブシステム間でApplication参照を回すための軽量ハブ。
+  - 公開API: Device() / Queue() / SwapChain() / Input() /
+  Time() / Heap*() 等の参照取得。
+  - 記載: 必要に応じて。最初はApplicationから直接渡してもよい。
+
+  ---
+  Debug層
+
+  Debug/ImGuiManager
+
+  - 役割: ImGui
+  DX12+Win32バックエンドの初期化/フレーム/描画/破棄。
+  - メンバ: DescriptorHeap::Handle m_fontSrvHandle;
+  - 公開API: Initialize(hwnd, device, srvHeap, frameCount,
+  rtvFormat)、NewFrame()、Render(cmdList)、Shutdown()、WndProcH
+  andler(hwnd,msg,wp,lp)（Windowから中継）
+
+  Debug/DebugDraw
+
+  - 役割: 線・AABB・球の即時描画。
+  - 公開API:
+  DrawLine(a,b,color)、DrawAABB(min,max,color)、Flush(cmdList,
+  camera)
+
+  ---
+  Game層
+
+  Game/Main.cpp
+
+  - 役割: エントリポイント。
+  - 記載: int WINAPI WinMain(...) → Application app; return
+  app.Run(); だけ。
+
+  Game/GameScene 等
+
+  - 役割: Scene派生。ゲーム固有のロード/更新/描画。
+  - 公開API: OnEnter()/OnExit()/Update(dt)/Render(renderer)
