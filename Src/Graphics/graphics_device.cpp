@@ -12,17 +12,17 @@ bool GraphicsDevice::Initialize(bool enable_debug_layer)
     }
     if (!CreateFactory(enable_debug_layer))
     {
-        MessageBox(NULL, L"Failed to create DXGI factory", L"Error", MB_OK);
+        MessageBox(nullptr, L"Failed to create DXGI factory", L"Error", MB_OK);
         return false;
     }
     if (!CreateAdapter())
     {
-        MessageBox(NULL, L"Failed to create DXGI adapter", L"Error", MB_OK);
+        MessageBox(nullptr, L"Failed to create DXGI adapter", L"Error", MB_OK);
         return false;
     }
     if (!CreateDevice())
     {
-        MessageBox(NULL, L"Failed to create D3D12 device", L"Error", MB_OK);
+        MessageBox(nullptr, L"Failed to create D3D12 device", L"Error", MB_OK);
         return false;
     }
     
@@ -96,15 +96,16 @@ bool GraphicsDevice::CreateAdapter()
 bool GraphicsDevice::CreateDevice()
 {
     //TODO
-    HRESULT hr = D3D12CreateDevice(adapter_.Get(), D3D_FEATURE_LEVEL_12_0, _uuidof(ID3D12Device), nullptr);
+    HRESULT hr = D3D12CreateDevice(adapter_.Get(), D3D_FEATURE_LEVEL_12_0,IID_PPV_ARGS(&device_));
     if (FAILED(hr))
     {
         return false;
     }
-    HRESULT hr1 = device_->QueryInterface(IID_PPV_ARGS(&device_));
-    if (FAILED(hr1))
-    {
-        return false;
-    }
+    //ID3D12Device5を使うことになったらやる。れいとれとか
+    // HRESULT hr1 = device_->QueryInterface(IID_PPV_ARGS(&device_));
+    // if (FAILED(hr1))
+    // {
+    //     return false;
+    // }
     return true;   
 }

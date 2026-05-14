@@ -20,7 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Core\common.h" />
-    <ClInclude Include="Src\Game\main.h" />
+    <ClInclude Include="Src\Engine\application.h" />
     <ClInclude Include="Src\Graphics\command_list.h" />
     <ClInclude Include="Src\Graphics\command_queue.h" />
     <ClInclude Include="Src\Graphics\graphics_device.h" />
@@ -28,6 +28,7 @@
     <ClInclude Include="Src\Platform\window.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Engine\application.cpp" />
     <ClCompile Include="Src\Game\main.cpp" />
     <ClCompile Include="Src\Graphics\command_list.cpp" />
     <ClCompile Include="Src\Graphics\command_queue.cpp" />
@@ -42,7 +43,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{80265274-5C92-429E-AAE9-DDE41E2544AA}</ProjectGuid>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>FreamWork</RootNamespace>
+    <RootNamespace>Framework</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

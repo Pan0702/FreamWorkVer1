@@ -29,8 +29,5 @@
 #pragma comment(lib,"dxguid.lib")
 #pragma comment(lib,"d3dcompiler.lib")
 
-namespace fw
-{
-    template<typename T>
-    using ComPtr = Microsoft::WRL::ComPtr<T>;
-}using namespace fw;
+template<typename T>
+using ComPtr = Microsoft::WRL::ComPtr<T>;

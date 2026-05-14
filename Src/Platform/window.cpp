@@ -15,8 +15,9 @@ Window::~Window()
     UnregisterClass(class_name_.c_str(), instance_);
 }
 
-bool Window::Create(const wchar_t* title, int width, int height)
+bool Window::Create(const wchar_t* title, uint32_t width, uint32_t height)
 {
+    instance_ = GetModuleHandle(nullptr); 
     size_.height = height;
     size_.width = width;
     // CreateWindowExWで使うウィンドウクラスを先に登録する。
@@ -52,13 +53,13 @@ bool Window::Create(const wchar_t* title, int width, int height)
     return hwnd_ != nullptr;
 }
 
-void Window::Show()
+void Window::Show() const
 {
     ShowWindow(hwnd_, SW_SHOW);
     UpdateWindow(hwnd_);
 }
 
-bool Window::ProcessMessages()
+bool Window::ProcessMessages() const
 {
     MSG msg = {};
     // メッセージがない間もメインループを止めないため、PeekMessageを使う。
