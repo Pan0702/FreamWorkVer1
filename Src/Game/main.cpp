@@ -1,4 +1,3 @@
-#include "main.h"
 #include "../Core/common.h"
 #include "../Engine/application.h"
 
