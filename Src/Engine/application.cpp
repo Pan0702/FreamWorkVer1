@@ -75,6 +75,29 @@ void Application::Update()
 
 void Application::Render()
 {
+    command_list_->Reset();
+    D3D12_RESOURCE_BARRIER barrier = {};
+    barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+    barrier.Transition.pResource = swap_chain_->GetCurrentBackBuffer();
+    barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+    barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
+    barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
+    command_list_->GetCommandList()->ResourceBarrier(1, &barrier);
+    
+    D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = swap_chain_->GetCurrentRtvHandle();
+    command_list_->GetCommandList()->OMSetRenderTargets(1, &rtv_handle, false, nullptr);
+    //decided color
+    constexpr float clear_color[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+    command_list_->GetCommandList()->ClearRenderTargetView(rtv_handle, clear_color, 0, nullptr);
+    
+    barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
+    barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
+    command_list_->GetCommandList()->ResourceBarrier(1, &barrier);
+    command_list_->Close();
+    ID3D12CommandList* command_lists[] = { command_list_->GetCommandList() };
+    command_queue_->GetCommandQueue()->ExecuteCommandLists(1,command_lists);
+    swap_chain_->Present();
+    command_queue_->WaitIdle();
 }
 
 void Application::WaitForGPU() const

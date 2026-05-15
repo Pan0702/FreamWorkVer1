@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "../Core/common.h"
 #include "../Platform/Window.h"
+#include  "descriptor_heap.h"
 
 class SwapChain
 {
@@ -18,8 +19,7 @@ private:
     bool CreateRenderTargetViews(ID3D12Device* device);
     
     ComPtr<IDXGISwapChain4> swap_chain_;
-    ComPtr<ID3D12DescriptorHeap> rtv_heap_;
+    DescriptorHeap rtv_heap_;
     ComPtr<ID3D12Resource> render_targets_[kFrameCount];
 
-    uint32_t rtv_descriptor_size_ = 0;
 };
