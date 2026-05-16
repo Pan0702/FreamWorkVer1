@@ -4,6 +4,16 @@
 #include "../Graphics/swap_chain.h"
 #include "../Graphics/command_queue.h"
 #include "../Graphics/command_list.h"
+#include "../Graphics/shader.h"
+#include "../Graphics/root_signature.h"
+#include "../Graphics/pipeline_state.h"
+#include "../Graphics/vertex_buffer.h"
+
+struct Vertex
+{
+    float position[3];
+    float color[3];
+};
 
 Application::Application() = default;
 
@@ -17,7 +27,7 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         MessageBox(nullptr, L"Failed to create window", L"Error", MB_OK);
         return false;
     }
-    
+
     graphics_device_ = std::make_unique<GraphicsDevice>();
 #ifdef _DEBUG
     constexpr bool enable_debug = true;
@@ -27,29 +37,72 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
     if (!graphics_device_->Initialize(enable_debug))
     {
         MessageBox(nullptr, L"Failed to create graphics device", L"Error", MB_OK);
-        return false;  
+        return false;
     }
-    
+
     command_queue_ = std::make_unique<CommandQueue>();
     if (!command_queue_->Initialize(graphics_device_->GetDevice()))
     {
         MessageBox(nullptr, L"Failed to create command queue", L"Error", MB_OK);
         return false;
     }
-    
+
     swap_chain_ = std::make_unique<SwapChain>();
-    if (!swap_chain_->Initialize(graphics_device_->GetFactory(),graphics_device_->GetDevice(),
-                                 command_queue_->GetCommandQueue(),window_->GetHwnd(),width,height))
+    if (!swap_chain_->Initialize(graphics_device_->GetFactory(), graphics_device_->GetDevice(),
+                                 command_queue_->GetCommandQueue(), window_->GetHwnd(), width, height))
     {
         MessageBox(nullptr, L"Failed to create swap chain", L"Error", MB_OK);
-        return false;   
+        return false;
     }
-    
+
     command_list_ = std::make_unique<CommandList>();
     if (!command_list_->Initialize(graphics_device_->GetDevice()))
     {
         MessageBox(nullptr, L"Failed to create command list", L"Error", MB_OK);
-        return false;   
+        return false;
+    }
+
+    root_signature_ = std::make_unique<RootSignature>();
+    if
+    (!root_signature_->Initialize(graphics_device_->GetDevice()))
+    {
+        MessageBox(nullptr, L"Failed to create root signature", L"Error", MB_OK);
+        return false;
+    }
+
+    vertex_shader_ = std::make_unique<Shader>();
+    if (!vertex_shader_->LoadFromFile(L"Shaders/triangle.vs.hlsl", "VSMain", "vs_5_0"))
+    {
+        MessageBox(nullptr, L"Failed to load vertex shader", L"Error", MB_OK);
+        return false;
+    }
+
+    pixel_shader_ = std::make_unique<Shader>();
+    if (!pixel_shader_->LoadFromFile(L"Shaders/triangle.ps.hlsl", "PSMain", "ps_5_0"))
+    {
+        MessageBox(nullptr, L"Failed to load pixel shader", L"Error", MB_OK);
+        return false;
+    }
+
+    pipeline_state_ = std::make_unique<PipelineState>();
+    if (!pipeline_state_->Initialize(graphics_device_->GetDevice(), root_signature_->GetRootSignature(),
+                                     *vertex_shader_, *pixel_shader_))
+    {
+        MessageBox(nullptr, L"Failed to create pipeline state", L"Error", MB_OK);
+        return false;
+    }
+
+    Vertex vertices[] = {
+        {{0.0f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}, // 上-赤
+        {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // 右下-緑
+        {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}, // 左下-青
+    };
+
+    vertex_buffer_ = std::make_unique<VertexBuffer>();
+    if (!vertex_buffer_->Initialize(graphics_device_->GetDevice(), vertices, sizeof(vertices), sizeof(Vertex)))
+    {
+        MessageBox(nullptr, L"Failed to create vertex buffer", L"Error", MB_OK);
+        return false;
     }
     window_->Show();
     return true;
@@ -62,7 +115,7 @@ void Application::Run()
         Update();
         Render();
     }
-    WaitForGPU();   
+    WaitForGPU();
 }
 
 void Application::Shutdown()
@@ -83,19 +136,19 @@ void Application::Render()
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
     command_list_->GetCommandList()->ResourceBarrier(1, &barrier);
-    
+
     D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = swap_chain_->GetCurrentRtvHandle();
     command_list_->GetCommandList()->OMSetRenderTargets(1, &rtv_handle, false, nullptr);
     //decided color
-    constexpr float clear_color[4] = { 0.0f, 1.0f, 0.0f, 1.0f };
+    constexpr float clear_color[4] = {0.0f, 1.0f, 0.0f, 1.0f};
     command_list_->GetCommandList()->ClearRenderTargetView(rtv_handle, clear_color, 0, nullptr);
-    
+
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
     command_list_->GetCommandList()->ResourceBarrier(1, &barrier);
     command_list_->Close();
-    ID3D12CommandList* command_lists[] = { command_list_->GetCommandList() };
-    command_queue_->GetCommandQueue()->ExecuteCommandLists(1,command_lists);
+    ID3D12CommandList* command_lists[] = {command_list_->GetCommandList()};
+    command_queue_->GetCommandQueue()->ExecuteCommandLists(1, command_lists);
     swap_chain_->Present();
     command_queue_->WaitIdle();
 }
