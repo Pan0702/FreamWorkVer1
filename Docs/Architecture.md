@@ -97,7 +97,9 @@ Game → Engine → Renderer → Graphics → Platform → Core
 **シェーダーの管理方針:**
 - HLSL は実行時コンパイル（`D3DCompileFromFile`）
 - `.cso` ビルド時生成は採用しない
-- シェーダーファイルは `Src/Shaders/` 配下に配置
+- **シェーダーファイルは `Shaders/`（リポジトリ直下、`Src/` の外）に配置**
+  - UE5 が `Engine/Source/`（C++）と `Engine/Shaders/`（HLSL）を分離している思想に合わせる
+  - HLSL は C++ ソースではなく「GPU のソースコード」として独立した階層で扱う
 - 当面は VS / PS の2種のみ。Compute / Geometry / Hull / Domain はフェーズ4以降
 
 ### ライティングの導入
