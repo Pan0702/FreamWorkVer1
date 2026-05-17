@@ -129,25 +129,47 @@ void Application::Update()
 void Application::Render()
 {
     command_list_->Reset();
+    auto command_list = command_list_->GetCommandList(); 
     D3D12_RESOURCE_BARRIER barrier = {};
     barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     barrier.Transition.pResource = swap_chain_->GetCurrentBackBuffer();
     barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_PRESENT;
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
-    command_list_->GetCommandList()->ResourceBarrier(1, &barrier);
+    command_list->ResourceBarrier(1, &barrier);
 
     D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = swap_chain_->GetCurrentRtvHandle();
-    command_list_->GetCommandList()->OMSetRenderTargets(1, &rtv_handle, false, nullptr);
+    command_list->OMSetRenderTargets(1, &rtv_handle, false, nullptr);
     //decided color
     constexpr float clear_color[4] = {0.0f, 1.0f, 0.0f, 1.0f};
-    command_list_->GetCommandList()->ClearRenderTargetView(rtv_handle, clear_color, 0, nullptr);
+    command_list->ClearRenderTargetView(rtv_handle, clear_color, 0, nullptr);
 
+    D3D12_VIEWPORT* viewport = {};
+    viewport->TopLeftX = 0.0f;
+    viewport->TopLeftY = 0.0f;
+    viewport->Width = static_cast<float>(window_->GetWidth());
+    viewport->Height = static_cast<float>(window_->GetHeight());
+    viewport->MinDepth = 0.0f;
+    viewport->MaxDepth = 1.0f;
+    constexpr UINT Viewport_Num = 1;
+    command_list->RSSetViewports(Viewport_Num,viewport);
+    
+    constexpr UINT num_rects = 1;
+    const D3D12_RECT rects[num_rects] = {{0, 0, static_cast<LONG>(window_->GetWidth()), static_cast<LONG>(window_->GetHeight())}};
+    command_list->RSSetScissorRects(num_rects, rects);
+    command_list->SetGraphicsRootSignature(root_signature_->GetRootSignature());
+    command_list->SetPipelineState(pipeline_state_->GetPipelineState());
+    command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    D3D12_VERTEX_BUFFER_VIEW vbv = vertex_buffer_->GetVertexBufferView();
+    command_list->IASetVertexBuffers(0, 1, &vbv);
+    command_list->DrawInstanced(3, 1, 0, 0);
+
+    
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
-    command_list_->GetCommandList()->ResourceBarrier(1, &barrier);
+    command_list->ResourceBarrier(1, &barrier);
     command_list_->Close();
-    ID3D12CommandList* command_lists[] = {command_list_->GetCommandList()};
+    ID3D12CommandList* command_lists[] = {command_list};
     command_queue_->GetCommandQueue()->ExecuteCommandLists(1, command_lists);
     swap_chain_->Present();
     command_queue_->WaitIdle();
