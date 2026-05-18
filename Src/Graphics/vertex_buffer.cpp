@@ -36,12 +36,18 @@ bool VertexBuffer::Initialize(ID3D12Device* device, const void* vertex_data, uin
     {
         return false;
     }
-    memcpy_s(mapped, total_size, vertex_data, total_size);
+    errno_t err = memcpy_s(mapped, total_size, vertex_data, total_size);
     buffer_->Unmap(0, nullptr);
+    if (err != 0)
+    {
+        
+        return false;
+    }
+    
     view_.BufferLocation = buffer_->GetGPUVirtualAddress();
     view_.SizeInBytes = total_size;
     view_.StrideInBytes = stride;
-    return true;  
+    return true;
 }
 
 D3D12_VERTEX_BUFFER_VIEW VertexBuffer::GetVertexBufferView() const

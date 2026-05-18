@@ -5,7 +5,7 @@ class Shader
 {
 public:
     bool LoadFromFile(const wchar_t* filename,const char* entry_point,const char* target);
-    bool IsValid();
+    bool IsValid() const;
     D3D12_SHADER_BYTECODE GetBytecode() const ;
     
 private:

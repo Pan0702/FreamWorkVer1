@@ -128,7 +128,12 @@ void Application::Update()
 
 void Application::Render()
 {
-    command_list_->Reset();
+    if (!command_list_->Reset())
+    {
+        MessageBox(nullptr, L"Failed to reset command list", L"Error", MB_OK);
+        return;
+    }
+    
     auto command_list = command_list_->GetCommandList(); 
     D3D12_RESOURCE_BARRIER barrier = {};
     barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
@@ -141,18 +146,18 @@ void Application::Render()
     D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = swap_chain_->GetCurrentRtvHandle();
     command_list->OMSetRenderTargets(1, &rtv_handle, false, nullptr);
     //decided color
-    constexpr float clear_color[4] = {0.0f, 1.0f, 0.0f, 1.0f};
+    constexpr float clear_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     command_list->ClearRenderTargetView(rtv_handle, clear_color, 0, nullptr);
 
-    D3D12_VIEWPORT* viewport = {};
-    viewport->TopLeftX = 0.0f;
-    viewport->TopLeftY = 0.0f;
-    viewport->Width = static_cast<float>(window_->GetWidth());
-    viewport->Height = static_cast<float>(window_->GetHeight());
-    viewport->MinDepth = 0.0f;
-    viewport->MaxDepth = 1.0f;
+    D3D12_VIEWPORT viewport = {};
+    viewport.TopLeftX = 0.0f;
+    viewport.TopLeftY = 0.0f;
+    viewport.Width = static_cast<float>(window_->GetWidth());
+    viewport.Height = static_cast<float>(window_->GetHeight());
+    viewport.MinDepth = 0.0f;
+    viewport.MaxDepth = 1.0f;
     constexpr UINT Viewport_Num = 1;
-    command_list->RSSetViewports(Viewport_Num,viewport);
+    command_list->RSSetViewports(Viewport_Num, &viewport);
     
     constexpr UINT num_rects = 1;
     const D3D12_RECT rects[num_rects] = {{0, 0, static_cast<LONG>(window_->GetWidth()), static_cast<LONG>(window_->GetHeight())}};
@@ -168,7 +173,13 @@ void Application::Render()
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
     command_list->ResourceBarrier(1, &barrier);
-    command_list_->Close();
+    
+    if (!command_list_->Close())
+    {
+        MessageBox(nullptr, L"Failed to close command list", L"Error", MB_OK);
+        return;
+    }
+    
     ID3D12CommandList* command_lists[] = {command_list};
     command_queue_->GetCommandQueue()->ExecuteCommandLists(1, command_lists);
     swap_chain_->Present();

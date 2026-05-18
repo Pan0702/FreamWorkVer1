@@ -21,5 +21,6 @@ private:
     ComPtr<IDXGISwapChain4> swap_chain_;
     DescriptorHeap rtv_heap_;
     ComPtr<ID3D12Resource> render_targets_[kFrameCount];
+    D3D12_CPU_DESCRIPTOR_HANDLE rtv_handles_[kFrameCount] = {};
 
 };

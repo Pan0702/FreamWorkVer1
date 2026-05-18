@@ -50,9 +50,6 @@ bool SwapChain::CreateSwapChain(IDXGIFactory6* factory, ID3D12CommandQueue* comm
 
 bool SwapChain::CreateRenderTargetViews(ID3D12Device* device)
 {
-    D3D12_DESCRIPTOR_HEAP_DESC rtv_heap_desc = {};
-
-
     bool b = rtv_heap_.Initialize(device, D3D12_DESCRIPTOR_HEAP_TYPE_RTV, kFrameCount, false);
 
     if (!b)
@@ -70,11 +67,17 @@ bool SwapChain::CreateRenderTargetViews(ID3D12Device* device)
         {
             return false;
         }
-        D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = rtv_heap_.GetCpuHandle(i);
+
+        UINT index = 0;
+        if (!rtv_heap_.Allocate(index))
+        {
+            return false;
+        }
+        rtv_handles_[i] = rtv_heap_.GetCpuHandle(index);
         device->CreateRenderTargetView(
             render_targets_[i].Get(),
             nullptr,
-            rtv_handle);
+            rtv_handles_[i]);
     }
 
     return true;
@@ -93,5 +96,5 @@ ID3D12Resource* SwapChain::GetCurrentBackBuffer() const
 
 D3D12_CPU_DESCRIPTOR_HANDLE SwapChain::GetCurrentRtvHandle() const
 {
-    return rtv_heap_.GetCpuHandle(swap_chain_->GetCurrentBackBufferIndex()); 
+    return rtv_handles_[swap_chain_->GetCurrentBackBufferIndex()];
 }

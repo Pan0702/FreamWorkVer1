@@ -7,7 +7,7 @@ public:
     ~CommandQueue();
     bool Initialize(ID3D12Device* device);
     uint64_t Signal();
-    void WaitForFence(uint64_t fence_value);
+    void WaitForFence(uint64_t fence_value) const;
     void WaitIdle();
     
     ID3D12CommandQueue* GetCommandQueue() const;

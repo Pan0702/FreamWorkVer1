@@ -7,7 +7,7 @@ public:
     D3D12_CPU_DESCRIPTOR_HANDLE GetCpuHandle(UINT index) const;
     D3D12_GPU_DESCRIPTOR_HANDLE GetGpuHandle(UINT index) const;
     ID3D12DescriptorHeap* GetHeap() const;
-    UINT Allocate();
+    bool Allocate(UINT& out_index);
 
 private:
     ComPtr<ID3D12DescriptorHeap> heap_;

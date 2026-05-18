@@ -1,5 +1,7 @@
 #include "command_queue.h"
 
+#include <assert.h>
+
 CommandQueue::CommandQueue()
 {
 }
@@ -29,9 +31,9 @@ bool CommandQueue::Initialize(ID3D12Device* device)
 bool CommandQueue::CreateCommandQueue(ID3D12Device* device)
 {
     D3D12_COMMAND_QUEUE_DESC queue_desc = {};
-    queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;   //ƒOƒ‰ƒtƒBƒbƒNƒXƒRƒ}ƒ“ƒh—p
-    queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;   //’Êí‚Íƒtƒ‰ƒO‚È‚µ
-    queue_desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;  //’Êí—Dæ
+    queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;   //ï¿½Oï¿½ï¿½ï¿½tï¿½Bï¿½bï¿½Nï¿½Xï¿½Rï¿½}ï¿½ï¿½ï¿½hï¿½p
+    queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;   //ï¿½Êï¿½Íƒtï¿½ï¿½ï¿½Oï¿½È‚ï¿½
+    queue_desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;  //ï¿½Êï¿½Dï¿½ï¿½
     HRESULT hr = device->CreateCommandQueue
                         (&queue_desc, IID_PPV_ARGS(&command_queue_));
     if (FAILED(hr))
@@ -60,11 +62,15 @@ bool CommandQueue::CreateFence(ID3D12Device* device)
 uint64_t CommandQueue::Signal()
 {
     ++fence_value_;
-    command_queue_->Signal(fence_.Get(), fence_value_);
+    HRESULT hr = command_queue_->Signal(fence_.Get(), fence_value_);
+    if (FAILED(hr))
+    {
+        return 0;
+    }
     return fence_value_;   
 }
 
-void CommandQueue::WaitForFence(uint64_t fence_value)
+void CommandQueue::WaitForFence(uint64_t fence_value) const
 {
     if (fence_->GetCompletedValue() >= fence_value)
     {
@@ -73,6 +79,7 @@ void CommandQueue::WaitForFence(uint64_t fence_value)
     HRESULT hr = fence_->SetEventOnCompletion(fence_value, fence_event_);
     if (FAILED(hr))
     {
+        assert(false);
         return;
     }
     WaitForSingleObject(fence_event_, INFINITE);

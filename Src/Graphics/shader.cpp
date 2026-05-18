@@ -1,4 +1,5 @@
 ﻿#include "shader.h"
+#include <cassert>
 
 bool Shader::LoadFromFile(const wchar_t* filename, const char* entry_point, const char* target)
 {
@@ -21,13 +22,15 @@ bool Shader::LoadFromFile(const wchar_t* filename, const char* entry_point, cons
     return true;
 }
 
-bool Shader::IsValid()
+bool Shader::IsValid() const
 {
     return bytecode_ != nullptr;
 }
 
 D3D12_SHADER_BYTECODE Shader::GetBytecode() const
 {
+    assert(bytecode_ != nullptr&&"Shader is not valid");
+    
     D3D12_SHADER_BYTECODE bytecode = {};
     bytecode.pShaderBytecode = bytecode_->GetBufferPointer();
     bytecode.BytecodeLength = bytecode_->GetBufferSize();
