@@ -114,7 +114,7 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
     };
     
     vertex_buffer_ = std::make_unique<VertexBuffer>();
-    if (!vertex_buffer_->Initialize(graphics_device_->GetDevice(), cube_vertices, sizeof(cube_vertices), sizeof(cube_vertices)))
+    if (!vertex_buffer_->Initialize(graphics_device_->GetDevice(), cube_vertices, sizeof(cube_vertices), sizeof(Vertex)))
     {
         MessageBox(nullptr, L"Failed to create vertex buffer", L"Error", MB_OK);
         return false;
@@ -129,7 +129,7 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         3, 7, 6, 3, 6, 2, // 上面 (+Y)
     };
     index_buffer_ = std::make_unique<IndexBuffer>();
-    DXGI_FORMAT format = DXGI_FORMAT_R32_UINT;
+    DXGI_FORMAT format = DXGI_FORMAT_R16_UINT;
     if (!index_buffer_->Initialize(graphics_device_->GetDevice(), cube_indices, sizeof(cube_indices), format))
     {
         MessageBox(nullptr, L"Failed to create index buffer", L"Error", MB_OK);
@@ -207,8 +207,10 @@ void Application::Render()
     //三角形描画
     //command_list->DrawInstanced(3, 1, 0, 0);
 
+    D3D12_INDEX_BUFFER_VIEW ibv = index_buffer_->GetIndexBufferView();
+    command_list->IASetIndexBuffer(&ibv);
     //立方体描画
-    command_list->DrawIndexedInstanced(36, 1, 0, 0, 0);
+    command_list->DrawIndexedInstanced(index_buffer_->GetIndexCount(), 1, 0, 0, 0);
 
 
     
