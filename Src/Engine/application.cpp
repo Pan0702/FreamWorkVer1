@@ -8,6 +8,7 @@
 #include "../Graphics/root_signature.h"
 #include "../Graphics/pipeline_state.h"
 #include "../Graphics/vertex_buffer.h"
+#include "../Graphics/index_buffer.h"
 
 struct Vertex
 {
@@ -92,18 +93,49 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         return false;
     }
 
+    //三角形用のやつ
     Vertex vertices[] = {
         {{0.0f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}, // 上-赤
         {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // 右下-緑
         {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}, // 左下-青
     };
-
+    
+    
+    //立方体の描画
+    Vertex cube_vertices[8] = {
+        {{-0.3f, -0.3f, -0.3f}, {1, 0, 0}},
+        {{+0.3f, -0.3f, -0.3f}, {0, 1, 0}},
+        {{+0.3f, +0.3f, -0.3f}, {0, 0, 1}}, 
+        {{-0.3f, +0.3f, -0.3f}, {1, 1, 0}}, 
+        {{-0.3f, -0.3f, +0.3f}, {1, 0, 1}},
+        {{+0.3f, -0.3f, +0.3f}, {0, 1, 1}}, 
+        {{+0.3f, +0.3f, +0.3f}, {0.5, 0.5, 0.5}}, 
+        {{-0.3f, +0.3f, +0.3f}, {1, 1, 1}}
+    };
+    
     vertex_buffer_ = std::make_unique<VertexBuffer>();
-    if (!vertex_buffer_->Initialize(graphics_device_->GetDevice(), vertices, sizeof(vertices), sizeof(Vertex)))
+    if (!vertex_buffer_->Initialize(graphics_device_->GetDevice(), cube_vertices, sizeof(cube_vertices), sizeof(cube_vertices)))
     {
         MessageBox(nullptr, L"Failed to create vertex buffer", L"Error", MB_OK);
         return false;
     }
+    
+    uint16_t cube_indices[36] = {
+        0, 3, 2, 0, 2, 1, // 前面 (-Z)
+        4, 5, 6, 4, 6, 7, // 背面 (+Z)
+        0, 4, 7, 0, 7, 3, // 左面 (-X)
+        1, 2, 6, 1, 6, 5, // 右面 (+X)
+        0, 1, 5, 0, 5, 4, // 下面 (-Y)
+        3, 7, 6, 3, 6, 2, // 上面 (+Y)
+    };
+    index_buffer_ = std::make_unique<IndexBuffer>();
+    DXGI_FORMAT format = DXGI_FORMAT_R32_UINT;
+    if (!index_buffer_->Initialize(graphics_device_->GetDevice(), cube_indices, sizeof(cube_indices), format))
+    {
+        MessageBox(nullptr, L"Failed to create index buffer", L"Error", MB_OK);
+        return false;
+    }
+    
     window_->Show();
     return true;
 }
@@ -172,30 +204,14 @@ void Application::Render()
     command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     D3D12_VERTEX_BUFFER_VIEW vbv = vertex_buffer_->GetVertexBufferView();
     command_list->IASetVertexBuffers(0, 1, &vbv);
-    command_list->DrawInstanced(3, 1, 0, 0);
+    //三角形描画
+    //command_list->DrawInstanced(3, 1, 0, 0);
+
+    //立方体描画
+    command_list->DrawIndexedInstanced(36, 1, 0, 0, 0);
 
 
-    //立方体の描画
-    Vertex cube_vertices[8] = {
-        {{-0.3f, -0.3f, -0.3f}, {1, 0, 0}},
-        {{+0.3f, -0.3f, -0.3f}, {0, 1, 0}},
-        {{+0.3f, +0.3f, -0.3f}, {0, 0, 1}}, 
-        {{-0.3f, +0.3f, -0.3f}, {1, 1, 0}}, 
-        {{-0.3f, -0.3f, +0.3f}, {1, 0, 1}},
-        {{+0.3f, -0.3f, +0.3f}, {0, 1, 1}}, 
-        {{+0.3f, +0.3f, +0.3f}, {0.5, 0.5, 0.5}}, 
-        {{-0.3f, +0.3f, +0.3f}, {1, 1, 1}}
-    };
-
-    //四角形を三角形２つで描画
-    uint16_t cube_indices[36] = {
-        0, 3, 2, 0, 2, 1, // 前面 (-Z)
-        4, 5, 6, 4, 6, 7, // 背面 (+Z)
-        0, 4, 7, 0, 7, 3, // 左面 (-X)
-        1, 2, 6, 1, 6, 5, // 右面 (+X)
-        0, 1, 5, 0, 5, 4, // 下面 (-Y)
-        3, 7, 6, 3, 6, 2, // 上面 (+Y)
-    };
+    
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
     command_list->ResourceBarrier(1, &barrier);

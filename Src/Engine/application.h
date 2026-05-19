@@ -10,7 +10,7 @@ class GraphicsDevice;
 class CommandQueue;
 class SwapChain;
 class CommandList;
-
+class IndexBuffer;
 class Application
 {
 public:
@@ -36,4 +36,5 @@ private:
     std::unique_ptr<Shader>         pixel_shader_;
     std::unique_ptr<PipelineState>  pipeline_state_;
     std::unique_ptr<VertexBuffer>   vertex_buffer_;
+    std::unique_ptr<IndexBuffer>   index_buffer_;
 };
