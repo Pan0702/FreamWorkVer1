@@ -20,6 +20,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Core\common.h" />
+    <ClInclude Include="Src\Core\Math\mat.h" />
+    <ClInclude Include="Src\Core\Math\vec2.h" />
+    <ClInclude Include="Src\Core\Math\vec3.h" />
+    <ClInclude Include="Src\Core\Math\vec4.h" />
     <ClInclude Include="Src\Engine\application.h" />
     <ClInclude Include="Src\Graphics\command_list.h" />
     <ClInclude Include="Src\Graphics\command_queue.h" />
