@@ -101,20 +101,20 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
     };
     
     
-    //立方体の描画
+    //立方体の描画 (NDC Z は [0,1] 範囲なので Z を 0.2〜0.8 に収める)
     Vertex cube_vertices[8] = {
-        {{-0.3f, -0.3f, -0.3f}, {1, 0, 0}},
-        {{+0.3f, -0.3f, -0.3f}, {0, 1, 0}},
-        {{+0.3f, +0.3f, -0.3f}, {0, 0, 1}}, 
-        {{-0.3f, +0.3f, -0.3f}, {1, 1, 0}}, 
-        {{-0.3f, -0.3f, +0.3f}, {1, 0, 1}},
-        {{+0.3f, -0.3f, +0.3f}, {0, 1, 1}}, 
-        {{+0.3f, +0.3f, +0.3f}, {0.5, 0.5, 0.5}}, 
-        {{-0.3f, +0.3f, +0.3f}, {1, 1, 1}}
+        {{-0.3f, -0.3f, 0.2f}, {1, 0, 0}},
+        {{+0.3f, -0.3f, 0.2f}, {0, 1, 0}},
+        {{+0.3f, +0.3f, 0.2f}, {0, 0, 1}},
+        {{-0.3f, +0.3f, 0.2f}, {1, 1, 0}},
+        {{-0.3f, -0.3f, 0.8f}, {1, 0, 1}},
+        {{+0.3f, -0.3f, 0.8f}, {0, 1, 1}},
+        {{+0.3f, +0.3f, 0.8f}, {0.5f, 0.5f, 0.5f}},
+        {{-0.3f, +0.3f, 0.8f}, {1, 1, 1}}
     };
     
     vertex_buffer_ = std::make_unique<VertexBuffer>();
-    if (!vertex_buffer_->Initialize(graphics_device_->GetDevice(), cube_vertices, sizeof(cube_vertices), sizeof(Vertex)))
+    if (!vertex_buffer_->Initialize(graphics_device_->GetDevice(), cube_vertices, sizeof(cube_vertices), sizeof(cube_vertices[0])))
     {
         MessageBox(nullptr, L"Failed to create vertex buffer", L"Error", MB_OK);
         return false;
@@ -204,8 +204,6 @@ void Application::Render()
     command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     D3D12_VERTEX_BUFFER_VIEW vbv = vertex_buffer_->GetVertexBufferView();
     command_list->IASetVertexBuffers(0, 1, &vbv);
-    //三角形描画
-    //command_list->DrawInstanced(3, 1, 0, 0);
 
     D3D12_INDEX_BUFFER_VIEW ibv = index_buffer_->GetIndexBufferView();
     command_list->IASetIndexBuffer(&ibv);
