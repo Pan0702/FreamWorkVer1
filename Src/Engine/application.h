@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "../Core/common.h"
 
+class ConstantBuffer;
 class VertexBuffer;
 class PipelineState;
 class Shader;
@@ -37,4 +38,6 @@ private:
     std::unique_ptr<PipelineState>  pipeline_state_;
     std::unique_ptr<VertexBuffer>   vertex_buffer_;
     std::unique_ptr<IndexBuffer>   index_buffer_;
+    std::unique_ptr<ConstantBuffer> constant_buffer_;
+    float rotation_ = 0.0f;
 };

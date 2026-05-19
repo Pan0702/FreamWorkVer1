@@ -71,7 +71,7 @@ bool PipelineState::Initialize(ID3D12Device* device, ID3D12RootSignature* root_s
         //三角形の塗り方
         desc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
         //裏向きの面を捨てるか
-        desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+        desc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
         //どっちの向きがおもてか
         desc.RasterizerState.FrontCounterClockwise = FALSE;
         //深度値を整数でずらす

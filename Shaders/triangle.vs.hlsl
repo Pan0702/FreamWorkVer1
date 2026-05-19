@@ -11,12 +11,15 @@ struct PSInput
     float4 position : SV_POSITION;
     float4 color : COLOR;
 };
-
+cbuffer SceneCB : register(b0)
+{
+    float4x4 wvp;
+};
 PSInput VSMain(VSInput input)
 {
     PSInput output;
     //“¯ŸÀ•W‚Ìw¬•ª
-    output.position = float4(input.position, 1.0);
+    output.position = mul(float4(input.position, 1.0),wvp);
     output.color = float4(input.color, 1.0);
     return output;
 }

@@ -9,6 +9,8 @@
 #include "../Graphics/pipeline_state.h"
 #include "../Graphics/vertex_buffer.h"
 #include "../Graphics/index_buffer.h"
+#include "../Graphics/constant_buffer.h"
+#include <DirectXMath.h>
 
 struct Vertex
 {
@@ -99,8 +101,8 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // 右下-緑
         {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}, // 左下-青
     };
-    
-    
+
+
     //立方体の描画 (NDC Z は [0,1] 範囲なので Z を 0.2〜0.8 に収める)
     Vertex cube_vertices[8] = {
         {{-0.3f, -0.3f, 0.2f}, {1, 0, 0}},
@@ -112,14 +114,15 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         {{+0.3f, +0.3f, 0.8f}, {0.5f, 0.5f, 0.5f}},
         {{-0.3f, +0.3f, 0.8f}, {1, 1, 1}}
     };
-    
+
     vertex_buffer_ = std::make_unique<VertexBuffer>();
-    if (!vertex_buffer_->Initialize(graphics_device_->GetDevice(), cube_vertices, sizeof(cube_vertices), sizeof(cube_vertices[0])))
+    if (!vertex_buffer_->Initialize(graphics_device_->GetDevice(), cube_vertices, sizeof(cube_vertices),
+                                    sizeof(cube_vertices[0])))
     {
         MessageBox(nullptr, L"Failed to create vertex buffer", L"Error", MB_OK);
         return false;
     }
-    
+
     uint16_t cube_indices[36] = {
         0, 3, 2, 0, 2, 1, // 前面 (-Z)
         4, 5, 6, 4, 6, 7, // 背面 (+Z)
@@ -135,7 +138,14 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         MessageBox(nullptr, L"Failed to create index buffer", L"Error", MB_OK);
         return false;
     }
-    
+
+    constant_buffer_ = std::make_unique<ConstantBuffer>();
+    if (!constant_buffer_->Initialize(graphics_device_->GetDevice(), sizeof(DirectX::XMFLOAT4X4)))
+    {
+        MessageBox(nullptr, L"Failed to create constant buffer", L"Error", MB_OK);
+        return false;
+    }
+
     window_->Show();
     return true;
 }
@@ -156,6 +166,26 @@ void Application::Shutdown()
 
 void Application::Update()
 {
+    rotation_ += 0.01f;
+
+    DirectX::XMMATRIX world =
+        DirectX::XMMatrixRotationY(rotation_) *
+        DirectX::XMMatrixRotationX(rotation_ * 0.5f);
+
+    DirectX::XMMATRIX view = DirectX::XMMatrixLookAtLH(
+        DirectX::XMVectorSet(0.0f, 0.0f, 5.0f, 0.0f), //eyePos
+        DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f), //target
+        DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f) //up
+    );
+
+    float aspect = static_cast<float>(window_->GetWidth()) / static_cast<float>(window_->GetHeight());
+    DirectX::XMMATRIX projection = DirectX::XMMatrixPerspectiveFovLH(
+        DirectX::XM_PIDIV2, aspect, 0.1f, 100.0f);
+
+    DirectX::XMMATRIX wvp = DirectX::XMMatrixTranspose(world * view * projection);
+    DirectX::XMFLOAT4X4 wvp_data;
+    DirectX::XMStoreFloat4x4(&wvp_data, wvp);
+    constant_buffer_->Update(&wvp_data, sizeof(wvp_data));
 }
 
 void Application::Render()
@@ -204,14 +234,13 @@ void Application::Render()
     command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     D3D12_VERTEX_BUFFER_VIEW vbv = vertex_buffer_->GetVertexBufferView();
     command_list->IASetVertexBuffers(0, 1, &vbv);
-
+    command_list->SetGraphicsRootConstantBufferView(0, constant_buffer_->GetGpuAddress());
     D3D12_INDEX_BUFFER_VIEW ibv = index_buffer_->GetIndexBufferView();
     command_list->IASetIndexBuffer(&ibv);
     //立方体描画
     command_list->DrawIndexedInstanced(index_buffer_->GetIndexCount(), 1, 0, 0, 0);
 
 
-    
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
     command_list->ResourceBarrier(1, &barrier);

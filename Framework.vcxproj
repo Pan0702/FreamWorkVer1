@@ -23,6 +23,7 @@
     <ClInclude Include="Src\Engine\application.h" />
     <ClInclude Include="Src\Graphics\command_list.h" />
     <ClInclude Include="Src\Graphics\command_queue.h" />
+    <ClInclude Include="Src\Graphics\constant_buffer.h" />
     <ClInclude Include="Src\Graphics\descriptor_heap.h" />
     <ClInclude Include="Src\Graphics\graphics_device.h" />
     <ClInclude Include="Src\Graphics\index_buffer.h" />
@@ -40,6 +41,7 @@
     <ClCompile Include="Src\Game\main.cpp" />
     <ClCompile Include="Src\Graphics\command_list.cpp" />
     <ClCompile Include="Src\Graphics\command_queue.cpp" />
+    <ClCompile Include="Src\Graphics\constant_buffer.cpp" />
     <ClCompile Include="Src\Graphics\descriptor_heap.cpp" />
     <ClCompile Include="Src\Graphics\graphics_device.cpp" />
     <ClCompile Include="Src\Graphics\index_buffer.cpp" />

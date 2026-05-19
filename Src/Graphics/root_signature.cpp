@@ -9,6 +9,15 @@ bool RootSignature::Initialize(ID3D12Device* device)
     desc.pStaticSamplers = nullptr;
     desc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
     
+    D3D12_ROOT_PARAMETER root_parameters = {};
+    root_parameters.ParameterType = D3D12_ROOT_PARAMETER_TYPE_CBV;
+    root_parameters.Descriptor.ShaderRegister = 0;
+    root_parameters.Descriptor.RegisterSpace = 0;
+    root_parameters.ShaderVisibility = D3D12_SHADER_VISIBILITY_VERTEX;
+    
+    desc.NumParameters = 1;
+    desc.pParameters = &root_parameters;
+    
     ComPtr<ID3DBlob> signature_blob;
     ComPtr<ID3DBlob> error_blob;
     HRESULT hr = D3D12SerializeRootSignature(&desc, D3D_ROOT_SIGNATURE_VERSION_1, &signature_blob, &error_blob);

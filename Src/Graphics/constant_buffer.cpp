@@ -1,7 +1,8 @@
-﻿#include "vertex_buffer.h"
+﻿#include "constant_buffer.h"
 
-bool VertexBuffer::Initialize(ID3D12Device* device, const void* vertex_data, uint32_t total_size, uint32_t stride)
+bool ConstantBuffer::Initialize(ID3D12Device* device, uint32_t size)
 {
+    aligned_size_ = (size + 255) & ~255u;
     D3D12_HEAP_PROPERTIES heap_props = {};
     heap_props.Type = D3D12_HEAP_TYPE_UPLOAD;
     heap_props.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -12,7 +13,7 @@ bool VertexBuffer::Initialize(ID3D12Device* device, const void* vertex_data, uin
     D3D12_RESOURCE_DESC buffer_desc = {};
     buffer_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
     buffer_desc.Alignment = 0;
-    buffer_desc.Width = total_size;
+    buffer_desc.Width = aligned_size_;
     buffer_desc.Height = 1;
     buffer_desc.DepthOrArraySize = 1;
     buffer_desc.MipLevels = 1;
@@ -28,28 +29,22 @@ bool VertexBuffer::Initialize(ID3D12Device* device, const void* vertex_data, uin
     {
         return false;
     }
-
-    void* mapped = nullptr;
     D3D12_RANGE read_range = {0, 0};
-    hr = buffer_->Map(0, &read_range, &mapped);
+    hr = buffer_->Map(0, &read_range, &mapped_);
     if (FAILED(hr))
     {
         return false;
     }
-    errno_t err = memcpy_s(mapped, total_size, vertex_data, total_size);
-    buffer_->Unmap(0, nullptr);
-    if (err != 0)
-    {
-        return false;
-    }
-    
-    view_.BufferLocation = buffer_->GetGPUVirtualAddress();
-    view_.SizeInBytes = total_size;
-    view_.StrideInBytes = stride;
+
     return true;
 }
 
-D3D12_VERTEX_BUFFER_VIEW VertexBuffer::GetVertexBufferView() const
+void ConstantBuffer::Update(const void* data, uint32_t size)
 {
-    return view_;
+    memcpy(mapped_, data, size);
+}
+
+D3D12_GPU_VIRTUAL_ADDRESS ConstantBuffer::GetGpuAddress() const
+{
+    return buffer_->GetGPUVirtualAddress();
 }
