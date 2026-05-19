@@ -133,8 +133,8 @@ void Application::Render()
         MessageBox(nullptr, L"Failed to reset command list", L"Error", MB_OK);
         return;
     }
-    
-    auto command_list = command_list_->GetCommandList(); 
+
+    auto command_list = command_list_->GetCommandList();
     D3D12_RESOURCE_BARRIER barrier = {};
     barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     barrier.Transition.pResource = swap_chain_->GetCurrentBackBuffer();
@@ -143,12 +143,14 @@ void Application::Render()
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_RENDER_TARGET;
     command_list->ResourceBarrier(1, &barrier);
 
+    //背景の色を変える
     D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = swap_chain_->GetCurrentRtvHandle();
     command_list->OMSetRenderTargets(1, &rtv_handle, false, nullptr);
     //decided color
     constexpr float clear_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     command_list->ClearRenderTargetView(rtv_handle, clear_color, 0, nullptr);
 
+    //NDC の三角形を、ウィンドウの 0,0 〜 width,heightのピクセル領域に引き伸ばす」設定
     D3D12_VIEWPORT viewport = {};
     viewport.TopLeftX = 0.0f;
     viewport.TopLeftY = 0.0f;
@@ -158,9 +160,12 @@ void Application::Render()
     viewport.MaxDepth = 1.0f;
     constexpr UINT Viewport_Num = 1;
     command_list->RSSetViewports(Viewport_Num, &viewport);
-    
+
+    //描画に必要な状態を全部 Set してから、Drawする
     constexpr UINT num_rects = 1;
-    const D3D12_RECT rects[num_rects] = {{0, 0, static_cast<LONG>(window_->GetWidth()), static_cast<LONG>(window_->GetHeight())}};
+    const D3D12_RECT rects[num_rects] = {
+        {0, 0, static_cast<LONG>(window_->GetWidth()), static_cast<LONG>(window_->GetHeight())}
+    };
     command_list->RSSetScissorRects(num_rects, rects);
     command_list->SetGraphicsRootSignature(root_signature_->GetRootSignature());
     command_list->SetPipelineState(pipeline_state_->GetPipelineState());
@@ -169,17 +174,38 @@ void Application::Render()
     command_list->IASetVertexBuffers(0, 1, &vbv);
     command_list->DrawInstanced(3, 1, 0, 0);
 
-    
+
+    //立方体の描画
+    Vertex cube_vertices[8] = {
+        {{-0.3f, -0.3f, -0.3f}, {1, 0, 0}},
+        {{+0.3f, -0.3f, -0.3f}, {0, 1, 0}},
+        {{+0.3f, +0.3f, -0.3f}, {0, 0, 1}}, 
+        {{-0.3f, +0.3f, -0.3f}, {1, 1, 0}}, 
+        {{-0.3f, -0.3f, +0.3f}, {1, 0, 1}},
+        {{+0.3f, -0.3f, +0.3f}, {0, 1, 1}}, 
+        {{+0.3f, +0.3f, +0.3f}, {0.5, 0.5, 0.5}}, 
+        {{-0.3f, +0.3f, +0.3f}, {1, 1, 1}}
+    };
+
+    //四角形を三角形２つで描画
+    uint16_t cube_indices[36] = {
+        0, 3, 2, 0, 2, 1, // 前面 (-Z)
+        4, 5, 6, 4, 6, 7, // 背面 (+Z)
+        0, 4, 7, 0, 7, 3, // 左面 (-X)
+        1, 2, 6, 1, 6, 5, // 右面 (+X)
+        0, 1, 5, 0, 5, 4, // 下面 (-Y)
+        3, 7, 6, 3, 6, 2, // 上面 (+Y)
+    };
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
     command_list->ResourceBarrier(1, &barrier);
-    
+
     if (!command_list_->Close())
     {
         MessageBox(nullptr, L"Failed to close command list", L"Error", MB_OK);
         return;
     }
-    
+
     ID3D12CommandList* command_lists[] = {command_list};
     command_queue_->GetCommandQueue()->ExecuteCommandLists(1, command_lists);
     swap_chain_->Present();

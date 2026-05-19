@@ -25,6 +25,7 @@
     <ClInclude Include="Src\Graphics\command_queue.h" />
     <ClInclude Include="Src\Graphics\descriptor_heap.h" />
     <ClInclude Include="Src\Graphics\graphics_device.h" />
+    <ClInclude Include="Src\Graphics\index_buffer.h" />
     <ClInclude Include="Src\Graphics\pipeline_state.h" />
     <ClInclude Include="Src\Graphics\root_signature.h" />
     <ClInclude Include="Src\Graphics\shader.h" />
@@ -41,6 +42,7 @@
     <ClCompile Include="Src\Graphics\command_queue.cpp" />
     <ClCompile Include="Src\Graphics\descriptor_heap.cpp" />
     <ClCompile Include="Src\Graphics\graphics_device.cpp" />
+    <ClCompile Include="Src\Graphics\index_buffer.cpp" />
     <ClCompile Include="Src\Graphics\pipeline_state.cpp" />
     <ClCompile Include="Src\Graphics\root_signature.cpp" />
     <ClCompile Include="Src\Graphics\shader.cpp" />
