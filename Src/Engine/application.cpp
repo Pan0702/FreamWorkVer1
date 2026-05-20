@@ -10,7 +10,8 @@
 #include "../Graphics/vertex_buffer.h"
 #include "../Graphics/index_buffer.h"
 #include "../Graphics/constant_buffer.h"
-#include <DirectXMath.h>
+
+#include "../Core/Math/my_math.h"
 
 struct Vertex
 {
@@ -169,24 +170,22 @@ void Application::Update()
 {
     rotation_ += 0.01f;
 
-    DirectX::XMMATRIX world =
-        DirectX::XMMatrixRotationY(rotation_) *
-        DirectX::XMMatrixRotationX(rotation_ * 0.5f);
+    Mat world =
+        RotateY(rotation_) *
+        RotateX(rotation_ * 0.5f);
 
-    DirectX::XMMATRIX view = DirectX::XMMatrixLookAtLH(
-        DirectX::XMVectorSet(0.0f, 0.0f, 5.0f, 0.0f), //eyePos
-        DirectX::XMVectorSet(0.0f, 0.0f, 0.0f, 0.0f), //target
-        DirectX::XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f) //up
+    Mat view = XMMatrixLookAtLH(
+        Vec3(0.0f, 0.0f, 5.0f), //eyePos
+        Vec3(0.0f, 0.0f, 0.0f), //target
+        Vec3(0.0f, 1.0f, 0.0f) //up
     );
 
     float aspect = static_cast<float>(window_->GetWidth()) / static_cast<float>(window_->GetHeight());
-    DirectX::XMMATRIX projection = DirectX::XMMatrixPerspectiveFovLH(
-        DirectX::XM_PIDIV2, aspect, 0.1f, 100.0f);
+    Mat projection = XMMatrixPerspectiveFovLH(
+       XM_PIDIV2, aspect, 0.1f, 100.0f);
 
-    DirectX::XMMATRIX wvp = DirectX::XMMatrixTranspose(world * view * projection);
-    DirectX::XMFLOAT4X4 wvp_data;
-    DirectX::XMStoreFloat4x4(&wvp_data, wvp);
-    constant_buffer_->Update(&wvp_data, sizeof(wvp_data));
+    Mat wvp = Transpose(world * view * projection);
+    constant_buffer_->Update(&wvp, sizeof(wvp));
 }
 
 void Application::Render()

@@ -3,22 +3,21 @@
 #include <cmath>
 using namespace DirectX;
 
-struct Vec2
+struct Vec2 : public XMFLOAT2
 {
-    float x, y;
+    Vec2() : XMFLOAT2(0.0f, 0.0f)
+    {
+    }
+
+    Vec2(float x, float y) : XMFLOAT2(x, y)
+    {
+    }
 
     //初期化
-    Vec2(float x, float y) : x(x), y(y)
-    {
-    }
-
-    Vec2() : x(0), y(0)
-    {
-    }
 
     Vec2(const XMVECTOR& v)
     {
-        XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(this), v);
+        XMStoreFloat2((this), v);
     }
 
     //四則演算（非破壊・const）
@@ -56,14 +55,14 @@ struct Vec2
 
     Vec2& operator=(const XMVECTOR& v)
     {
-        XMStoreFloat2(reinterpret_cast<XMFLOAT2*>(this), v);
+        XMStoreFloat2((this), v);
         return *this;
     }
 
     //変換
-    operator XMVECTOR() const
+    explicit operator XMVECTOR() const
     {
-        return XMLoadFloat2(reinterpret_cast<const XMFLOAT2*>(this));
+        return XMLoadFloat2((this));
     }
 
     operator XMFLOAT2() const

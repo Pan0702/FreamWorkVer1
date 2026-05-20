@@ -1,34 +1,19 @@
 #pragma once
 
 #include <DirectXMath.h>
+
+#include "vec3.h"
 using namespace DirectX;
 
-struct MatSimd : public XMMATRIX
-{
-    using XMMATRIX::XMMATRIX;
-    MatSimd() = default;
-    MatSimd(const XMMATRIX& other) : XMMATRIX(other) {}
-};
 
-struct Mat
+struct Mat : public XMFLOAT4X4
 {
-    union
-    {
-        struct
-        {
-            float _11, _12, _13, _14;
-            float _21, _22, _23, _24;
-            float _31, _32, _33, _34;
-            float _41, _42, _43, _44;
-        };
-        float m[4][4];
-    };
-
+    
     Mat() = default;
 
     Mat(const XMMATRIX& other)
     {
-        XMStoreFloat4x4(reinterpret_cast<XMFLOAT4X4*>(this), other);
+        XMStoreFloat4x4(this, other);
     }
 
     Mat(float in_11, float in_12, float in_13, float in_14,
@@ -44,12 +29,7 @@ struct Mat
 
     operator XMMATRIX() const
     {
-        return XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(this));
-    }
-
-    explicit operator MatSimd() const
-    {
-        return XMLoadFloat4x4(reinterpret_cast<const XMFLOAT4X4*>(this));
+        return XMLoadFloat4x4((this));
     }
 
     // ===== 複合代入演算子 =====
@@ -71,7 +51,7 @@ struct Mat
 
     Mat& operator*=(const Mat& rhs)
     {
-        *this = static_cast<Mat>(static_cast<XMMATRIX>(*this) * static_cast<XMMATRIX>(rhs));
+        *this = static_cast<Mat>(static_cast<XMMATRIX>(*this) * (rhs));
         return *this;
     }
 

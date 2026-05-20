@@ -21,6 +21,7 @@
   <ItemGroup>
     <ClInclude Include="Src\Core\common.h" />
     <ClInclude Include="Src\Core\Math\mat.h" />
+    <ClInclude Include="Src\Core\Math\my_math.h" />
     <ClInclude Include="Src\Core\Math\vec2.h" />
     <ClInclude Include="Src\Core\Math\vec3.h" />
     <ClInclude Include="Src\Core\Math\vec4.h" />
@@ -41,6 +42,7 @@
   <ItemGroup>
     <None Include="Shaders\triangle.vs.hlsl" />
     <None Include="Shaders\triangle.ps.hlsl" />
+    <ClCompile Include="Src\Core\Math\my_math.cpp" />
     <ClCompile Include="Src\Engine\application.cpp" />
     <ClCompile Include="Src\Game\main.cpp" />
     <ClCompile Include="Src\Graphics\command_list.cpp" />

@@ -4,22 +4,21 @@
 #include <windows.h>
 using namespace DirectX;
 
-struct Vec3
+struct Vec3 : public XMFLOAT3
 {
-    float x, y, z;
+    Vec3() : XMFLOAT3(0.0f, 0.0f, 0.0f)
+    {
+    }
 
     //初期化
-    Vec3(float x, float y, float z) : x(x), y(y), z(z)
+    Vec3(float x, float y, float z) : XMFLOAT3(x, y, z)
     {
     }
-
-    Vec3() : x(0), y(0), z(0)
-    {
-    }
+    
 
     Vec3(const XMVECTOR& v)
     {
-        XMStoreFloat3(reinterpret_cast<XMFLOAT3*>(this), v);
+        XMStoreFloat3((this), v);
     }
 
     //四則演算（非破壊・const）
@@ -64,7 +63,8 @@ struct Vec3
     //変換
     operator XMVECTOR() const
     {
-        return XMLoadFloat3(reinterpret_cast<const XMFLOAT3*>(this));
+        
+        return XMLoadFloat3((this));
     }
 
     operator XMFLOAT3() const
