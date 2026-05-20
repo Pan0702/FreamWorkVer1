@@ -85,10 +85,7 @@ struct Vec4 : public XMFLOAT4
 };
 
 inline Vec4 operator*(float n, const Vec4& v) { return v * n; }
-
 inline float Dot(const Vec4& a, const Vec4& b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
-
 inline float DistanceSquared(const Vec4& a, const Vec4& b) { return (a - b).LengthSquared(); }
 inline float Distance(const Vec4& a, const Vec4& b) { return (a - b).Length(); }
-
 inline Vec4 Lerp(const Vec4& a, const Vec4& b, float t) { return a + (b - a) * t; }
