@@ -1,66 +1,95 @@
-﻿#pragma once
+#pragma once
+#include <cmath>
 #include <DirectXMath.h>
 #include <windows.h>
 using namespace DirectX;
 
 struct Vec4
 {
-    float x, y ,z ,w;
+    float x, y, z, w;
 
-    void XMStoreFloat4(Vec4* vec2, __m128 v);
-    __m128 XMLoadFloat4(const Vec4* vec2) const;
-    
     //初期化
-    Vec4(float x_, float y_,float z_,float w_) : x(x_), y(y_), z(z_),w(w_){}
-    Vec4() : x(0), y(0), z(0), w(0){}
+    Vec4(float x_, float y_, float z_, float w_) : x(x_), y(y_), z(z_), w(w_)
+    {
+    }
+
+    Vec4() : x(0), y(0), z(0), w(0)
+    {
+    }
+
     Vec4(const XMVECTOR& v)
     {
-        XMVECTOR v2 = v;
-        XMStoreFloat4(this, v2);
+        XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(this), v);
     }
 
-    //四則演算
+    //四則演算（非破壊・const）
     Vec4 operator+(const Vec4& v) const { return Vec4(x + v.x, y + v.y, z + v.z, w + v.w); }
-    Vec4 operator+=(const Vec4& v) const { return Vec4(x + v.x, y + v.y, z + v.z, w + v.w); }
-    Vec4 operator+(float n) const { return Vec4(x + n, y + n, z + n, w + n); }
-
     Vec4 operator-(const Vec4& v) const { return Vec4(x - v.x, y - v.y, z - v.z, w - v.w); }
-    Vec4 operator-=(const Vec4& v) const { return Vec4(x - v.x, y - v.y,z - v.z, w - v.w); }
-    Vec4 operator-(float n) const { return Vec4(x - n, y - n, z - n, w - n); }
-
     Vec4 operator*(const Vec4& v) const { return Vec4(x * v.x, y * v.y, z * v.z, w * v.w); }
-    Vec4 operator*=(const Vec4& v) const { return Vec4(x * v.x, y * v.y, z * v.z,w * v.w); }
-    Vec4 operator*(float n) const { return Vec4(x * n, y * n, z * n,w * n); }
-
     Vec4 operator/(const Vec4& v) const { return Vec4(x / v.x, y / v.y, z / v.z, w / v.w); }
-    Vec4 operator/=(const Vec4& v) const { return Vec4(x / v.x, y / v.y,z / v.z,w / v.w); }
+
+    Vec4 operator+(float n) const { return Vec4(x + n, y + n, z + n, w + n); }
+    Vec4 operator-(float n) const { return Vec4(x - n, y - n, z - n, w - n); }
+    Vec4 operator*(float n) const { return Vec4(x * n, y * n, z * n, w * n); }
     Vec4 operator/(float n) const { return Vec4(x / n, y / n, z / n, w / n); }
 
-    //
-    bool operator==(const Vec4& v) const { return (x == v.x && y == v.y && z == v.z && w == v.w); }
-    bool operator!=(const Vec4& v) const { return (x != v.x && y != v.y && z != v.z && w != v.w); }
-    bool operator<(const Vec4& v) const { return (x < v.x && y < v.y && z < v.z && w < v.w); }
-    bool operator<=(const Vec4& v) const { return (x <= v.x && y <= v.y && z <= v.z && w <= v.w); }
-    bool operator>=(const Vec4& v) const { return (x >= v.x && y >= v.y && z <= v.z && w >= v.w); }
-    bool operator>(const Vec4& v) const { return (x > v.x && y > v.y && z > v.z && w > v.w); }
-    
-    Vec4 operator + () const { return Vec4(x, y, z, w);}
-    Vec4 operator - () const { return Vec4(-x, -y, -z, -w); }
-    
-    Vec4& operator=(const Vec4& v) {  x = v.x, y = v.y,z = v.z; return *this;}
+    //複合代入（破壊・自身を参照で返す）
+    Vec4& operator+=(const Vec4& v) { x += v.x; y += v.y; z += v.z; w += v.w; return *this; }
+    Vec4& operator-=(const Vec4& v) { x -= v.x; y -= v.y; z -= v.z; w -= v.w; return *this; }
+    Vec4& operator*=(const Vec4& v) { x *= v.x; y *= v.y; z *= v.z; w *= v.w; return *this; }
+    Vec4& operator/=(const Vec4& v) { x /= v.x; y /= v.y; z /= v.z; w /= v.w; return *this; }
+
+    Vec4& operator+=(float n) { x += n; y += n; z += n; w += n; return *this; }
+    Vec4& operator-=(float n) { x -= n; y -= n; z -= n; w -= n; return *this; }
+    Vec4& operator*=(float n) { x *= n; y *= n; z *= n; w *= n; return *this; }
+    Vec4& operator/=(float n) { x /= n; y /= n; z /= n; w /= n; return *this; }
+
+    //比較
+    bool operator==(const Vec4& v) const { return x == v.x && y == v.y && z == v.z && w == v.w; }
+    bool operator!=(const Vec4& v) const { return !(*this == v); }
+
+    //単項
+    Vec4 operator+() const { return Vec4(x, y, z, w); }
+    Vec4 operator-() const { return Vec4(-x, -y, -z, -w); }
+
+    //代入
+    Vec4& operator=(const Vec4& v) = default;
+
     Vec4& operator=(const XMVECTOR& v)
     {
-        XMVECTOR v2 = v;
-        XMStoreFloat4(this, v2);
+        XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(this), v);
         return *this;
     }
-    
+
+    //変換
     operator XMVECTOR() const
     {
-        return XMLoadFloat4(this);
+        return XMLoadFloat4(reinterpret_cast<const XMFLOAT4*>(this));
     }
+
     operator XMFLOAT4() const
     {
-        return {x,y,z,w};
+        return {x, y, z, w};
     }
+
+    //長さ・正規化
+    float LengthSquared() const { return x * x + y * y + z * z + w * w; }
+    float Length() const { return std::sqrt(LengthSquared()); }
+
+    Vec4 Normalized() const
+    {
+        float len = Length();
+        return (len > 0) ? Vec4(x / len, y / len, z / len, w / len) : Vec4(0, 0, 0, 0);
+    }
+
+    void Normalize() { *this = Normalized(); }
 };
+
+inline Vec4 operator*(float n, const Vec4& v) { return v * n; }
+
+inline float Dot(const Vec4& a, const Vec4& b) { return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w; }
+
+inline float DistanceSquared(const Vec4& a, const Vec4& b) { return (a - b).LengthSquared(); }
+inline float Distance(const Vec4& a, const Vec4& b) { return (a - b).Length(); }
+
+inline Vec4 Lerp(const Vec4& a, const Vec4& b, float t) { return a + (b - a) * t; }

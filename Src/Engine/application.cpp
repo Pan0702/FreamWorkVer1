@@ -162,6 +162,7 @@ void Application::Run()
 
 void Application::Shutdown()
 {
+    
 }
 
 void Application::Update()
