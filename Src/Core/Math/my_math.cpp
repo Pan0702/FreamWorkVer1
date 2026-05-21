@@ -49,3 +49,8 @@ Mat LookAtRH(const XMVECTOR& eye, const XMVECTOR& at, const XMVECTOR& up)
 {
     return XMMatrixLookAtRH(eye, at, up);
 }
+
+Mat PerspectiveFovLH(float fov, float aspect, float zNear, float zFar)
+{
+    return XMMatrixPerspectiveFovLH(fov, aspect, zNear, zFar);
+}

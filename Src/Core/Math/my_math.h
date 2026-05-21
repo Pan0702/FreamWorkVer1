@@ -13,3 +13,4 @@ Mat Scale(const Vec3& scale);
 Mat Translate(const Vec3& trans);
 Mat LookAtLH(const XMVECTOR& eye, const XMVECTOR& at, const XMVECTOR& up);
 Mat LookAtRH(const XMVECTOR& eye, const XMVECTOR& at, const XMVECTOR& up);
+Mat PerspectiveFovLH(float fov, float aspect, float zNear, float zFar);

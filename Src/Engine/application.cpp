@@ -174,14 +174,14 @@ void Application::Update()
         RotateY(rotation_) *
         RotateX(rotation_ * 0.5f);
 
-    Mat view = XMMatrixLookAtLH(
+    Mat view = LookAtLH(
         Vec3(0.0f, 0.0f, 5.0f), //eyePos
         Vec3(0.0f, 0.0f, 0.0f), //target
         Vec3(0.0f, 1.0f, 0.0f) //up
     );
 
     float aspect = static_cast<float>(window_->GetWidth()) / static_cast<float>(window_->GetHeight());
-    Mat projection = XMMatrixPerspectiveFovLH(
+    Mat projection = PerspectiveFovLH(
        XM_PIDIV2, aspect, 0.1f, 100.0f);
 
     Mat wvp = Transpose(world * view * projection);
