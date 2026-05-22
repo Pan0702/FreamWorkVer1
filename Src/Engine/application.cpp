@@ -10,7 +10,7 @@
 #include "../Graphics/vertex_buffer.h"
 #include "../Graphics/index_buffer.h"
 #include "../Graphics/constant_buffer.h"
-
+#include "../Graphics/depth_stencil.h"
 #include "../Core/Math/my_math.h"
 
 struct Vertex
@@ -147,6 +147,13 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         return false;
     }
 
+    depth_stencil_ = std::make_unique<DepthStencil>();
+    if (!depth_stencil_->Initialize(graphics_device_->GetDevice(),window_->GetWidth(), window_->GetHeight()))
+    {
+        MessageBox(nullptr, L"Failed to create depth stencil", L"Error", MB_OK);
+        return false;   
+    }
+    
     window_->Show();
     return true;
 }
@@ -207,11 +214,12 @@ void Application::Render()
 
     //背景の色を変える
     D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = swap_chain_->GetCurrentRtvHandle();
-    command_list->OMSetRenderTargets(1, &rtv_handle, false, nullptr);
+    D3D12_CPU_DESCRIPTOR_HANDLE dsv_handle = depth_stencil_->GetCpuHandle();
+    command_list->OMSetRenderTargets(1, &rtv_handle, false, &dsv_handle);
     //decided color
     constexpr float clear_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     command_list->ClearRenderTargetView(rtv_handle, clear_color, 0, nullptr);
-
+    command_list->ClearDepthStencilView(depth_stencil_->GetCpuHandle(), D3D12_CLEAR_FLAG_DEPTH,1.0f,0, 0, nullptr);
     //NDC の三角形を、ウィンドウの 0,0 〜 width,heightのピクセル領域に引き伸ばす」設定
     D3D12_VIEWPORT viewport = {};
     viewport.TopLeftX = 0.0f;

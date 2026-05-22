@@ -41,12 +41,16 @@ bool PipelineState::Initialize(ID3D12Device* device, ID3D12RootSignature* root_s
     
     //深度
     {
-        //深度テストしない
-        desc.DepthStencilState.DepthEnable = FALSE;
+        //深度テストする
+        desc.DepthStencilState.DepthEnable = TRUE;
+        
+        desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
+        
+        desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
         //ステンシルテストしない
         desc.DepthStencilState.StencilEnable = FALSE;
         //深度バッファは保持してない
-        desc.DSVFormat = DXGI_FORMAT_UNKNOWN;
+        desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
     }
     
     //色の混ぜ方
@@ -71,7 +75,7 @@ bool PipelineState::Initialize(ID3D12Device* device, ID3D12RootSignature* root_s
         //三角形の塗り方
         desc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
         //裏向きの面を捨てるか
-        desc.RasterizerState.CullMode = D3D12_CULL_MODE_BACK;
+        desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
         //どっちの向きがおもてか
         desc.RasterizerState.FrontCounterClockwise = FALSE;
         //深度値を整数でずらす
