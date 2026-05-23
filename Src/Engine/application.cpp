@@ -12,6 +12,7 @@
 #include "../Graphics/constant_buffer.h"
 #include "../Graphics/depth_stencil.h"
 #include "../Core/Math/my_math.h"
+#include  "../Resource/texture2D.h"
 
 struct Vertex
 {
@@ -153,7 +154,30 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         MessageBox(nullptr, L"Failed to create depth stencil", L"Error", MB_OK);
         return false;   
     }
-    
+    srv_heap_ = std::make_unique<DescriptorHeap>();
+    if (!srv_heap_->Initialize(graphics_device_->GetDevice(),D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,1,true))
+    {
+        MessageBox(nullptr, L"Failed to create descriptor heap", L"Error", MB_OK);
+        return false;  
+    }
+    LoadedImage image;
+    if (!TextureLoader::LoadFromFile(L"Texture/test.png", image))
+    {
+        MessageBox(nullptr, L"Failed to load texture", L"Error", MB_OK);
+        return false; 
+    }
+    if (!command_list_->Reset())
+    {
+        MessageBox(nullptr, L"Failed to reset command list", L"Error", MB_OK);
+        return false;
+    }
+    texture_ = std::make_unique<Texture2D>();
+    if (!texture_->Initialize(graphics_device_->GetDevice(),command_queue_->GetCommandQueue(),command_list_->GetCommandList(),nullptr,image))
+    {
+        MessageBox(nullptr, L"Failed to create texture", L"Error", MB_OK);
+        return false;
+    }
+    texture_->CreateSrv(graphics_device_->GetDevice(),srv_heap_->GetCpuHandle(0));
     window_->Show();
     return true;
 }

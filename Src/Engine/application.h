@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "../Core/common.h"
 
+class DescriptorHeap;
 class DepthStencil;
 class ConstantBuffer;
 class VertexBuffer;
@@ -13,6 +14,9 @@ class CommandQueue;
 class SwapChain;
 class CommandList;
 class IndexBuffer;
+class Texture2D;
+
+
 class Application
 {
 public:
@@ -41,5 +45,7 @@ private:
     std::unique_ptr<IndexBuffer>   index_buffer_;
     std::unique_ptr<ConstantBuffer> constant_buffer_;
     std::unique_ptr<DepthStencil> depth_stencil_;
+    std::unique_ptr<DescriptorHeap> srv_heap_;
+    std::unique_ptr<Texture2D> texture_;
     float rotation_ = 0.0f;
 };

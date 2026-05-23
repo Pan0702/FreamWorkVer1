@@ -58,6 +58,13 @@ Keep Japanese comments acceptable when they explain intent, but prefer short com
 - Wait for GPU completion before destroying or resizing swap-chain resources.
 - Keep `Application` non-copyable because subsystem member order controls destruction order.
 
+## Text Encoding
+
+- Treat `std::string` and `std::string_view` as UTF-8 text by project convention unless explicitly noted otherwise.
+- Prefer UTF-8 strings in non-Win32 layers such as `Core`, `Graphics`, `Resource`, `Renderer`, `Engine`, and `Game`.
+- Keep `wchar_t`, `std::wstring`, `std::wstring_view`, and `const wchar_t*` usage near Win32 API boundaries, primarily inside `Platform`.
+- Convert UTF-8 to wide strings only when calling Win32 `W` APIs such as `CreateWindowExW`, `RegisterClassExW`, or `SetWindowTextW`.
+
 ## Editing Expectations
 
 - Keep changes small and aligned with `---.txt`.
