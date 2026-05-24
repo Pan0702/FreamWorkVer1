@@ -33,15 +33,69 @@ struct Vec3 : public XMFLOAT3
     Vec3 operator/(float n) const { return Vec3(x / n, y / n, z / n); }
 
     //複合代入（破壊・自身を参照で返す）
-    Vec3& operator+=(const Vec3& v) { x += v.x; y += v.y; z += v.z; return *this; }
-    Vec3& operator-=(const Vec3& v) { x -= v.x; y -= v.y; z -= v.z; return *this; }
-    Vec3& operator*=(const Vec3& v) { x *= v.x; y *= v.y; z *= v.z; return *this; }
-    Vec3& operator/=(const Vec3& v) { x /= v.x; y /= v.y; z /= v.z; return *this; }
+    Vec3& operator+=(const Vec3& v)
+    {
+        x += v.x;
+        y += v.y;
+        z += v.z;
+        return *this;
+    }
 
-    Vec3& operator+=(float n) { x += n; y += n; z += n; return *this; }
-    Vec3& operator-=(float n) { x -= n; y -= n; z -= n; return *this; }
-    Vec3& operator*=(float n) { x *= n; y *= n; z *= n; return *this; }
-    Vec3& operator/=(float n) { x /= n; y /= n; z /= n; return *this; }
+    Vec3& operator-=(const Vec3& v)
+    {
+        x -= v.x;
+        y -= v.y;
+        z -= v.z;
+        return *this;
+    }
+
+    Vec3& operator*=(const Vec3& v)
+    {
+        x *= v.x;
+        y *= v.y;
+        z *= v.z;
+        return *this;
+    }
+
+    Vec3& operator/=(const Vec3& v)
+    {
+        x /= v.x;
+        y /= v.y;
+        z /= v.z;
+        return *this;
+    }
+
+    Vec3& operator+=(float n)
+    {
+        x += n;
+        y += n;
+        z += n;
+        return *this;
+    }
+
+    Vec3& operator-=(float n)
+    {
+        x -= n;
+        y -= n;
+        z -= n;
+        return *this;
+    }
+
+    Vec3& operator*=(float n)
+    {
+        x *= n;
+        y *= n;
+        z *= n;
+        return *this;
+    }
+
+    Vec3& operator/=(float n)
+    {
+        x /= n;
+        y /= n;
+        z /= n;
+        return *this;
+    }
 
     //比較
     bool operator==(const Vec3& v) const { return x == v.x && y == v.y && z == v.z; }
@@ -87,7 +141,11 @@ struct Vec3 : public XMFLOAT3
 
 inline Vec3 operator*(float n, const Vec3& v) { return v * n; }
 
-inline float Dot(const Vec3& a, const Vec3& b) { return a.x * b.x + a.y * b.y + a.z * b.z; }
+inline float Dot(const Vec3& a, const Vec3& b)
+{
+    return a.x * b.x + a.y * b.y + a.z * b.z;
+}
+
 inline Vec3 Cross(const Vec3& a, const Vec3& b)
 {
     return Vec3(a.y * b.z - a.z * b.y,

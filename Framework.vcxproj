@@ -38,11 +38,13 @@
     <ClInclude Include="Src\Graphics\shader.h" />
     <ClInclude Include="Src\Graphics\swap_chain.h" />
     <ClInclude Include="Src\Graphics\vertex_buffer.h" />
+    <ClInclude Include="Src\Platform\input.h" />
     <ClInclude Include="Src\Platform\window.h" />
     <ClInclude Include="Src\Resource\texture2D.h" />
     <ClInclude Include="Src\Resource\texture_loder.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Platform\input.cpp" />
     <ClCompile Include="Src\Resource\texture2D.cpp" />
     <ClCompile Include="Src\Resource\texture_loder.cpp" />
     <None Include="Shaders\triangle.vs.hlsl" />
