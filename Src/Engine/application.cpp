@@ -18,6 +18,7 @@ struct Vertex
 {
     float position[3];
     float color[3];
+    float uv[2]; 
 };
 
 Application::Application() = default;
@@ -96,26 +97,45 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         MessageBox(nullptr, L"Failed to create pipeline state", L"Error", MB_OK);
         return false;
     }
+    
+    Vertex cube_vertices[24] = {
+        // ===== 前面 (-Z) =====
+        {{-0.3f, -0.3f, -0.3f}, {1,1,1}, {0.0f, 1.0f}},
+        {{-0.3f, +0.3f, -0.3f}, {1,1,1}, {0.0f, 0.0f}},
+        {{+0.3f, +0.3f, -0.3f}, {1,1,1}, {1.0f, 0.0f}},
+        {{+0.3f, -0.3f, -0.3f}, {1,1,1}, {1.0f, 1.0f}},
 
-    //三角形用のやつ
-    Vertex vertices[] = {
-        {{0.0f, 0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}}, // 上-赤
-        {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}}, // 右下-緑
-        {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}, // 左下-青
+        // ===== 背面 (+Z) =====
+        {{+0.3f, -0.3f, +0.3f}, {1,1,1}, {0.0f, 1.0f}},
+        {{+0.3f, +0.3f, +0.3f}, {1,1,1}, {0.0f, 0.0f}},
+        {{-0.3f, +0.3f, +0.3f}, {1,1,1}, {1.0f, 0.0f}},
+        {{-0.3f, -0.3f, +0.3f}, {1,1,1}, {1.0f, 1.0f}},
+
+        // ===== 左面 (-X) =====
+        {{-0.3f, -0.3f, +0.3f}, {1,1,1}, {0.0f, 1.0f}},
+        {{-0.3f, +0.3f, +0.3f}, {1,1,1}, {0.0f, 0.0f}},
+        {{-0.3f, +0.3f, -0.3f}, {1,1,1}, {1.0f, 0.0f}},
+        {{-0.3f, -0.3f, -0.3f}, {1,1,1}, {1.0f, 1.0f}},
+
+        // ===== 右面 (+X) =====
+        {{+0.3f, -0.3f, -0.3f}, {1,1,1}, {0.0f, 1.0f}},
+        {{+0.3f, +0.3f, -0.3f}, {1,1,1}, {0.0f, 0.0f}},
+        {{+0.3f, +0.3f, +0.3f}, {1,1,1}, {1.0f, 0.0f}},
+        {{+0.3f, -0.3f, +0.3f}, {1,1,1}, {1.0f, 1.0f}},
+
+        // ===== 上面 (+Y) =====
+        {{-0.3f, -0.3f, +0.3f}, {1,1,1}, {0.0f, 1.0f}},
+        {{-0.3f, -0.3f, -0.3f}, {1,1,1}, {0.0f, 0.0f}},
+        {{+0.3f, -0.3f, -0.3f}, {1,1,1}, {1.0f, 0.0f}},
+        {{+0.3f, -0.3f, +0.3f}, {1,1,1}, {1.0f, 1.0f}},
+
+        // ===== 下面 (-Y) =====
+        {{-0.3f, +0.3f, -0.3f}, {1,1,1}, {0.0f, 1.0f}},
+        {{-0.3f, +0.3f, +0.3f}, {1,1,1}, {0.0f, 0.0f}},
+        {{+0.3f, +0.3f, +0.3f}, {1,1,1}, {1.0f, 0.0f}},
+        {{+0.3f, +0.3f, -0.3f}, {1,1,1}, {1.0f, 1.0f}},
     };
-
-
-    //立方体の描画 (NDC Z は [0,1] 範囲なので Z を 0.2〜0.8 に収める)
-    Vertex cube_vertices[8] = {
-        {{-0.3f, -0.3f, 0.2f}, {1, 0, 0}},
-        {{+0.3f, -0.3f, 0.2f}, {0, 1, 0}},
-        {{+0.3f, +0.3f, 0.2f}, {0, 0, 1}},
-        {{-0.3f, +0.3f, 0.2f}, {1, 1, 0}},
-        {{-0.3f, -0.3f, 0.8f}, {1, 0, 1}},
-        {{+0.3f, -0.3f, 0.8f}, {0, 1, 1}},
-        {{+0.3f, +0.3f, 0.8f}, {0.5f, 0.5f, 0.5f}},
-        {{-0.3f, +0.3f, 0.8f}, {1, 1, 1}}
-    };
+    
 
     vertex_buffer_ = std::make_unique<VertexBuffer>();
     if (!vertex_buffer_->Initialize(graphics_device_->GetDevice(), cube_vertices, sizeof(cube_vertices),
@@ -126,12 +146,12 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
     }
 
     uint16_t cube_indices[36] = {
-        0, 3, 2, 0, 2, 1, // 前面 (-Z)
-        4, 5, 6, 4, 6, 7, // 背面 (+Z)
-        0, 4, 7, 0, 7, 3, // 左面 (-X)
-        1, 2, 6, 1, 6, 5, // 右面 (+X)
-        0, 1, 5, 0, 5, 4, // 下面 (-Y)
-        3, 7, 6, 3, 6, 2, // 上面 (+Y)
+        0, 1, 2,  0, 2, 3,    // 前面
+        4, 5, 6,  4, 6, 7,    // 背面 
+        8, 9, 10, 8, 10, 11,  // 左面 
+       12, 13, 14, 12, 14, 15, // 右面 
+       16, 17, 18, 16, 18, 19, // 下面 
+       20, 21, 22, 20, 22, 23, // 上面 
     };
     index_buffer_ = std::make_unique<IndexBuffer>();
     DXGI_FORMAT format = DXGI_FORMAT_R16_UINT;
@@ -263,6 +283,9 @@ void Application::Render()
     command_list->RSSetScissorRects(num_rects, rects);
     command_list->SetGraphicsRootSignature(root_signature_->GetRootSignature());
     command_list->SetPipelineState(pipeline_state_->GetPipelineState());
+    ID3D12DescriptorHeap* heaps[] = {srv_heap_->GetHeap()};
+    command_list->SetDescriptorHeaps(1, heaps);
+    command_list->SetGraphicsRootDescriptorTable(1, srv_heap_->GetGpuHandle(0));
     command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     D3D12_VERTEX_BUFFER_VIEW vbv = vertex_buffer_->GetVertexBufferView();
     command_list->IASetVertexBuffers(0, 1, &vbv);

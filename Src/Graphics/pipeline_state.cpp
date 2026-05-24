@@ -1,11 +1,12 @@
 ﻿#include "pipeline_state.h"
 #include "shader.h"
+
 bool PipelineState::Initialize(ID3D12Device* device, ID3D12RootSignature* root_signature, const Shader& vertex_shader,
                                const Shader& pixel_shader)
 {
     D3D12_INPUT_ELEMENT_DESC input_elements[] = {
         {
-            .SemanticName = "POSITION",.SemanticIndex = 0,
+            .SemanticName = "POSITION", .SemanticIndex = 0,
             .Format = DXGI_FORMAT_R32G32B32_FLOAT,
             .InputSlot = 0,
             .AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT,
@@ -13,8 +14,16 @@ bool PipelineState::Initialize(ID3D12Device* device, ID3D12RootSignature* root_s
             .InstanceDataStepRate = 0
         },
         {
-            .SemanticName = "COLOR",.SemanticIndex = 0,
+            .SemanticName = "COLOR", .SemanticIndex = 0,
             .Format = DXGI_FORMAT_R32G32B32_FLOAT,
+            .InputSlot = 0,
+            .AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT,
+            .InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+            .InstanceDataStepRate = 0
+        },
+        {
+            .SemanticName = "TEXCOORD", .SemanticIndex = 0,
+            .Format = DXGI_FORMAT_R32G32_FLOAT,
             .InputSlot = 0,
             .AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT,
             .InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
@@ -38,21 +47,21 @@ bool PipelineState::Initialize(ID3D12Device* device, ID3D12RootSignature* root_s
     //MSAA(アンチエイリアス)なし
     //0は失敗、2以上で使用、４がよくつかわれる値
     desc.SampleDesc.Count = 1;
-    
+
     //深度
     {
         //深度テストする
         desc.DepthStencilState.DepthEnable = TRUE;
-        
+
         desc.DepthStencilState.DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ALL;
-        
+
         desc.DepthStencilState.DepthFunc = D3D12_COMPARISON_FUNC_LESS;
         //ステンシルテストしない
         desc.DepthStencilState.StencilEnable = FALSE;
         //深度バッファは保持してない
         desc.DSVFormat = DXGI_FORMAT_D32_FLOAT;
     }
-    
+
     //色の混ぜ方
     {
         //MSAA用のα処理
@@ -60,7 +69,7 @@ bool PipelineState::Initialize(ID3D12Device* device, ID3D12RootSignature* root_s
         //RT(RenderTargetGPUが描き込む先のテクスチャ)
         //が複数枚あるとき1枚ごとに設定を分けるか
         desc.BlendState.IndependentBlendEnable = FALSE;
-        
+
         auto& rt0 = desc.BlendState.RenderTarget[0];
         //αブレンドするか
         rt0.BlendEnable = FALSE;
@@ -69,7 +78,7 @@ bool PipelineState::Initialize(ID3D12Device* device, ID3D12RootSignature* root_s
         //RGB全体に書き込む
         rt0.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL;
     }
-    
+
     //ラスタライザ(3D三角形から2Dpixel変換ツール)
     {
         //三角形の塗り方
