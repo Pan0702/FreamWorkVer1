@@ -68,6 +68,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="codingGuidLine.txt" />
+    <Content Include="Src\Platform\key_code.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>15.0</VCProjectVersion>
