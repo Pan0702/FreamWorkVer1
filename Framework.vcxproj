@@ -25,6 +25,15 @@
     <ClInclude Include="Src\Core\Math\vec2.h" />
     <ClInclude Include="Src\Core\Math\vec3.h" />
     <ClInclude Include="Src\Core\Math\vec4.h" />
+    <ClInclude Include="Src\Debug\ImGui\imconfig.h" />
+    <ClInclude Include="Src\Debug\ImGui\imgui.h" />
+    <ClInclude Include="Src\Debug\ImGui\imgui_impl_dx12.h" />
+    <ClInclude Include="Src\Debug\ImGui\imgui_impl_win32.h" />
+    <ClInclude Include="Src\Debug\ImGui\imgui_internal.h" />
+    <ClInclude Include="Src\Debug\ImGui\imgui_manager.h" />
+    <ClInclude Include="Src\Debug\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="Src\Debug\ImGui\imstb_textedit.h" />
+    <ClInclude Include="Src\Debug\ImGui\imstb_truetype.h" />
     <ClInclude Include="Src\Engine\application.h" />
     <ClInclude Include="Src\Engine\camera.h" />
     <ClInclude Include="Src\Graphics\command_list.h" />
@@ -45,6 +54,14 @@
     <ClInclude Include="Src\Resource\texture_loder.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Debug\ImGui\imgui.cpp" />
+    <ClCompile Include="Src\Debug\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="Src\Debug\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="Src\Debug\ImGui\imgui_impl_dx12.cpp" />
+    <ClCompile Include="Src\Debug\ImGui\imgui_impl_win32.cpp" />
+    <ClCompile Include="Src\Debug\ImGui\imgui_manager.cpp" />
+    <ClCompile Include="Src\Debug\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="Src\Debug\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Src\Engine\camera.cpp" />
     <ClCompile Include="Src\Platform\input.cpp" />
     <ClCompile Include="Src\Resource\texture2D.cpp" />
