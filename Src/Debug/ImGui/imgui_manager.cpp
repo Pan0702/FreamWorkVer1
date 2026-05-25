@@ -47,4 +47,38 @@ void ImGuiManager::Shutdown()
 //   srvHeap_ は ComPtr<ID3D12DescriptorHeap> でメンバに持たせておけば
 //   Shutdown 時に自動解放されます。
 //
-//   詰まったら聞いてください。
+// //   詰まったら聞いてください。
+// ● なりますね。ただし注意点が1つ — ダウンロードしたバージョンが 1.92以降
+//   の新しい API を使っています。
+//
+//   前に私が説明した ImGui_ImplDX12_Init(device, numFrames, format, heap, 
+//   cpuHandle, gpuHandle) は 旧API です。このサンプルでは
+//   ImGui_ImplDX12_InitInfo 構造体を使う 新API になっています。
+//
+//   なので Initialize では旧式ではなくこっちに合わせてください:
+//
+//   ImGui_ImplDX12_InitInfo init_info = {};
+// init_info.Device = device;
+// init_info.CommandQueue = commandQueue;  // ← これも引数で受け取る必要あり
+// init_info.NumFramesInFlight = numFramesInFlight;
+// init_info.RTVFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+// init_info.SrvDescriptorHeap = srvHeap_;
+// init_info.SrvDescriptorAllocFn = ...;
+// init_info.SrvDescriptorFreeFn = ...;
+// ImGui_ImplDX12_Init(&init_info);
+//
+// つまり ImGuiManager::Initialize の引数 に ID3D12CommandQueue*
+// も追加が必要です。
+//
+// また、SRV の Alloc/Free コールバックはサンプルの
+// ExampleDescriptorHeapAllocator
+// をそのまま参考にしていいです。フォント1個だけなら NumDescriptors=1
+// でも動きますが、サンプルと同じく 64
+// 程度確保しておくと将来テクスチャ表示等にも対応しやすいです。
+//
+// あとサンプルで見るべきポイント:
+// - WndProc で ImGui_ImplWin32_WndProcHandler を先頭で呼ぶ部分（一番下）
+// - EndFrame 相当 の箇所: SetDescriptorHeaps →
+// ImGui_ImplDX12_RenderDrawData の流れ
+//
+// このサンプルをそのまま ImGuiManager に詰め替えていけば OK です。
