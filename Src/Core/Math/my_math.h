@@ -3,6 +3,7 @@
 #include "vec3.h"
 #include "vec4.h"
 #include "mat.h"
+#include <numbers>
 Mat Identity();
 Mat Transpose(const Mat& m);
 Mat Inverse(const Mat& m);
@@ -14,3 +15,9 @@ Mat Translate(const Vec3& trans);
 Mat LookAtLH(const XMVECTOR& eye, const XMVECTOR& at, const XMVECTOR& up);
 Mat LookAtRH(const XMVECTOR& eye, const XMVECTOR& at, const XMVECTOR& up);
 Mat PerspectiveFovLH(float fov, float aspect, float zNear, float zFar);
+
+constexpr float kPI = std::numbers::pi_v<float>;
+constexpr float k2PI = 2.0f * kPI;
+constexpr float kHalfPi = kPI * 0.5f;
+constexpr float kDegToRad = kPI / 180.0f;
+constexpr float kRadToDeg = 180.0f / kPI;

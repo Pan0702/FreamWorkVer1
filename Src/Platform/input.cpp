@@ -39,9 +39,9 @@ bool Input::CheckKey(uint8_t keycode, KeyState key) const
     const bool prev = previous_keys_[keycode];
     switch (key)
     {
-    case KeyState::Down: return now;
-    case KeyState::Released: return !now && prev;
-    case KeyState::Pressed: return now && !prev;
+    case KeyState::kDown: return now;
+    case KeyState::kReleased: return !now && prev;
+    case KeyState::kPressed: return now && !prev;
     }
     return false;
 }
@@ -52,9 +52,9 @@ bool Input::CheckMouseButton(uint8_t button, KeyState key) const
     const bool prev = mouse_buttons_previous_[button];
     switch (key)
     {
-    case KeyState::Down: return now;
-    case KeyState::Released: return !now && prev;
-    case KeyState::Pressed: return now && !prev;
+    case KeyState::kDown: return now;
+    case KeyState::kReleased: return !now && prev;
+    case KeyState::kPressed: return now && !prev;
     }
     return false;
 }

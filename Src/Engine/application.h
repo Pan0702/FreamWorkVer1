@@ -1,6 +1,8 @@
 ﻿#pragma once
 #include "../Core/common.h"
 
+class Camera;
+class Input;
 class DescriptorHeap;
 class DepthStencil;
 class ConstantBuffer;
@@ -47,5 +49,7 @@ private:
     std::unique_ptr<DepthStencil> depth_stencil_;
     std::unique_ptr<DescriptorHeap> srv_heap_;
     std::unique_ptr<Texture2D> texture_;
+    std::unique_ptr<Input> input_;
+    std::unique_ptr<Camera> camera_;
     float rotation_ = 0.0f;
 };

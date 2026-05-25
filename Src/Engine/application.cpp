@@ -1,4 +1,8 @@
 ﻿#include "application.h"
+
+#include <iostream>
+
+#include "camera.h"
 #include "../Platform/window.h"
 #include "../Graphics/graphics_device.h"
 #include "../Graphics/swap_chain.h"
@@ -12,6 +16,7 @@
 #include "../Graphics/constant_buffer.h"
 #include "../Graphics/depth_stencil.h"
 #include "../Core/Math/my_math.h"
+#include "../Platform/input.h"
 #include  "../Resource/texture2D.h"
 
 struct Vertex
@@ -198,6 +203,11 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         return false;
     }
     texture_->CreateSrv(graphics_device_->GetDevice(),srv_heap_->GetCpuHandle(0));
+    input_ = std::make_unique<Input>();
+    input_->Initialize(window_->GetHwnd());
+    camera_ = std::make_unique<Camera>();
+    const float aspect = static_cast<float>(width) / static_cast<float>(height);
+    camera_->Initialize(kHalfPi, aspect, 0.1f, 100.0f);
     window_->Show();
     return true;
 }
@@ -219,21 +229,26 @@ void Application::Shutdown()
 
 void Application::Update()
 {
-    rotation_ += 0.01f;
+    input_->Update();
+    if (input_->CheckKey(Key::kA, KeyState::kDown))
+    {
+        rotation_ += 0.01f;
+    }
+    if (input_->CheckKey(Key::kD, KeyState::kDown))
+    {
+        rotation_ -= 0.01f;
+    }
 
     Mat world =
         RotateY(rotation_) *
         RotateX(rotation_ * 0.5f);
 
-    Mat view = LookAtLH(
-        Vec3(0.0f, 0.0f, 5.0f), //eyePos
-        Vec3(0.0f, 0.0f, 0.0f), //target
-        Vec3(0.0f, 1.0f, 0.0f) //up
-    );
-
-    float aspect = static_cast<float>(window_->GetWidth()) / static_cast<float>(window_->GetHeight());
-    Mat projection = PerspectiveFovLH(
-       XM_PIDIV2, aspect, 0.1f, 100.0f);
+    camera_->pos_ = Vec3(0,0,5.0f);
+    camera_->look_ = Vec3(0,0,-1.0f);
+    
+    Mat view = camera_->GetViewMatrix();
+    
+    Mat projection = camera_->GetProjectionMatrix(); 
 
     Mat wvp = Transpose(world * view * projection);
     constant_buffer_->Update(&wvp, sizeof(wvp));

@@ -157,3 +157,10 @@ inline float DistanceSquared(const Vec3& a, const Vec3& b) { return (a - b).Leng
 inline float Distance(const Vec3& a, const Vec3& b) { return (a - b).Length(); }
 
 inline Vec3 Lerp(const Vec3& a, const Vec3& b, float t) { return a + (b - a) * t; }
+inline void IsZeroVec(Vec3& v)
+{
+    if ( XMVector3Equal(XMLoadFloat3(&v), XMVectorZero()))
+    {
+         v = Vec3(0,0,-2.0f);
+    }
+}
