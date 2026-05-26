@@ -1,32 +1,35 @@
 #pragma once
+#pragma execution_character_set("shift_jis")
+#include <functional>
+
 #include "../Core/common.h"
 
 constexpr uint32_t kFrameCount = 2;
 
-//描画領域サイズをまとめるstruct
+// ウィンドウのサイズをまとめるstruct
 struct WindowSize
 {
     uint32_t width;
     uint32_t height;
 };
 
-//Win32ウィンドウ全体を管理するクラス
+// Win32ウィンドウ全体を管理するクラス
 class Window
 {
 public:
     Window();
     ~Window();
     // ウィンドウを作成する
-    //　title:タイトルバーに表示する文字列
-    //　width:ウィンドウの横幅
-    //　height:ウィンドウの縦幅
-    //  作成できたらtrue
+    // title: タイトルバーに表示する文字列
+    // width: ウィンドウの横幅
+    // height: ウィンドウの縦幅
+    // 返り値: 作成できたらtrue
     bool Create(const wchar_t* title, uint32_t width, uint32_t height);
 
-    // ウィンドウを描画する
+    // ウィンドウを表示する
     void Show() const;
 
-    //　舞フレームWindowsイベントを処理する
+    // 毎フレームWindowsイベントを処理する
     bool ProcessMessages() const;
 
     // ウィンドウハンドルを取得する
@@ -41,21 +44,23 @@ public:
     // ウィンドウのサイズを取得する
     WindowSize GetSize() const;
 
+    using ResizeCallback = std::function<void(uint32_t, uint32_t)>;
+    void SetResizeCallback(ResizeCallback callback);
 private:
-    // Win32から呼ばれるメッセージ受信用の入口
-    // HWNDに保存したthisを取り出して、HandleMessage()へ処理を渡す。
-    // hwnd:通知先ウィンドウ
-    // msg:メッセージ種類
-    // wParam:msgごとの追加情報１
-    // lParam:msgごとの追加情報２
-    // return:メッセージの処理結果
+    // Win32から呼び出されるメッセージ受信用の関数
+    // HWNDに保存されたthisを取り出して、HandleMessage()関数へ渡す。
+    // hwnd: 通知先ウィンドウ
+    // msg: メッセージ種類
+    // wParam: msgごとの追加情報1
+    // lParam: msgごとの追加情報2
+    // return: メッセージの処理結果
     static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
     // WndProcから渡されたメッセージを実際に処理する
-    // msg:メッセージ種類
-    // wParam:msgごとの追加情報１
-    // lParam:msgごとの追加情報２
-    // return:メッセージの処理結果
+    // msg: メッセージ種類
+    // wParam: msgごとの追加情報1
+    // lParam: msgごとの追加情報2
+    // return: メッセージの処理結果
     LRESULT HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 
     HINSTANCE instance_ = nullptr;
@@ -63,4 +68,5 @@ private:
     WindowSize size_ = {};
     bool closed_ = false;
     std::wstring class_name_ = L"FrameWorkWindowClass";
+    ResizeCallback resize_callback_ = nullptr;
 };

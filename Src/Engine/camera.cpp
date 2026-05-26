@@ -40,3 +40,8 @@ Vec3 Camera::GetUp() const
 {
     return up_;
 }
+
+void Camera::SetAspect(float aspect)
+{
+    aspect_ = aspect;
+}

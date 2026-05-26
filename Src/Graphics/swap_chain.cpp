@@ -8,7 +8,8 @@ bool SwapChain::Initialize(IDXGIFactory6* factory, ID3D12Device* device, ID3D12C
         MessageBox(NULL, L"Failed to create swap chain", L"Error", MB_OK);
         return false;
     }
-
+    
+    device_ = device;
     if (!CreateRenderTargetViews(device))
     {
         MessageBox(NULL, L"Failed to create render target views", L"Error", MB_OK);
@@ -21,8 +22,6 @@ bool SwapChain::Initialize(IDXGIFactory6* factory, ID3D12Device* device, ID3D12C
 bool SwapChain::CreateSwapChain(IDXGIFactory6* factory, ID3D12CommandQueue* command_queue, HWND hwnd, uint32_t width,
                                 uint32_t height)
 {
-    
-   
     DXGI_SWAP_CHAIN_DESC1 swap_chain_desc = {};
     swap_chain_desc.Width = width;
     swap_chain_desc.Height = height;
@@ -31,11 +30,11 @@ bool SwapChain::CreateSwapChain(IDXGIFactory6* factory, ID3D12CommandQueue* comm
     swap_chain_desc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
     swap_chain_desc.BufferCount = kFrameCount;
     swap_chain_desc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
-    
+
     ComPtr<IDXGISwapChain1> swap_chain1;
     HRESULT hr = factory->CreateSwapChainForHwnd(
-        command_queue,hwnd,&swap_chain_desc,nullptr,
-        nullptr,&swap_chain1);
+        command_queue, hwnd, &swap_chain_desc, nullptr,
+        nullptr, &swap_chain1);
     if (FAILED(hr))
     {
         return false;
@@ -45,7 +44,7 @@ bool SwapChain::CreateSwapChain(IDXGIFactory6* factory, ID3D12CommandQueue* comm
     {
         return false;
     }
-    return true;  
+    return true;
 }
 
 bool SwapChain::CreateRenderTargetViews(ID3D12Device* device)
@@ -56,8 +55,6 @@ bool SwapChain::CreateRenderTargetViews(ID3D12Device* device)
     {
         return false;
     }
-    
-
 
 
     for (uint32_t i = 0; i < kFrameCount; ++i)
@@ -97,4 +94,29 @@ ID3D12Resource* SwapChain::GetCurrentBackBuffer() const
 D3D12_CPU_DESCRIPTOR_HANDLE SwapChain::GetCurrentRtvHandle() const
 {
     return rtv_handles_[swap_chain_->GetCurrentBackBufferIndex()];
+}
+
+bool SwapChain::Resize(uint32_t width, uint32_t height)
+{
+    for (uint32_t i = 0; i < kFrameCount; ++i)
+    {
+        render_targets_[i].Reset();
+    }
+    DXGI_SWAP_CHAIN_DESC1 desc = {};
+    swap_chain_->GetDesc1(&desc);
+    HRESULT hr = swap_chain_->ResizeBuffers(kFrameCount, width, height, desc.Format, desc.Flags);
+    if (FAILED(hr))
+    {
+        return false;
+    }
+    for (uint32_t i = 0; i < kFrameCount; ++i)
+    {
+        hr = swap_chain_->GetBuffer(i, IID_PPV_ARGS(&render_targets_[i]));
+        if (FAILED(hr))
+        {
+            return false;
+        }
+        device_->CreateRenderTargetView(render_targets_[i].Get(), nullptr, rtv_handles_[i]);
+    }
+    return true;
 }

@@ -65,7 +65,7 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         MessageBox(nullptr, L"Failed to create swap chain", L"Error", MB_OK);
         return false;
     }
-
+    
     command_list_ = std::make_unique<CommandList>();
     if (!command_list_->Initialize(graphics_device_->GetDevice()))
     {
@@ -208,6 +208,20 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
     camera_ = std::make_unique<Camera>();
     const float aspect = static_cast<float>(width) / static_cast<float>(height);
     camera_->Initialize(kHalfPi, aspect, 0.1f, 100.0f);
+    
+    window_->SetResizeCallback([this](uint32_t w, uint32_t h)
+{
+    WaitForGPU();
+    swap_chain_->Resize(w, h);
+    depth_stencil_->Resize(w, h);
+    camera_->SetAspect(static_cast<float>(w) / static_cast<float>(h));
+});
+    
+    if (!imgui_manager_.Initialize(window_->GetHwnd(),graphics_device_->GetDevice(),command_queue_->GetCommandQueue(),kFrameCount))
+    {
+        MessageBox(nullptr, L"Failed to initialize imgui manager", L"Error", MB_OK);
+        return false;
+    }
     window_->Show();
     return true;
 }
@@ -216,15 +230,18 @@ void Application::Run()
 {
     while (window_->ProcessMessages())
     {
+        imgui_manager_.BeginFrame();
+        ImGui::ShowDemoWindow();
         Update();
-        Render();
+        Render(); 
+
     }
     WaitForGPU();
 }
 
 void Application::Shutdown()
 {
-    
+ imgui_manager_.Shutdown();
 }
 
 void Application::Update()
@@ -275,6 +292,7 @@ void Application::Render()
     D3D12_CPU_DESCRIPTOR_HANDLE rtv_handle = swap_chain_->GetCurrentRtvHandle();
     D3D12_CPU_DESCRIPTOR_HANDLE dsv_handle = depth_stencil_->GetCpuHandle();
     command_list->OMSetRenderTargets(1, &rtv_handle, false, &dsv_handle);
+    
     //decided color
     constexpr float clear_color[4] = {0.0f, 0.0f, 0.0f, 1.0f};
     command_list->ClearRenderTargetView(rtv_handle, clear_color, 0, nullptr);
@@ -309,12 +327,12 @@ void Application::Render()
     command_list->IASetIndexBuffer(&ibv);
     //立方体描画
     command_list->DrawIndexedInstanced(index_buffer_->GetIndexCount(), 1, 0, 0, 0);
-
+    imgui_manager_.EndFrame(command_list_->GetCommandList());
 
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
     command_list->ResourceBarrier(1, &barrier);
-
+    
     if (!command_list_->Close())
     {
         MessageBox(nullptr, L"Failed to close command list", L"Error", MB_OK);

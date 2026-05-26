@@ -1,84 +1,118 @@
-﻿#include "imgui_manager.h"
+#include "imgui_manager.h"
 
-bool ImGuiManager::Initialize(HWND hwnd, ID3D12Device* device, int numFramesInFlight)
+#include "imgui_impl_dx12.h"
+#include "imgui_impl_win32.h"
+
+bool ImGuiManager::Initialize(HWND hwnd, ID3D12Device* device, ID3D12CommandQueue* command_queue, int num_frames_in_flight)
 {
+        if (hwnd == nullptr || !IsWindow(hwnd)) {
+            return false;
+        }
+    IMGUI_CHECKVERSION();
+    ImGui::CreateContext();
+    //�F�̐ݒ�
+    ImGui::StyleColorsDark();
+    D3D12_DESCRIPTOR_HEAP_DESC heap_desc = {};
+    heap_desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+    heap_desc.NumDescriptors = 64;
+    heap_desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+
+    HRESULT hr = device->CreateDescriptorHeap(&heap_desc, IID_PPV_ARGS(&srv_heap_));
+    if (FAILED(hr))
+    {
+        return false;
+    }
+    srv_allocator_.Create(device, srv_heap_.Get());
+    ImGui_ImplDX12_InitInfo init_info = {};
+    init_info.Device = device;
+    init_info.CommandQueue = command_queue;
+    init_info.NumFramesInFlight =  num_frames_in_flight;
+    init_info.RTVFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
+    init_info.SrvDescriptorHeap = srv_heap_.Get();
+    init_info.UserData = this;
+    init_info.DSVFormat = DXGI_FORMAT_UNKNOWN;
+    init_info.SrvDescriptorAllocFn = [](ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu_handle,
+                                        D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu_handle)
+    {
+        ImGuiManager* manager = static_cast<ImGuiManager*>(info->UserData);
+        manager->srv_allocator_.Alloc(out_cpu_handle, out_gpu_handle);
+    };
+    init_info.SrvDescriptorFreeFn = [](ImGui_ImplDX12_InitInfo* info, D3D12_CPU_DESCRIPTOR_HANDLE cpu_handle,
+                                       D3D12_GPU_DESCRIPTOR_HANDLE gpu_handle)
+    {
+        ImGuiManager* manager = static_cast<ImGuiManager*>(info->UserData);
+         manager->srv_allocator_.Free(cpu_handle, gpu_handle);
+    };
+    
+    if (!ImGui_ImplWin32_Init(hwnd))
+    {
+        return false;
+    }
+    
+    if (!ImGui_ImplDX12_Init(&init_info))
+    {
+        return false;
+    }
+    return true;
 }
 
 void ImGuiManager::BeginFrame()
 {
+    ImGui_ImplDX12_NewFrame();
+    ImGui_ImplWin32_NewFrame();
+    ImGui::NewFrame();
 }
 
 void ImGuiManager::EndFrame(ID3D12GraphicsCommandList* command_list)
 {
+    ImGui::Render();
+    ID3D12DescriptorHeap* heaps[] = { srv_heap_.Get() };
+    command_list->SetDescriptorHeaps(1, heaps);
+    ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), command_list);
 }
 
 void ImGuiManager::Shutdown()
 {
+    ImGui_ImplDX12_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
 }
-// ● OK。では Initialize → BeginFrame → EndFrame → Shutdown
-//   の順に実装していきましょう。                     
-//
-//   Initialize の中でやること（順番通り）:
-//   1. IMGUI_CHECKVERSION()
-//   2. ImGui::CreateContext()
-//   3. ImGui::StyleColorsDark()（好みで）
-//   4. SRV DescriptorHeap 作成 — D3D12_DESCRIPTOR_HEAP_DESC で Type =
-//   CBV_SRV_UAV, NumDescriptors = 1, Flags = SHADER_VISIBLE
-//   5. ImGui_ImplWin32_Init(hwnd)
-//   6. ImGui_ImplDX12_Init(device, numFramesInFlight,
-//   DXGI_FORMAT_R8G8B8A8_UNORM, srvHeap_, CPUHandle, GPUHandle)
-//
-//   BeginFrame:
-//   1. ImGui_ImplDX12_NewFrame()
-//   2. ImGui_ImplWin32_NewFrame()
-//   3. ImGui::NewFrame()
-//
-//   EndFrame(commandList):
-//   1. ImGui::Render()
-//   2. commandList->SetDescriptorHeaps(1, &srvHeap_) — 自前ヒープから ImGui
-//   用に切り替え
-//   3. ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), commandList)
-//
-//   Shutdown:
-//   1. ImGui_ImplDX12_Shutdown()
-//   2. ImGui_ImplWin32_Shutdown()
-//   3. ImGui::DestroyContext()
-//
-//   srvHeap_ は ComPtr<ID3D12DescriptorHeap> でメンバに持たせておけば
-//   Shutdown 時に自動解放されます。
-//
-// //   詰まったら聞いてください。
-// ● なりますね。ただし注意点が1つ — ダウンロードしたバージョンが 1.92以降
-//   の新しい API を使っています。
-//
-//   前に私が説明した ImGui_ImplDX12_Init(device, numFrames, format, heap, 
-//   cpuHandle, gpuHandle) は 旧API です。このサンプルでは
-//   ImGui_ImplDX12_InitInfo 構造体を使う 新API になっています。
-//
-//   なので Initialize では旧式ではなくこっちに合わせてください:
-//
-//   ImGui_ImplDX12_InitInfo init_info = {};
-// init_info.Device = device;
-// init_info.CommandQueue = commandQueue;  // ← これも引数で受け取る必要あり
-// init_info.NumFramesInFlight = numFramesInFlight;
-// init_info.RTVFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
-// init_info.SrvDescriptorHeap = srvHeap_;
-// init_info.SrvDescriptorAllocFn = ...;
-// init_info.SrvDescriptorFreeFn = ...;
-// ImGui_ImplDX12_Init(&init_info);
-//
-// つまり ImGuiManager::Initialize の引数 に ID3D12CommandQueue*
-// も追加が必要です。
-//
-// また、SRV の Alloc/Free コールバックはサンプルの
-// ExampleDescriptorHeapAllocator
-// をそのまま参考にしていいです。フォント1個だけなら NumDescriptors=1
-// でも動きますが、サンプルと同じく 64
-// 程度確保しておくと将来テクスチャ表示等にも対応しやすいです。
-//
-// あとサンプルで見るべきポイント:
-// - WndProc で ImGui_ImplWin32_WndProcHandler を先頭で呼ぶ部分（一番下）
-// - EndFrame 相当 の箇所: SetDescriptorHeaps →
-// ImGui_ImplDX12_RenderDrawData の流れ
-//
-// このサンプルをそのまま ImGuiManager に詰め替えていけば OK です。
+
+void ImGuiManager::ExampleDescriptorHeapAllocator::Create(ID3D12Device* device, ID3D12DescriptorHeap* heap)
+{
+    IM_ASSERT(Heap == nullptr && FreeIndices.empty());
+    Heap = heap;
+    D3D12_DESCRIPTOR_HEAP_DESC desc = heap->GetDesc();
+    HeapType = desc.Type;
+    HeapStartCpu = Heap->GetCPUDescriptorHandleForHeapStart();
+    HeapStartGpu = Heap->GetGPUDescriptorHandleForHeapStart();
+    HeapHandleIncrement = device->GetDescriptorHandleIncrementSize(HeapType);
+    FreeIndices.reserve(static_cast<int>(desc.NumDescriptors));
+    for (int n = static_cast<int>(desc.NumDescriptors); n > 0; n--)
+        FreeIndices.push_back(n - 1);
+}
+
+void ImGuiManager::ExampleDescriptorHeapAllocator::Destroy()
+{
+    Heap = nullptr;
+    FreeIndices.clear();
+}
+
+void ImGuiManager::ExampleDescriptorHeapAllocator::Alloc(D3D12_CPU_DESCRIPTOR_HANDLE* out_cpu,
+                                                         D3D12_GPU_DESCRIPTOR_HANDLE* out_gpu)
+{
+    IM_ASSERT(FreeIndices.Size > 0);
+    int idx = FreeIndices.back();
+    FreeIndices.pop_back();
+    out_cpu->ptr = HeapStartCpu.ptr + (idx * HeapHandleIncrement);
+    out_gpu->ptr = HeapStartGpu.ptr + (idx * HeapHandleIncrement);
+}
+
+void ImGuiManager::ExampleDescriptorHeapAllocator::Free(D3D12_CPU_DESCRIPTOR_HANDLE cpu,
+                                                        D3D12_GPU_DESCRIPTOR_HANDLE gpu)
+{
+    int cpu_idx = static_cast<int>((cpu.ptr - HeapStartCpu.ptr) / HeapHandleIncrement);
+    int gpu_idx = static_cast<int>((gpu.ptr - HeapStartGpu.ptr) / HeapHandleIncrement);
+    IM_ASSERT(cpu_idx == gpu_idx);
+    FreeIndices.push_back(cpu_idx);
+}

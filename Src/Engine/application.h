@@ -1,6 +1,6 @@
 ﻿#pragma once
 #include "../Core/common.h"
-
+#include "../Debug/ImGui/imgui_manager.h"
 class Camera;
 class Input;
 class DescriptorHeap;
@@ -51,5 +51,6 @@ private:
     std::unique_ptr<Texture2D> texture_;
     std::unique_ptr<Input> input_;
     std::unique_ptr<Camera> camera_;
+    ImGuiManager imgui_manager_;
     float rotation_ = 0.0f;
 };

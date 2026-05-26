@@ -10,6 +10,7 @@ public:
     Vec3 GetForward() ;
     Vec3 GetRight() ;
     Vec3 GetUp() const;
+    void SetAspect(float aspect);
     
     Vec3 pos_;
     Vec3 look_;
