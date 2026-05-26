@@ -18,6 +18,7 @@
 #include "../Core/Math/my_math.h"
 #include "../Platform/input.h"
 #include  "../Resource/texture2D.h"
+#include "../Resource/mesh.h"
 
 struct Vertex
 {
@@ -73,36 +74,6 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         return false;
     }
 
-    root_signature_ = std::make_unique<RootSignature>();
-    if
-    (!root_signature_->Initialize(graphics_device_->GetDevice()))
-    {
-        MessageBox(nullptr, L"Failed to create root signature", L"Error", MB_OK);
-        return false;
-    }
-
-    vertex_shader_ = std::make_unique<Shader>();
-    if (!vertex_shader_->LoadFromFile(L"Shaders/triangle.vs.hlsl", "VSMain", "vs_5_0"))
-    {
-        MessageBox(nullptr, L"Failed to load vertex shader", L"Error", MB_OK);
-        return false;
-    }
-
-    pixel_shader_ = std::make_unique<Shader>();
-    if (!pixel_shader_->LoadFromFile(L"Shaders/triangle.ps.hlsl", "PSMain", "ps_5_0"))
-    {
-        MessageBox(nullptr, L"Failed to load pixel shader", L"Error", MB_OK);
-        return false;
-    }
-
-    pipeline_state_ = std::make_unique<PipelineState>();
-    if (!pipeline_state_->Initialize(graphics_device_->GetDevice(), root_signature_->GetRootSignature(),
-                                     *vertex_shader_, *pixel_shader_))
-    {
-        MessageBox(nullptr, L"Failed to create pipeline state", L"Error", MB_OK);
-        return false;
-    }
-    
     Vertex cube_vertices[24] = {
         // ===== 前面 (-Z) =====
         {{-0.3f, -0.3f, -0.3f}, {1,1,1}, {0.0f, 1.0f}},
@@ -141,14 +112,10 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         {{+0.3f, +0.3f, -0.3f}, {1,1,1}, {1.0f, 1.0f}},
     };
     
-
-    vertex_buffer_ = std::make_unique<VertexBuffer>();
-    if (!vertex_buffer_->Initialize(graphics_device_->GetDevice(), cube_vertices, sizeof(cube_vertices),
-                                    sizeof(cube_vertices[0])))
-    {
-        MessageBox(nullptr, L"Failed to create vertex buffer", L"Error", MB_OK);
-        return false;
-    }
+    VertexData vertex_data = {};
+    vertex_data.data = cube_vertices;
+    vertex_data.total_size = sizeof(cube_vertices);
+    vertex_data.stride = sizeof(cube_vertices[0]);
 
     uint16_t cube_indices[36] = {
         0, 1, 2,  0, 2, 3,    // 前面
@@ -158,20 +125,12 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
        16, 17, 18, 16, 18, 19, // 下面 
        20, 21, 22, 20, 22, 23, // 上面 
     };
-    index_buffer_ = std::make_unique<IndexBuffer>();
-    DXGI_FORMAT format = DXGI_FORMAT_R16_UINT;
-    if (!index_buffer_->Initialize(graphics_device_->GetDevice(), cube_indices, sizeof(cube_indices), format))
-    {
-        MessageBox(nullptr, L"Failed to create index buffer", L"Error", MB_OK);
-        return false;
-    }
-
-    constant_buffer_ = std::make_unique<ConstantBuffer>();
-    if (!constant_buffer_->Initialize(graphics_device_->GetDevice(), sizeof(DirectX::XMFLOAT4X4)))
-    {
-        MessageBox(nullptr, L"Failed to create constant buffer", L"Error", MB_OK);
-        return false;
-    }
+    
+    IndexData index_data = {};
+    index_data.data = cube_indices;
+    index_data.total_size = sizeof(cube_indices);
+    index_data.format = DXGI_FORMAT_R16_UINT;
+    
 
     depth_stencil_ = std::make_unique<DepthStencil>();
     if (!depth_stencil_->Initialize(graphics_device_->GetDevice(),window_->GetWidth(), window_->GetHeight()))
@@ -314,8 +273,7 @@ void Application::Render()
         {0, 0, static_cast<LONG>(window_->GetWidth()), static_cast<LONG>(window_->GetHeight())}
     };
     command_list->RSSetScissorRects(num_rects, rects);
-    command_list->SetGraphicsRootSignature(root_signature_->GetRootSignature());
-    command_list->SetPipelineState(pipeline_state_->GetPipelineState());
+
     ID3D12DescriptorHeap* heaps[] = {srv_heap_->GetHeap()};
     command_list->SetDescriptorHeaps(1, heaps);
     command_list->SetGraphicsRootDescriptorTable(1, srv_heap_->GetGpuHandle(0));

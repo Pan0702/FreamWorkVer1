@@ -50,8 +50,11 @@
     <ClInclude Include="Src\Graphics\vertex_buffer.h" />
     <ClInclude Include="Src\Platform\input.h" />
     <ClInclude Include="Src\Platform\window.h" />
+    <ClInclude Include="Src\Resource\material.h" />
+    <ClInclude Include="Src\Resource\mesh.h" />
     <ClInclude Include="Src\Resource\texture2D.h" />
     <ClInclude Include="Src\Resource\texture_loder.h" />
+    <ClInclude Include="Src\Resource\vertex_types.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Debug\ImGui\imgui.cpp" />
@@ -64,6 +67,8 @@
     <ClCompile Include="Src\Debug\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Src\Engine\camera.cpp" />
     <ClCompile Include="Src\Platform\input.cpp" />
+    <ClCompile Include="Src\Resource\material.cpp" />
+    <ClCompile Include="Src\Resource\mesh.cpp" />
     <ClCompile Include="Src\Resource\texture2D.cpp" />
     <ClCompile Include="Src\Resource\texture_loder.cpp" />
     <None Include="Shaders\triangle.vs.hlsl" />

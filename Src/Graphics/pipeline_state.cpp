@@ -2,37 +2,12 @@
 #include "shader.h"
 
 bool PipelineState::Initialize(ID3D12Device* device, ID3D12RootSignature* root_signature, const Shader& vertex_shader,
-                               const Shader& pixel_shader)
+                               const Shader& pixel_shader, std::span<const D3D12_INPUT_ELEMENT_DESC> input_layout)
 {
-    D3D12_INPUT_ELEMENT_DESC input_elements[] = {
-        {
-            .SemanticName = "POSITION", .SemanticIndex = 0,
-            .Format = DXGI_FORMAT_R32G32B32_FLOAT,
-            .InputSlot = 0,
-            .AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT,
-            .InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
-            .InstanceDataStepRate = 0
-        },
-        {
-            .SemanticName = "COLOR", .SemanticIndex = 0,
-            .Format = DXGI_FORMAT_R32G32B32_FLOAT,
-            .InputSlot = 0,
-            .AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT,
-            .InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
-            .InstanceDataStepRate = 0
-        },
-        {
-            .SemanticName = "TEXCOORD", .SemanticIndex = 0,
-            .Format = DXGI_FORMAT_R32G32_FLOAT,
-            .InputSlot = 0,
-            .AlignedByteOffset = D3D12_APPEND_ALIGNED_ELEMENT,
-            .InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
-            .InstanceDataStepRate = 0
-        },
-    };
+   
     D3D12_GRAPHICS_PIPELINE_STATE_DESC desc = {};
-    desc.InputLayout.pInputElementDescs = input_elements;
-    desc.InputLayout.NumElements = _countof(input_elements);
+    desc.InputLayout.pInputElementDescs = input_layout.data();
+    desc.InputLayout.NumElements = static_cast<UINT>(input_layout.size());
     desc.pRootSignature = root_signature;
     desc.VS = vertex_shader.GetBytecode();
     desc.PS = pixel_shader.GetBytecode();
