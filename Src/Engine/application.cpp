@@ -9,10 +9,6 @@
 #include "../Graphics/command_queue.h"
 #include "../Graphics/command_list.h"
 #include "../Graphics/shader.h"
-#include "../Graphics/root_signature.h"
-#include "../Graphics/pipeline_state.h"
-#include "../Graphics/vertex_buffer.h"
-#include "../Graphics/index_buffer.h"
 #include "../Graphics/constant_buffer.h"
 #include "../Graphics/depth_stencil.h"
 #include "../Core/Math/my_math.h"
@@ -74,7 +70,7 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         return false;
     }
 
-    Vertex cube_vertices[24] = {
+        Vertex cube_vertices[24] = {
         // ===== 前面 (-Z) =====
         {{-0.3f, -0.3f, -0.3f}, {1,1,1}, {0.0f, 1.0f}},
         {{-0.3f, +0.3f, -0.3f}, {1,1,1}, {0.0f, 0.0f}},
@@ -131,6 +127,25 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
     index_data.total_size = sizeof(cube_indices);
     index_data.format = DXGI_FORMAT_R16_UINT;
     
+    const D3D12_INPUT_ELEMENT_DESC input_layout[] = {
+        { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
+          offsetof(Vertex, position),
+    D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "COLOR",    0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
+          offsetof(Vertex, color),
+    D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+        { "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT,    0,
+          offsetof(Vertex, uv),
+    D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+    };
+    
+    mesh_ = std::make_unique<Mesh>();
+    if (!mesh_->Create(graphics_device_->GetDevice(),vertex_data,index_data,input_layout))
+    {
+        MessageBox(nullptr, L"Failed to create mesh", L"Error", MB_OK);
+        return false;
+    }
+
 
     depth_stencil_ = std::make_unique<DepthStencil>();
     if (!depth_stencil_->Initialize(graphics_device_->GetDevice(),window_->GetWidth(), window_->GetHeight()))
@@ -278,13 +293,15 @@ void Application::Render()
     command_list->SetDescriptorHeaps(1, heaps);
     command_list->SetGraphicsRootDescriptorTable(1, srv_heap_->GetGpuHandle(0));
     command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    D3D12_VERTEX_BUFFER_VIEW vbv = vertex_buffer_->GetVertexBufferView();
+    D3D12_VERTEX_BUFFER_VIEW vbv =mesh_->GetVertexBufferView();
     command_list->IASetVertexBuffers(0, 1, &vbv);
-    command_list->SetGraphicsRootConstantBufferView(0, constant_buffer_->GetGpuAddress());
-    D3D12_INDEX_BUFFER_VIEW ibv = index_buffer_->GetIndexBufferView();
+    command_list->SetGraphicsRootConstantBufferView(0,
+    constant_buffer_->GetGpuAddress());
+    D3D12_INDEX_BUFFER_VIEW ibv =
+    mesh_->GetIndexBufferView();
     command_list->IASetIndexBuffer(&ibv);
     //立方体描画
-    command_list->DrawIndexedInstanced(index_buffer_->GetIndexCount(), 1, 0, 0, 0);
+    command_list->DrawIndexedInstanced(mesh_->GetIndexCount(), 1, 0, 0, 0);
     imgui_manager_.EndFrame(command_list_->GetCommandList());
 
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
