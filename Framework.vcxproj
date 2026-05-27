@@ -50,6 +50,11 @@
     <ClInclude Include="Src\Graphics\vertex_buffer.h" />
     <ClInclude Include="Src\Platform\input.h" />
     <ClInclude Include="Src\Platform\window.h" />
+    <ClInclude Include="Src\Renderer\mesh_renderer.h" />
+    <ClInclude Include="Src\Renderer\render_object.h" />
+    <ClInclude Include="Src\Renderer\scene.h" />
+    <ClInclude Include="Src\Renderer\scene_render.h" />
+    <ClInclude Include="Src\Renderer\scene_renderer.h" />
     <ClInclude Include="Src\Resource\material.h" />
     <ClInclude Include="Src\Resource\mesh.h" />
     <ClInclude Include="Src\Resource\texture2D.h" />
@@ -67,6 +72,11 @@
     <ClCompile Include="Src\Debug\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="Src\Engine\camera.cpp" />
     <ClCompile Include="Src\Platform\input.cpp" />
+    <ClCompile Include="Src\Renderer\mesh_renderer.cpp" />
+    <ClCompile Include="Src\Renderer\render_object.cpp" />
+    <ClCompile Include="Src\Renderer\scene.cpp" />
+    <ClCompile Include="Src\Renderer\scene_render.cpp" />
+    <ClCompile Include="Src\Renderer\scene_renderer.cpp" />
     <ClCompile Include="Src\Resource\material.cpp" />
     <ClCompile Include="Src\Resource\mesh.cpp" />
     <ClCompile Include="Src\Resource\texture2D.cpp" />

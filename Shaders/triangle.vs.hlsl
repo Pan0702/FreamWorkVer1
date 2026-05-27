@@ -3,15 +3,17 @@
 struct VSInput
 {
     float3 position : POSITION;
-    float3 color : COLOR;
-    float2 uv : TEXCOORD;
+    float3 normal   : NORMAL;
+    float2 uv       : TEXCOORD;
+    float3 tangent  : TANGENT;
+    float3 bitangent : BINORMAL;
 };
 
 struct PSInput
 {
     float4 position : SV_POSITION;
-    float4 color : COLOR;
-    float2 uv : TEXCOORD;
+    float2 uv       : TEXCOORD;
+    float3 normal   : NORMAL;
 };
 cbuffer SceneCB : register(b0)
 {
@@ -22,7 +24,7 @@ PSInput VSMain(VSInput input)
     PSInput output;
     //ìØéüç¿ïWÇÃwê¨ï™
     output.position = mul(float4(input.position, 1.0),wvp);
-    output.color = float4(input.color, 1.0);
+    output.normal = input.normal;
     output.uv = input.uv;
     return output;
 }

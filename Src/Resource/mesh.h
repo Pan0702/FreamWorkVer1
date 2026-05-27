@@ -3,8 +3,8 @@
 #include <memory>
 #include <vector>
 #include "../Core/common.h"
-class IndexBuffer;
-class VertexBuffer;
+#include "../Graphics/index_buffer.h"
+#include "../Graphics/vertex_buffer.h"
 
 struct VertexData
 {

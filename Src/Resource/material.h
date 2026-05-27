@@ -3,18 +3,18 @@
 #include <memory>
 #include <span>
 
-#include "../Graphics/graphics_device.h"
-
+#include "../Graphics/pipeline_state.h"
+#include "../Graphics/root_signature.h"
+#include  "../Graphics/shader.h"
+class DescriptorHeap;
 class Texture2D;
-class PipelineState;
-class RootSignature;
-class Shader;
+
 
 class Material
 {
 public:
     bool Create(ID3D12Device* device,const wchar_t* vs_path,const wchar_t* ps_path,std::span<const D3D12_INPUT_ELEMENT_DESC> input_layout);
-    void Apply(ID3D12GraphicsCommandList* command_list);
+    void Apply(ID3D12GraphicsCommandList* command_list,DescriptorHeap* descriptor_heap);
     void SetDiffuse(Texture2D* diffuse);
     void SetNormal(Texture2D* normal);
     void SetSpecular(Texture2D* specular);

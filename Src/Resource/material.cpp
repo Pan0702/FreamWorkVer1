@@ -3,6 +3,7 @@
 #include "../Graphics/pipeline_state.h"
 #include "../Graphics/shader.h"
 #include "../Resource/texture2D.h"
+#include "../Graphics/descriptor_heap.h"
 bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_t* ps_path,
     std::span<const D3D12_INPUT_ELEMENT_DESC> input_layout)
 {
@@ -39,10 +40,14 @@ bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_
     return true;
 }
 
-void Material::Apply(ID3D12GraphicsCommandList* command_list)
+void Material::Apply(ID3D12GraphicsCommandList* command_list,DescriptorHeap* descriptor_heap)
 {
     command_list->SetGraphicsRootSignature(root_signature_->GetRootSignature());
     command_list->SetPipelineState(pipeline_state_->GetPipelineState());
+    ID3D12DescriptorHeap* heaps[] = {descriptor_heap->GetHeap()};
+    command_list->SetDescriptorHeaps(1, heaps);
+    command_list->SetGraphicsRootDescriptorTable(1,
+    descriptor_heap->GetGpuHandle(0));
 }
 
 void Material::SetDiffuse(Texture2D* diffuse)
