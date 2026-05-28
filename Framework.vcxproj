@@ -55,6 +55,7 @@
     <ClInclude Include="Src\Renderer\scene.h" />
     <ClInclude Include="Src\Renderer\scene_render.h" />
     <ClInclude Include="Src\Renderer\scene_renderer.h" />
+    <ClInclude Include="Src\Renderer\sprite_renderer.h" />
     <ClInclude Include="Src\Resource\material.h" />
     <ClInclude Include="Src\Resource\mesh.h" />
     <ClInclude Include="Src\Resource\texture2D.h" />
@@ -62,6 +63,8 @@
     <ClInclude Include="Src\Resource\vertex_types.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\sprite.ps.hlsl" />
+    <None Include="Shaders\sprite.vs.hlsl" />
     <ClCompile Include="Src\Debug\ImGui\imgui.cpp" />
     <ClCompile Include="Src\Debug\ImGui\imgui_demo.cpp" />
     <ClCompile Include="Src\Debug\ImGui\imgui_draw.cpp" />
@@ -77,6 +80,7 @@
     <ClCompile Include="Src\Renderer\scene.cpp" />
     <ClCompile Include="Src\Renderer\scene_render.cpp" />
     <ClCompile Include="Src\Renderer\scene_renderer.cpp" />
+    <ClCompile Include="Src\Renderer\sprite_renderer.cpp" />
     <ClCompile Include="Src\Resource\material.cpp" />
     <ClCompile Include="Src\Resource\mesh.cpp" />
     <ClCompile Include="Src\Resource\texture2D.cpp" />

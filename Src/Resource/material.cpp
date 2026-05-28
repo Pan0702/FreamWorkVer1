@@ -4,18 +4,22 @@
 #include "../Graphics/shader.h"
 #include "../Resource/texture2D.h"
 #include "../Graphics/descriptor_heap.h"
+
 bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_t* ps_path,
-    std::span<const D3D12_INPUT_ELEMENT_DESC> input_layout)
+                      std::span<const D3D12_INPUT_ELEMENT_DESC> input_layout)
 {
-    
     root_signature_ = std::make_unique<RootSignature>();
-    if
-    (!root_signature_->Initialize(device))
+    RootSignatureBuilder builder;
+    builder
+        .AddCbv(0, D3D12_SHADER_VISIBILITY_VERTEX)
+        .AddSrvTable(0, 1, D3D12_SHADER_VISIBILITY_PIXEL)
+        .AddStaticSampler(0, D3D12_SHADER_VISIBILITY_PIXEL, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
+
+    if (!builder.Build(device, root_signature_.get()))
     {
         MessageBox(nullptr, L"Failed to create root signature", L"Error", MB_OK);
         return false;
     }
-
     vertex_shader_ = std::make_unique<Shader>();
     if (!vertex_shader_->LoadFromFile(vs_path, "VSMain", "vs_5_0"))
     {
@@ -31,8 +35,20 @@ bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_
     }
 
     pipeline_state_ = std::make_unique<PipelineState>();
-    if (!pipeline_state_->Initialize(device, root_signature_->GetRootSignature(),
-                                     *vertex_shader_, *pixel_shader_, input_layout))
+    D3D12_INPUT_LAYOUT_DESC layout_desc = {};
+    layout_desc.pInputElementDescs = input_layout.data();
+    layout_desc.NumElements =
+        static_cast<UINT>(input_layout.size());
+
+    PipelineStateBuilder ps_builder;
+    ps_builder
+        .SetRootSignature(root_signature_->GetRootSignature())
+        .SetVertexShader(vertex_shader_->GetBytecode())
+        .SetPixelShader(pixel_shader_->GetBytecode())
+        .SetInputLayout(layout_desc);
+
+
+    if (!ps_builder.Build(device, pipeline_state_.get()))
     {
         MessageBox(nullptr, L"Failed to create pipeline state", L"Error", MB_OK);
         return false;
@@ -40,14 +56,14 @@ bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_
     return true;
 }
 
-void Material::Apply(ID3D12GraphicsCommandList* command_list,DescriptorHeap* descriptor_heap)
+void Material::Apply(ID3D12GraphicsCommandList* command_list, DescriptorHeap* descriptor_heap)
 {
     command_list->SetGraphicsRootSignature(root_signature_->GetRootSignature());
     command_list->SetPipelineState(pipeline_state_->GetPipelineState());
     ID3D12DescriptorHeap* heaps[] = {descriptor_heap->GetHeap()};
     command_list->SetDescriptorHeaps(1, heaps);
     command_list->SetGraphicsRootDescriptorTable(1,
-    descriptor_heap->GetGpuHandle(0));
+                                                 descriptor_heap->GetGpuHandle(0));
 }
 
 void Material::SetDiffuse(Texture2D* diffuse)
@@ -67,7 +83,7 @@ void Material::SetSpecular(Texture2D* specular)
 
 void Material::SetHeight(Texture2D* height)
 {
-    height_ = height;   
+    height_ = height;
 }
 
 Texture2D* Material::GetDiffuse() const
@@ -77,15 +93,15 @@ Texture2D* Material::GetDiffuse() const
 
 Texture2D* Material::GetNormal() const
 {
-    return normal_;  
+    return normal_;
 }
 
 Texture2D* Material::GetSpecular() const
 {
-    return specular_; 
+    return specular_;
 }
 
 Texture2D* Material::GetHeight() const
 {
-    return height_; 
+    return height_;
 }

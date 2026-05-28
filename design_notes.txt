@@ -1,0 +1,277 @@
+================================================================================
+DirectX12 学習用フレームワーク 描画周りリファクタ計画
+================================================================================
+
+【目的】
+現行プロジェクトを「設計メモ（UE風Actor/Component + Collect→Sort→Submit）」に
+寄せていくにあたり、必要なもの・不要なもの・修正点を整理する。
+
+
+================================================================================
+1. 現状把握（既存実装の構造）
+================================================================================
+
+Application
+ ├─ Window, GraphicsDevice, CommandQueue, SwapChain, CommandList
+ ├─ DescriptorHeap(srv_heap), DepthStencil
+ ├─ Texture2D, Mesh, Material        ← Application直接所有（仮配置）
+ ├─ Camera, Input
+ ├─ RenderObject(Mesh, Material, Transform, Priority)  ← Application直接所有
+ ├─ Scene → RenderObject*[] を保持
+ └─ SceneRenderer
+      ├─ MeshRenderer (ConstantBuffer 1個)
+      ├─ ImGuiManager
+      └─ SpriteRenderer (ファイルだけ作成済み、未統合)
+
+
+【描画の流れ（現状）】
+
+Application::Render()
+ → command_list->Reset()
+ → SceneRenderer::Render(RendererData, Scene, Camera)
+   ├─ ImGui::BeginFrame
+   ├─ Barrier(Present → RT) / SetRenderTargets / Clear
+   ├─ Viewport / Scissor / Topology 設定
+   ├─ Scene::Sort()  ← priorityで並び替え
+   ├─ MeshRenderer::Render(cmd, RenderObjects, Camera, srv_heap)
+   ├─ ImGui::EndFrame
+   └─ Barrier(RT → Present)
+ → command_list->Close() / ExecuteCommandLists / Present / WaitIdle
+
+
+================================================================================
+2. そのまま使える・残すもの
+================================================================================
+
+[◎ 評価]
+- Application           : 全体ライフサイクル管理。設計案の「トップ」と一致
+- Window                : HWND・リサイズ
+- GraphicsDevice        : ID3D12Device
+- CommandQueue          : キュー・Fence
+- SwapChain             : バックバッファ
+- CommandList           : 描画コマンド
+- DescriptorHeap        : SRV用ヒープ。Application所有のままMaterial::Applyに引数で渡す方針◎
+- DepthStencil          : 深度バッファ
+- Camera                : View/Projection 提供。Cameraの所在問題を既に解決済み
+- Input                 : 入力管理（描画と無関係だがアプリ必須）
+- Mesh                  : VB + IB + InputLayout。StaticMeshComponentが参照する
+- Material              : Shader/PSO/RS/Texture。Apply(cmd, srv_heap)の引数注入は健全
+- Texture2D             : テクスチャ + SRV作成
+- Shader/PSO/RootSig    : DX12オブジェクト。Materialの下に隠れる
+- ImGuiManager          : デバッグUI。UIRenderer系の3兄弟の1つとして残す
+- VertexBuffer/IndexBuffer : Meshの中身
+
+[⚠ 残すが要修正]
+- ConstantBuffer        : 1個固定はNG → リングバッファ化が必須
+
+
+================================================================================
+3. 大幅改修・改名するもの
+================================================================================
+
+[現状]                                  [改修後]                            [理由]
+-------------------------------------------------------------------------------
+RenderObject                            削除 → StaticMeshComponent          Actor/Component化のため
+(Transform, Mesh*, Material*, Priority)
+
+Scene (RenderObject*[] + Sort)          World に改名、Actor所有に変更        Sceneは「Actorを所有する世界」になる
+
+SceneRenderer                           Collect→Sort→Submit 指揮官に拡張    設計案の中核
+(MeshRendererを呼ぶだけ)
+
+MeshRenderer                            registered配列を持つ自己完結型に    OnAttach自動登録対応
+(RenderObjects 受け取り)
+
+Application                             Mesh/Material/Texture/RenderObject  仮配置の解消。Actorに持たせる
+(これらを直接所有)                      を所有しない構造に
+
+SpriteRenderer (空クラス)               World空間Sprite描画として実装       新規実装
+
+Scene::Sort() の priority ソート        各Renderer内のSortに移動            描画戦略はRendererの責務
+
+
+================================================================================
+4. 新規追加するもの
+================================================================================
+
+【4-1. Component階層（最小限）】
+
+Component (基底, virtual OnAttach/OnDetach/Tick)
+ ├─ TransformComponent  : pos / rot / scale → Mat
+ ├─ StaticMeshComponent : Mesh*, Material*
+ ├─ SpriteComponent     : Texture*, srcRect, color, space=World/Screen
+ └─ (後回し: AIComponent, MovementComponent, HealthComponent, etc.)
+
+
+【4-2. Actor基底】
+
+class Actor {
+    std::vector<std::unique_ptr<Component>> components_;
+    TransformComponent* transform_;  // 必須Componentのショートカット
+public:
+    template<typename T> T* AddComponent();
+    template<typename T> T* GetComponent();
+    virtual void BeginPlay();
+    virtual void Tick(float dt);
+};
+
+
+【4-3. Renderer基底 + 3兄弟】
+
+Renderer (基底, virtual Collect/Sort/Submit)
+ ├─ MeshRenderer    : StaticMeshComponent管理、不透明Pass
+ ├─ SpriteRenderer  : World Sprite管理
+ └─ UIRenderer      : Screen Sprite管理 + ImGuiManagerもここに含めるか別建てか
+
+
+【4-4. ConstantBufferAllocator（リングバッファ）】
+
+★ 現状の致命的問題：
+   MeshRenderer::constant_buffer_ が1個固定。
+   複数RenderObject描画で毎回上書きになってGPUフライト中の値を壊す
+   （または運良く動いているだけ）。
+
+class ConstantBufferAllocator {
+    // フレーム数 × 想定オブジェクト数 のUploadHeapを確保
+    D3D12_GPU_VIRTUAL_ADDRESS Allocate(size_t size, const void* data);
+    void ResetFrame();
+};
+
+→ 設計変更前に必須の修正。
+
+
+【4-5. DrawCommand 構造体】
+
+中間表現。Componentから値を取り出してフラットな構造体に展開する。
+
+struct DrawCommand {
+    Texture*    image;
+    Rect        srcRect;
+    Vec4        color;
+    Mat         worldMat;
+    float       depth;    // ソート用
+    uint32_t    layer;    // UIレイヤー用
+};
+
+
+【4-6. SpriteComponent用シェーダー・PSO】
+
+- Shaders/sprite.vs.hlsl / sprite.ps.hlsl は新規追加済み（git statusで確認）
+- SpriteRenderer / UIRenderer 側でPSO構築が必要
+
+
+================================================================================
+5. いらないもの・削除候補
+================================================================================
+
+- Src/Renderer/scene_render.h (空クラス scene_render)
+    → 空のままで scene_renderer.h と紛らわしい。削除推奨
+
+- RenderObject クラス
+    → StaticMeshComponent に置き換わるので不要
+
+- RenderObject::priority_ / Scene::needs_sort_
+    → priorityによるシーン全体ソートは破棄。各Renderer内でソート戦略を持つ
+
+- Application が直接持つ mesh_ / material_ / texture_ / render_object_
+    → 仮配置。Actor所有に移行後は削除
+
+- Scene::Sort() の呼び出し（scene_renderer.cpp 64行目）
+    → Renderer側のSortに移管
+
+
+================================================================================
+6. 既存実装の地雷ポイント
+================================================================================
+
+【6-1. MeshRenderer の CB 1個問題（最重要）】
+
+class MeshRenderer {
+    std::unique_ptr<ConstantBuffer> constant_buffer_;  // ← 1個固定
+};
+
+→ RenderObjectが2個以上になった瞬間にフレーム内で値を上書きしてアウト。
+   リングバッファ化が必須。
+
+
+【6-2. 毎フレーム WaitIdle 呼んでる】
+
+// application.cpp:241
+command_queue_->WaitIdle();
+
+→ 「毎フレームGPUが終わるまでCPU待ち」の同期方式。
+   学習段階では正しい挙動を確認できるので今のままでOK。
+   後でフレームバッファリング（FrameInFlight）を入れたくなったら直す。
+
+
+【6-3. srv_heap が 1個分しか確保していない】
+
+// application.cpp:138
+srv_heap_->Initialize(..., 1, true);
+
+→ テクスチャ1個前提。Sprite/UIで複数テクスチャを使うなら拡張必要。
+
+
+================================================================================
+7. 修正・追加の優先順位
+================================================================================
+
+[Phase 0: ゴミ掃除と地雷除去（設計変更と独立に今やれる）]
+  1. scene_render.h 削除
+  2. ConstantBufferAllocator 新設（CB寿命問題を先に潰す）
+  3. srv_heap の容量拡張
+
+[Phase 1: Component素振り]
+  4. Component 基底 + Actor + TransformComponent 新設
+     - 既存コードは触らない
+     - 新しい Actor を試しに作って動作確認
+
+[Phase 2: Mesh側のComponent化]
+  5. StaticMeshComponent 新設、RenderObject 廃止
+  6. MeshRenderer を「registered配列 + Collect/Sort/Submit」構造に改造
+  7. Scene → World 改名、Actor所有に変更
+
+[Phase 3: Sprite側の実装]
+  8. SpriteComponent 新設
+  9. SpriteRenderer 実装（World空間）
+  10. UIRenderer 実装（Screen空間）
+
+[Phase 4: 仕上げ]
+  11. 半透明Pass対応（深度書き込みOFF PSO追加、Mesh/Sprite合流ソート）
+  12. 即時API（DrawImmediate）追加
+
+
+================================================================================
+8. DX12観点の設計ルール（厳守）
+================================================================================
+
+1. Component は GPUリソースを所有しない（Mesh/Material/imageは参照のみ）
+2. PSO切替は1描画パスにつき1回にまとめる（Sortで揃えてからSubmit）
+3. Component.Draw() で CommandList を直接叩く線は存在しない
+   → 描画コマンドの発行は必ずRenderer側のSubmit()内のみ
+4. Tick（状態更新）と Render（描画）は完全分離
+   → TickはGPUに一切触れない／RenderはCollect時にComponentを読むだけ
+5. ConstantBuffer(WVP) はリングバッファで確保
+   → 1フレーム中の複数オブジェクト分を別領域に書き、
+     GPU参照中の領域を上書きしない
+
+
+================================================================================
+9. 透明ソート（半透明描画の順序問題）対策メモ
+================================================================================
+
+【現象】
+- Meshの奥にあるはずの半透明Spriteが手前に来る
+- 半透明Sprite同士の前後関係が逆になる
+
+【対策】
+- 第1段階: 今の固定順で実装（Mesh→Sprite→UI）。半透明Spriteが少なければ気にならない
+- 第2段階: 半透明SpriteのPSOを「深度書き込みOFF、読み取りON」にする
+           → Meshに隠れる挙動が正しくなる（これで8割の問題は消える）
+- 第3段階: 距離ソート追加（半透明同士のチラつき対策）
+- 第4段階: MeshとSpriteの半透明を1つのPassに合流させてソート
+
+【最初に入れておきたい設定】
+  DepthEnable    = TRUE
+  DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO  // 書き込みOFF
+  DepthFunc      = D3D12_COMPARISON_LESS        // 読み取りはON

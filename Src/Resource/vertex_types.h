@@ -1,5 +1,6 @@
 #pragma once
 #include "../Core/common.h"
+
 struct StaticVertex
 {
     float position[3];
@@ -35,5 +36,24 @@ static const D3D12_INPUT_ELEMENT_DESC kStaticVertexLayout[] =
         "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
         offsetof(StaticVertex,
                  bitangent), D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
+    },
+};
+
+struct SpriteVertex
+{
+    float position[2];
+    float uv[2];
+};
+
+static const D3D12_INPUT_ELEMENT_DESC kSpriteVertexLayout[] = {
+    {
+        "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0,
+        offsetof(SpriteVertex, position),
+        D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
+    },
+    {
+        "TEXCOORD", 0, DXGI_FORMAT_R32G32_FLOAT, 0,
+        offsetof(SpriteVertex, uv),
+        D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
     },
 };
