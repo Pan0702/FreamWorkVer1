@@ -1,0 +1,301 @@
+================================================================================
+ デバッグ描画 拡張 設計書
+   ① DrawBox の角度(rotation)指定
+   ② スクリーン空間 / ワールド空間 の2系統に分離
+   ③ DrawLine3D など 3Dデバッグ描画
+================================================================================
+
+--------------------------------------------------------------------------------
+ 0. 現状サマリ（実コード確認済み）
+--------------------------------------------------------------------------------
+- World::Tick -> Actor::Tick -> Component::Tick のチェーンは繋がっている。
+  Component::Tick を override すれば毎フレーム呼ばれる。
+  (world.cpp:38 / actor.cpp:38-40)
+
+- スプライト即時描画は毎フレーム回っている:
+  scene_renderer.cpp:74-76  ui_renderer Collect/Sort/Submit
+  sprite_renderer.cpp:104   Collect() が immediate_commands_ を吸い上げ、描画後クリア
+  => Debug::DrawBox 等を毎フレーム呼べば、その1フレームだけ描かれる即時描画方式。
+
+- SpriteDrawCommand は rotation を既に保持 (sprite_draw_command.h:13)
+  シェーダも rotation で回転済み (sprite.vs.hlsl:26-28)
+  => ① は引数を通すだけで成立。
+
+- RenderContext に view / projection あり (render_context.h:11-12)
+  => 3D変換の材料は揃っている。
+
+- ただし 3Dライン描画の仕組みは一切ない（Debug の Draw 系は全部 ui_renderer 行き）
+  => ③ は新しい描画パスを1本新設する必要がある。
+
+- VertexBuffer::Initialize は初期データ固定で書き換え不可 (vertex_buffer.h:7)
+  => 毎フレーム変わる3Dラインは、自前の動的(UPLOAD)バッファが必要。
+
+- ★要改修: PipelineStateBuilder が PrimitiveTopologyType を TRIANGLE 決め打ち
+  (pipeline_state.cpp:68)。LINE を設定する口が無い。
+  PSO 側 type が優先されるため、IASetPrimitiveTopology(LINELIST) だけでは
+  線にならない。Builder にメソッド追加が必須（③-B' 参照）。
+
+
+================================================================================
+ ① DrawBox に rotation（角度）を追加  ［難易度：小］
+================================================================================
+
+[debug.h]  ※ debug.h:19 の宣言を変更
+  void DrawBox(const Vec2& position, const Vec2& size, const Vec4& color,
+               float rotation = 0.0f);   // デフォルト引数で既存呼び出し維持
+
+[debug.cpp]  ※ debug.cpp:68 の DrawBox、command 構築に1行追加
+  void Debug::DrawBox(const Vec2& position, const Vec2& size,
+                      const Vec4& color, float rotation)
+  {
+      if (ui_renderer_ == nullptr) return;
+      SpriteDrawCommand command = {};
+      command.position = Vec2(position.x + size.x * 0.5f,
+                              position.y + size.y * 0.5f);
+      command.size = size;
+      command.color = color;
+      command.rotation = rotation;        // ← 追加
+      command.use_texture = false;
+      ui_renderer_->DrawImmediate(command);
+  }
+
+  → sprite.vs.hlsl が既に rotation で回すので、これだけで角度が効く。
+
+
+================================================================================
+ ② スクリーン空間 / ワールド空間 の2系統  ［難易度：中］
+================================================================================
+
+命名方針: 2D=スクリーン空間(既存)、3D=ワールド空間(新規)。
+（Unity の Debug.DrawLine(3D)/Gizmos、UE の DrawDebugLine/HUD に近い関係）
+
+[スクリーン空間：既存のまま・ピクセル座標]
+  void DrawBox(const Vec2& pos, const Vec2& size, const Vec4& color,
+               float rotation = 0.0f);
+  void DrawLine(const Vec2& start, const Vec2& end, const Vec4& color);
+  void DrawCircle(const Vec2& center, float radius, const Vec4& color);
+  void DrawSprite(...);   // 既存
+
+[ワールド空間：新規・ワールド座標]
+  void DrawLine3D(const Vec3& start, const Vec3& end, const Vec4& color);
+  void DrawBox3D(const Vec3& center, const Vec3& size, const Vec4& color);
+  void DrawSphere3D(const Vec3& center, float radius, const Vec4& color);
+
+  → DrawBox3D / DrawSphere3D は DrawLine3D を複数回呼ぶだけで実装可能。
+    （2D の DrawCircle が DrawLine を呼ぶのと同じ発想：debug.cpp:102）
+  → 実体は ③ の DebugLineRenderer が支える。
+
+
+================================================================================
+ ③ 3Dライン描画（DrawLine3D の土台）  ［難易度：大 / 本丸］
+================================================================================
+
+方針: 3Dラインは毎フレーム線分が変わる。
+  「毎フレーム線分を貯める → 動的頂点バッファに書き込む → LINELIST で1回 Draw」
+  する専用レンダラ DebugLineRenderer を新設する。
+
+--------------------------------------------------------------------------------
+ ③-A. シェーダ（新規2ファイル）
+--------------------------------------------------------------------------------
+[Shaders/debug_line.vs.hlsl]
+  struct VSInput  { float3 position : POSITION; float4 color : COLOR; };
+  struct PSInput  { float4 position : SV_POSITION; float4 color : COLOR; };
+
+  cbuffer LineCB : register(b0) { float4x4 view_proj; }
+
+  PSInput VSMain(VSInput input)
+  {
+      PSInput o;
+      o.position = mul(float4(input.position, 1.0f), view_proj);
+      o.color = input.color;
+      return o;
+  }
+
+[Shaders/debug_line.ps.hlsl]
+  struct PSInput { float4 position : SV_POSITION; float4 color : COLOR; };
+  float4 PSMain(PSInput input) : SV_TARGET { return input.color; }
+
+--------------------------------------------------------------------------------
+ ③-B. 頂点型 + 入力レイアウト
+--------------------------------------------------------------------------------
+  struct DebugLineVertex {
+      float position[3];
+      float color[4];
+  };
+  static const D3D12_INPUT_ELEMENT_DESC kDebugLineLayout[] = {
+      {"POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT,    0, 0,
+       D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+      {"COLOR",    0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0, 12,
+       D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0},
+  };
+
+--------------------------------------------------------------------------------
+ ③-B'. PipelineStateBuilder 改修（★必須・今回の確認で判明）
+--------------------------------------------------------------------------------
+理由: pipeline_state.cpp:68 が PrimitiveTopologyType=TRIANGLE 決め打ち。
+      PSO 側 type が優先されるので、これを LINE にしないと線が描けない。
+      （IASetPrimitiveTopology(LINELIST) を呼んでも PSO が TRIANGLE のままだと不可）
+
+[pipeline_state.h] に追加
+  PipelineStateBuilder& SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE type);
+  // private メンバ:
+  D3D12_PRIMITIVE_TOPOLOGY_TYPE topology_type_ = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
+[pipeline_state.cpp]
+  PipelineStateBuilder&
+  PipelineStateBuilder::SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE type)
+  {
+      topology_type_ = type;
+      return *this;
+  }
+  // Build() の line 68 を書き換え:
+  desc.PrimitiveTopologyType = topology_type_;   // ← ハードコードをメンバ参照に
+
+  → デフォルト TRIANGLE のままなので、既存 sprite/mesh の PSO は無修正で動作。
+    ライン用 PSO のときだけ
+    .SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE) を呼ぶ。
+
+--------------------------------------------------------------------------------
+ ③-C. DebugLineRenderer 本体（新規：Src/Renderer/debug_line_renderer.h/.cpp）
+--------------------------------------------------------------------------------
+[debug_line_renderer.h]
+  #pragma once
+  #include <memory>
+  #include <vector>
+  #include "../Core/common.h"
+  #include "../Core/Math/my_math.h"
+  #include "../Graphics/pipeline_state.h"
+  #include "../Graphics/root_signature.h"
+  #include "../Graphics/shader.h"
+
+  struct RenderContext;
+
+  class DebugLineRenderer
+  {
+  public:
+      bool Initialize(ID3D12Device* device);
+      void Shutdown();
+      void AddLine(const Vec3& a, const Vec3& b, const Vec4& color); // Debug から呼ぶ
+      void Submit(RenderContext& context);                          // 毎フレーム描画
+      void Clear();                                                 // 描画後に貯めた線を捨てる
+
+  private:
+      struct DebugLineVertex { float position[3]; float color[4]; };
+
+      std::unique_ptr<Shader> vertex_shader_;
+      std::unique_ptr<Shader> pixel_shader_;
+      std::unique_ptr<RootSignature> root_signature_;
+      std::unique_ptr<PipelineState> pipeline_state_;
+
+      ComPtr<ID3D12Resource> vertex_buffer_;   // 動的(UPLOAD heap, Mapしっぱなし)
+      void* mapped_ = nullptr;
+      uint32_t capacity_ = 0;                  // 最大頂点数（例 8192 = 4096本）
+      std::vector<DebugLineVertex> vertices_;  // このフレームの線分（2頂点=1本）
+  };
+
+[実装の要点]
+  Initialize():
+    - Shader 2本ロード（LoadFromFile, vs_5_0 / ps_5_0）
+    - RootSignature: AddCbv(0, D3D12_SHADER_VISIBILITY_VERTEX) のみ（SRV/サンプラ不要）
+    - PipelineState:
+        .SetRootSignature / .SetVertexShader / .SetPixelShader
+        .SetInputLayout(kDebugLineLayout)
+        .SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE)  ← ③-B'
+        .SetDepthEnabled(true)   // ワールド空間。メッシュに隠れてほしいので true 推奨
+                                 // 常に手前に出したいなら false
+    - 動的頂点バッファを自前作成（VertexBuffer クラスは固定データ専用で使えない）:
+        D3D12_HEAP_PROPERTIES = UPLOAD
+        D3D12_RESOURCE_DESC   = Buffer, capacity_ * sizeof(DebugLineVertex)
+        CreateCommittedResource(..., GENERIC_READ, ...)
+        buffer->Map(0, nullptr, &mapped_)   // Map しっぱなしにしておく
+
+  AddLine(a, b, color):
+    - vertices_ に {a,color} と {b,color} の2頂点を push_back
+
+  Submit(context):
+    - vertices_ が空なら return
+    - CB に view*proj を積む:
+        Mat vp = Transpose(context.view * context.projection);  // mesh_renderer.cpp:97 と同作法
+        context.cb_allocator->Allocate(sizeof(vp), &alloc); memcpy(alloc.cpu, &vp, ...);
+    - memcpy(mapped_, vertices_.data(), vertices_.size()*sizeof(DebugLineVertex))
+      （capacity_ 超過は clamp すること）
+    - SetGraphicsRootSignature / SetPipelineState
+    - IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST)
+    - IASetVertexBuffers(0,1,&vbv)   // vbv は vertex_buffer_ から作る
+    - SetGraphicsRootConstantBufferView(0, alloc.gpu)
+    - DrawInstanced(vertices_.size(), 1, 0, 0)
+    - Clear();   // 末尾で必ずクリア（即時描画方式）
+
+  Clear():
+    - vertices_.clear();
+
+[詰まりやすい点]
+  - 動的VBの作成（UPLOAD heap + Map しっぱなし）は VertexBuffer クラスを使えず自前。
+    ここが ③ で一番難しい。必要なら別途 UPLOAD バッファ作成の具体コード骨子を出す。
+
+--------------------------------------------------------------------------------
+ ③-D. 配線
+--------------------------------------------------------------------------------
+[scene_renderer.h]
+  std::unique_ptr<DebugLineRenderer> debug_line_renderer_;
+  DebugLineRenderer* GetDebugLineRenderer();
+
+[scene_renderer.cpp] Initialize に追加
+  debug_line_renderer_ = std::make_unique<DebugLineRenderer>();
+  if (!debug_line_renderer_->Initialize(device)) return false;
+
+[scene_renderer.cpp] Render(World*) 内、mesh_renderer Submit の後（scene_renderer.cpp:68 あたり）
+  debug_line_renderer_->Submit(context);   // mesh の後・sprite の前あたり
+
+[debug.h]
+  void Initialize(SpriteRenderer*, UIRenderer*, DebugLineRenderer*); // 引数追加
+  void DrawLine3D(const Vec3& start, const Vec3& end, const Vec4& color);
+  // private: DebugLineRenderer* line_renderer_ = nullptr;
+
+[debug.cpp]
+  void Debug::Initialize(SpriteRenderer* s, UIRenderer* u, DebugLineRenderer* l)
+  { sprite_renderer_ = s; ui_renderer_ = u; line_renderer_ = l; }
+
+  void Debug::DrawLine3D(const Vec3& a, const Vec3& b, const Vec4& color)
+  {
+      if (line_renderer_ == nullptr) return;
+      line_renderer_->AddLine(a, b, color);
+  }
+
+[application.cpp] Initialize 呼び出し（application.cpp:219）に引数追加
+  Debug::Get().Initialize(scene_renderer_->GetSpriteRenderer(),
+                          scene_renderer_->GetUIRenderer(),
+                          scene_renderer_->GetDebugLineRenderer());
+
+
+================================================================================
+ 実装順（推奨）
+================================================================================
+  1. ① rotation 追加（debug.h/.cpp）                     … 軽い・足場確認
+  2. ③-A シェーダ（debug_line.vs/ps.hlsl）
+  3. ③-B' PipelineStateBuilder に SetPrimitiveTopologyType 追加  ← 必須改修
+  4. ③-B  頂点型 + 入力レイアウト
+  5. ③-C  DebugLineRenderer 本体（動的VB + PSO + Submit）← 最難関
+  6. ③-D  配線（scene_renderer / debug / application）
+  7. ②  DrawLine3D / DrawBox3D / DrawSphere3D（③の上に被せるだけ）
+
+
+================================================================================
+ 補足メモ
+================================================================================
+- 2D の DrawBox/DrawLine/DrawCircle は use_texture=false。
+  sprite_renderer.cpp:175 で srv_index=0 を使うため、ヒープ index0 に有効な SRV が
+  無いと DX12 デバッグレイヤーが警告を出す可能性あり。箱が出ない/警告が出たら要対処。
+  （③のラインはテクスチャ不要なので、この問題は起きない）
+
+- DebugComponent の dt について:
+  application.cpp:247 が world_->Tick(0.0f) を呼んでいるため time_ が進まない＝
+  動くデバッグが止まって見える。動きを見たいなら実 dt を渡す必要がある
+  （フレーム時間計測が未実装なら、確認用に 1.0f/60.0f を渡すのでも可）。
+
+- 過去のクラッシュ（0xC0000005 / 読み取り 0x18）の原因と対策:
+  application.cpp で std::move(actor) の後に actor->AddComponent<DebugComponent>() を
+  呼んでいたため、空(null)の unique_ptr を参照していた。
+  → AddComponent 系はすべて world_->AddActor(std::move(actor)) の「前」に置く。
+  → Debug::Get().Initialize(...) も AddActor の前に置く（最初の Tick 前に renderer を
+    セットしておくため）。

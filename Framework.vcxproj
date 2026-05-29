@@ -26,6 +26,7 @@
     <ClInclude Include="Src\Core\Math\vec3.h" />
     <ClInclude Include="Src\Core\Math\vec4.h" />
     <ClInclude Include="Src\Debug\debug.h" />
+    <ClInclude Include="Src\Debug\debug_scene.h" />
     <ClInclude Include="Src\Debug\ImGui\imconfig.h" />
     <ClInclude Include="Src\Debug\ImGui\imgui.h" />
     <ClInclude Include="Src\Debug\ImGui\imgui_impl_dx12.h" />
@@ -78,6 +79,7 @@
     <None Include="Shaders\sprite.ps.hlsl" />
     <None Include="Shaders\sprite.vs.hlsl" />
     <ClCompile Include="Src\Debug\debug.cpp" />
+    <ClCompile Include="Src\Debug\debug_scene.cpp" />
     <ClCompile Include="Src\Debug\ImGui\imgui.cpp" />
     <ClCompile Include="Src\Debug\ImGui\imgui_demo.cpp" />
     <ClCompile Include="Src\Debug\ImGui\imgui_draw.cpp" />

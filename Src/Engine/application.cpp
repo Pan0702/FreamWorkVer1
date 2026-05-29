@@ -20,6 +20,7 @@
 #include "../Resource/material.h"
 #include "../Resource/vertex_types.h"
 #include "../Debug/debug.h"
+#include "../Debug/debug_scene.h"
 
 Application::Application() = default;
 
@@ -214,6 +215,7 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
     transform->position = Vec3(0.0f, 0.0f, 0.0f);
     actor->AddComponent<StaticMeshComponent>(mesh_.get(), material_.get());
     test_actor_ = actor.get();
+    actor->AddComponent<DebugComponent>();
     world_->AddActor(std::move(actor));
     Debug::Get().Initialize(scene_renderer_->GetSpriteRenderer(), scene_renderer_->GetUIRenderer());
     render_object_ = std::make_unique<RenderObject>();
@@ -244,7 +246,7 @@ void Application::Shutdown()
 void Application::Update()
 {
     input_->Update();
-    world_->Tick(0.0f);
+    world_->Tick(0.1f);
     camera_->pos_ = Vec3(0, 0, 5.0f);
     camera_->look_ = Vec3(0, 0, -1.0f);
 }
