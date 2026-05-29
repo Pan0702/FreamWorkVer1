@@ -138,3 +138,13 @@ void Texture2D::CreateSrv(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE srv_
     srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
     device->CreateShaderResourceView(texture_.Get(), &srv_desc, srv_handle);
 }
+
+void Texture2D::SetSrvIndex(uint32_t srv_index)
+{
+    srv_index_ = srv_index;
+}
+
+uint32_t Texture2D::GetSrvIndex() const
+{
+    return srv_index_;
+}

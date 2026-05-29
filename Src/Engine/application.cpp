@@ -1,5 +1,9 @@
 ﻿#include "application.h"
+#include "actor.h"
 #include "camera.h"
+#include "Components/transform_component.h"
+#include "Components/static_mesh_component.h"
+#include "world.h"
 #include "../Platform/window.h"
 #include "../Graphics/graphics_device.h"
 #include "../Graphics/swap_chain.h"
@@ -7,6 +11,7 @@
 #include "../Graphics/command_list.h"
 #include "../Renderer/scene.h"
 #include "../Graphics/depth_stencil.h"
+#include "../Graphics/constant_buffer_allocator.h"
 #include "../Core/Math/my_math.h"
 #include "../Platform/input.h"
 #include "../Renderer/scene_renderer.h"
@@ -14,6 +19,7 @@
 #include "../Resource/mesh.h"
 #include "../Resource/material.h"
 #include "../Resource/vertex_types.h"
+#include "../Debug/debug.h"
 
 Application::Application() = default;
 
@@ -135,9 +141,16 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         return false;
     }
     srv_heap_ = std::make_unique<DescriptorHeap>();
-    if (!srv_heap_->Initialize(graphics_device_->GetDevice(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 1, true))
+    if (!srv_heap_->Initialize(graphics_device_->GetDevice(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 64, true))
     {
         MessageBox(nullptr, L"Failed to create descriptor heap", L"Error", MB_OK);
+        return false;
+    }
+    cb_allocator_ = std::make_unique<ConstantBufferAllocator>();
+    constexpr uint32_t kConstantBufferAllocatorSize = 1024 * 1024;
+    if (!cb_allocator_->Initialize(graphics_device_->GetDevice(), kConstantBufferAllocatorSize))
+    {
+        MessageBox(nullptr, L"Failed to create constant buffer allocator", L"Error", MB_OK);
         return false;
     }
     LoadedImage image;
@@ -161,7 +174,14 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
     material_ = std::make_unique<Material>();
     material_->Create(graphics_device_->GetDevice(),L"Shaders/triangle.vs.hlsl", L"Shaders/triangle.ps.hlsl",mesh_->GetInputLayout());
     material_->SetDiffuse(texture_.get());
-    texture_->CreateSrv(graphics_device_->GetDevice(), srv_heap_->GetCpuHandle(0));
+    UINT diffuse_srv_index = 0;
+    if (!srv_heap_->Allocate(diffuse_srv_index))
+    {
+        MessageBox(nullptr, L"Failed to allocate texture SRV", L"Error", MB_OK);
+        return false;
+    }
+    texture_->SetSrvIndex(diffuse_srv_index);
+    texture_->CreateSrv(graphics_device_->GetDevice(), srv_heap_->GetCpuHandle(diffuse_srv_index));
     input_ = std::make_unique<Input>();
     input_->Initialize(window_->GetHwnd());
     camera_ = std::make_unique<Camera>();
@@ -182,11 +202,26 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         MessageBox(nullptr, L"Failed to create scene renderer", L"Error", MB_OK);
         return false;
     }
+    world_ = std::make_unique<World>();
+    AttachContext attach_context = {};
+    attach_context.mesh_renderer = scene_renderer_->GetMeshRenderer();
+    attach_context.sprite_renderer = scene_renderer_->GetSpriteRenderer();
+    attach_context.ui_renderer = scene_renderer_->GetUIRenderer();
+    world_->SetAttachContext(attach_context);
+
+    auto actor = std::make_unique<Actor>();
+    auto* transform = actor->AddComponent<TransformComponent>();
+    transform->position = Vec3(0.0f, 0.0f, 0.0f);
+    actor->AddComponent<StaticMeshComponent>(mesh_.get(), material_.get());
+    test_actor_ = actor.get();
+    world_->AddActor(std::move(actor));
+    Debug::Get().Initialize(scene_renderer_->GetSpriteRenderer(), scene_renderer_->GetUIRenderer());
     render_object_ = std::make_unique<RenderObject>();
     render_object_->SetMesh(mesh_.get());
     render_object_->SetMaterial(material_.get());
     scene_->AddObject(render_object_.get());
     window_->Show();
+    DEBUG_LOG("Application initialized");
     return true;
 }
 
@@ -202,12 +237,14 @@ void Application::Run()
 
 void Application::Shutdown()
 {
+    Debug::Get().Shutdown();
     scene_renderer_->Shutdown();
 }
 
 void Application::Update()
 {
     input_->Update();
+    world_->Tick(0.0f);
     camera_->pos_ = Vec3(0, 0, 5.0f);
     camera_->look_ = Vec3(0, 0, -1.0f);
 }
@@ -219,6 +256,7 @@ void Application::Render()
         MessageBox(nullptr, L"Failed to reset command list", L"Error", MB_OK);
         return;
     }
+    cb_allocator_->Reset();
     auto command_list = command_list_->GetCommandList();
     
     RendererData renderer_data = {};
@@ -226,9 +264,10 @@ void Application::Render()
     renderer_data.command_queue = command_queue_.get();
     renderer_data.depth_stencil = depth_stencil_.get();
     renderer_data.srv_heap = srv_heap_.get();
+    renderer_data.cb_allocator = cb_allocator_.get();
     renderer_data.swap_chain = swap_chain_.get();
     renderer_data.window = window_.get();
-    scene_renderer_->Render(renderer_data, scene_.get(), camera_.get());
+    scene_renderer_->Render(renderer_data, world_.get(), camera_.get());
     if (!command_list_->Close())
     {
         MessageBox(nullptr, L"Failed to close command list", L"Error", MB_OK);

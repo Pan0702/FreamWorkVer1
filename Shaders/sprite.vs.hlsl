@@ -16,12 +16,17 @@ cbuffer SpriteCB : register(b0)
     float2 sprite_size;
     float4 color;
     float2 screen_size;
-    float2 _pad;
+    float rotation;
+    float use_texture;
 }
 
 PSInput VSMain(VSInput input)
 {
-    float2 pixel = sprite_pos + (input.position + 0.5) * sprite_size;
+    float2 local = input.position * sprite_size;
+    float s = sin(rotation);
+    float c = cos(rotation);
+    float2 rotated = float2(local.x * c - local.y * s, local.x * s + local.y * c);
+    float2 pixel = sprite_pos + rotated;
     float2 ndc;
     ndc.x = pixel.x / screen_size.x * 2.0 - 1.0;
     ndc.y = 1.0 - pixel.y / screen_size.y * 2.0;

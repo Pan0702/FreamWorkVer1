@@ -9,8 +9,11 @@ public:
         const LoadedImage& image);
     
     void CreateSrv(ID3D12Device* device,D3D12_CPU_DESCRIPTOR_HANDLE srv_handle);
+    void SetSrvIndex(uint32_t srv_index);
+    uint32_t GetSrvIndex() const;
     
 private:
     ComPtr<ID3D12Resource> texture_;
     ComPtr<ID3D12Resource> upload_buffer_;
+    uint32_t srv_index_ = 0;
 };
