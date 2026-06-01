@@ -60,6 +60,7 @@
     <ClInclude Include="Src\Graphics\vertex_buffer.h" />
     <ClInclude Include="Src\Platform\input.h" />
     <ClInclude Include="Src\Platform\window.h" />
+    <ClInclude Include="Src\Renderer\debug_line_renderer.h" />
     <ClInclude Include="Src\Renderer\mesh_renderer.h" />
     <ClInclude Include="Src\Renderer\draw_command.h" />
     <ClInclude Include="Src\Renderer\render_object.h" />
@@ -78,6 +79,8 @@
   <ItemGroup>
     <None Include="Shaders\sprite.ps.hlsl" />
     <None Include="Shaders\sprite.vs.hlsl" />
+    <None Include="Shaders\debug_line.vs.hlsl" />
+    <None Include="Shaders\debug_line.ps.hlsl" />
     <ClCompile Include="Src\Debug\debug.cpp" />
     <ClCompile Include="Src\Debug\debug_scene.cpp" />
     <ClCompile Include="Src\Debug\ImGui\imgui.cpp" />
@@ -97,6 +100,7 @@
     <ClCompile Include="Src\Engine\world.cpp" />
     <ClCompile Include="Src\Platform\input.cpp" />
     <ClCompile Include="Src\Graphics\constant_buffer_allocator.cpp" />
+    <ClCompile Include="Src\Renderer\debug_line_renderer.cpp" />
     <ClCompile Include="Src\Renderer\mesh_renderer.cpp" />
     <ClCompile Include="Src\Renderer\render_object.cpp" />
     <ClCompile Include="Src\Renderer\scene.cpp" />

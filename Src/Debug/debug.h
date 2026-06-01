@@ -2,6 +2,7 @@
 #include "../Core/common.h"
 #include "../Core/Math/my_math.h"
 
+class DebugLineRenderer;
 class SpriteRenderer;
 class Texture2D;
 class UIRenderer;
@@ -11,14 +12,20 @@ class Debug
 public:
     static Debug& Get();
 
-    void Initialize(SpriteRenderer* sprite_renderer, UIRenderer* ui_renderer);
+    void Initialize(SpriteRenderer* sprite_renderer, UIRenderer* ui_renderer
+        ,DebugLineRenderer* debug_line_renderer);
     void Shutdown();
     void Log(const char* format, ...);
     void Print(const char* format, ...);
     void DrawSprite(Texture2D* texture, const Vec2& position, const Vec2& size, const Vec4& color);
-    void DrawBox(const Vec2& position, const Vec2& size, const Vec4& color);
+    void DrawBox(const Vec2& position, const Vec2& size, const Vec4& color, float rotation = 0.0f);
     void DrawLine(const Vec2& start, const Vec2& end, const Vec4& color);
     void DrawCircle(const Vec2& center, float radius, const Vec4& color);
+    void DrawLine3D(const Vec3& start, const Vec3& end, const Vec4& color);
+    void DrawBox3D(const Vec3& center, const Vec3& size, const Vec4& color,const Vec3& rotation);
+    void DrawSphere3D(const Vec3& center, float radius, const Vec4& color);
+    void DrawSprite3D(Texture2D* texture, const Vec3& position, const Vec2& size, const Vec4& color);
+    
     void Watch(const char* name, float value);
 
 private:
@@ -26,6 +33,7 @@ private:
 
     SpriteRenderer* sprite_renderer_ = nullptr;
     UIRenderer* ui_renderer_ = nullptr;
+    DebugLineRenderer* line_renderer_ = nullptr;
 };
 
 #ifdef _DEBUG

@@ -275,3 +275,32 @@ srv_heap_->Initialize(..., 1, true);
   DepthEnable    = TRUE
   DepthWriteMask = D3D12_DEPTH_WRITE_MASK_ZERO  // 書き込みOFF
   DepthFunc      = D3D12_COMPARISON_LESS        // 読み取りはON
+## 既存ファイル対応表
+
+### Engine
+- Src/Engine/application.h/cpp
+  - 現在の仮配置リソース所有を段階的に World / Actor へ移す
+  - SceneRenderer / World の生成元として残す
+
+- Src/Engine/camera.h/cpp
+  - Phase 1〜3では現状維持
+  - RenderContext に Camera* として渡す
+
+### Resource
+- Src/Resource/mesh.h/cpp
+  - StaticMeshComponent が参照する対象
+  - 所有は shared_ptr 推奨
+
+- Src/Resource/material.h/cpp
+  - StaticMeshComponent が参照する対象
+  - 所有は shared_ptr 推奨
+
+- Src/Resource/texture2D.h/cpp
+  - SpriteComponent が参照する対象
+  - 所有は shared_ptr 推奨
+
+- Src/Resource/texture_loader.h/cpp
+  - 将来的に shared_ptr<Texture2D> を返す設計へ寄せる
+
+- Src/Resource/vertex_type.h
+  - MeshRenderer / SpriteRenderer の頂点形式定義として継続利用

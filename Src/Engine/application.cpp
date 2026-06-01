@@ -21,6 +21,7 @@
 #include "../Resource/vertex_types.h"
 #include "../Debug/debug.h"
 #include "../Debug/debug_scene.h"
+#include "../Renderer/debug_line_renderer.h"
 
 Application::Application() = default;
 
@@ -217,7 +218,8 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
     test_actor_ = actor.get();
     actor->AddComponent<DebugComponent>();
     world_->AddActor(std::move(actor));
-    Debug::Get().Initialize(scene_renderer_->GetSpriteRenderer(), scene_renderer_->GetUIRenderer());
+    debug_line_renderer_ = std::make_unique<DebugLineRenderer>();
+    Debug::Get().Initialize(scene_renderer_->GetSpriteRenderer(), scene_renderer_->GetUIRenderer(),debug_line_renderer_.get());
     render_object_ = std::make_unique<RenderObject>();
     render_object_->SetMesh(mesh_.get());
     render_object_->SetMaterial(material_.get());

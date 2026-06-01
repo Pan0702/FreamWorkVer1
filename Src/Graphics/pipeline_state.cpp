@@ -54,6 +54,12 @@ PipelineStateBuilder& PipelineStateBuilder::SetAlphaBlendEnabled(bool enabled)
     return *this;
 }
 
+PipelineStateBuilder& PipelineStateBuilder::SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE type)
+{
+    primitive_topology_type_ = type;
+    return *this;
+}
+
 bool PipelineStateBuilder::Build(ID3D12Device* device, PipelineState* out_pipeline_state) const
 {
     D3D12_GRAPHICS_PIPELINE_STATE_DESC desc = {};
@@ -65,7 +71,7 @@ bool PipelineStateBuilder::Build(ID3D12Device* device, PipelineState* out_pipeli
     //全部のサンプルを使う
     desc.SampleMask = UINT_MAX;
     //三角形の描画をしろっていう宣言
-    desc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    desc.PrimitiveTopologyType = primitive_topology_type_;
     //書き先（RTV）の枚数
     desc.NumRenderTargets = 1;
     //↑の色のフォーマットSwapChainと違う色だと失敗する

@@ -24,7 +24,7 @@ public:
     PipelineStateBuilder& SetDsvFormat(DXGI_FORMAT format);
     PipelineStateBuilder& SetDepthEnabled(bool enabled);
     PipelineStateBuilder& SetAlphaBlendEnabled(bool enabled);
-
+    PipelineStateBuilder& SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE type);
     bool Build(ID3D12Device* device, PipelineState*out_pipeline_state) const;
 
 private:
@@ -36,7 +36,7 @@ private:
     bool depth_enable_ = true;
     bool blend_alpha_enable_ = false;
 
-    DXGI_FORMAT rtv_format_ =
-DXGI_FORMAT_R8G8B8A8_UNORM;
+    DXGI_FORMAT rtv_format_ = DXGI_FORMAT_R8G8B8A8_UNORM;
     DXGI_FORMAT dsv_format_ = DXGI_FORMAT_D32_FLOAT;
+    D3D12_PRIMITIVE_TOPOLOGY_TYPE primitive_topology_type_ = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
 };

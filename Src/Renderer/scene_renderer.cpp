@@ -1,5 +1,6 @@
 #include "scene_renderer.h"
 
+#include "debug_line_renderer.h"
 #include "../Engine/camera.h"
 #include "../Engine/world.h"
 #include "../Graphics/command_list.h"
@@ -25,6 +26,11 @@ bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQue
 
     ui_renderer_ = std::make_unique<UIRenderer>();
     if (!ui_renderer_->Initialize(device))
+    {
+        return false;
+    }
+    debug_renderer_ = std::make_unique<DebugLineRenderer>();
+    if (!debug_renderer_->Initialize(device))
     {
         return false;
     }

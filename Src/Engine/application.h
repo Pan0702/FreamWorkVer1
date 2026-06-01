@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "../Core/common.h"
+class DebugLineRenderer;
 class Material;
 class SceneRenderer;
 class RenderObject;
@@ -53,5 +54,6 @@ private:
     Actor* test_actor_ = nullptr;
     std::unique_ptr<RenderObject> render_object_;
     std::unique_ptr<Material> material_;
+    std::unique_ptr<DebugLineRenderer> debug_line_renderer_;
     float rotation_ = 0.0f;
 };

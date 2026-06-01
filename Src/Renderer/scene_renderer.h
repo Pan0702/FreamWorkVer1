@@ -5,6 +5,7 @@
 #include "sprite_renderer.h"
 #include "ui_renderer.h"
 
+class DebugLineRenderer;
 class Camera;
 class CommandList;
 class CommandQueue;
@@ -45,5 +46,6 @@ private:
     std::unique_ptr<MeshRenderer> mesh_renderer_;
     std::unique_ptr<SpriteRenderer> sprite_renderer_;
     std::unique_ptr<UIRenderer> ui_renderer_;
+    std::unique_ptr<DebugLineRenderer> debug_renderer_;
     ImGuiManager imgui_manager_;
 };

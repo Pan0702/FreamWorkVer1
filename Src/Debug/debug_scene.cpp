@@ -12,7 +12,7 @@ void DebugComponent::Render()
 
     // 1. 静止した箱：そもそも DrawBox が出るか
     debug.DrawBox(Vec2(100.0f, 100.0f), Vec2(200.0f, 150.0f),
-                  Vec4(1.0f, 0.0f, 0.0f, 1.0f));   // 赤
+                  Vec4(1.0f, 0.0f, 0.0f, 1.0f), time_);   // 赤
 
     // 2. 動く箱：毎フレーム呼べているか（time_ で揺らす）
     const float x = 400.0f + std::sin(time_) * 100.0f;
