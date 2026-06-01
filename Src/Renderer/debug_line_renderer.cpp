@@ -5,53 +5,10 @@
 #include "../Graphics/constant_buffer_allocator.h"
 #include "render_context.h"
 
-bool DebugLineRenderer::Initialize(ID3D12Device* device)
+bool DebugLineRenderer::CreateDynamicVertexBuffer(ID3D12Device* device, uint32_t buffer_size,
+                                                  ComPtr<ID3D12Resource>& out_buffer, void*& out_mapped,
+                                                  D3D12_GPU_VIRTUAL_ADDRESS& out_gpu_address)
 {
-    // --- ã‚·ã‚§ãƒ¼ãƒ€ ---//
-    vs_ = std::make_unique<Shader>();
-    if (!vs_->LoadFromFile(L"Shaders/debug_line.vs.hlsl", "VSMain", "vs_5_0"))
-    {
-        return false;
-    }
-
-    ps_ = std::make_unique<Shader>();
-    if (!ps_->LoadFromFile(L"Shaders/debug_line.ps.hlsl", "PSMain", "ps_5_0"))
-    {
-        return false;
-    }
-
-    // --- ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£ï¼šview_proj ç”¨ã® CBV 1å€‹ã ã‘ ---//
-    root_signature_ = std::make_unique<RootSignature>();
-    RootSignatureBuilder rs_builder;
-    rs_builder.AddCbv(0, D3D12_SHADER_VISIBILITY_VERTEX);
-    if (!rs_builder.Build(device, root_signature_.get()))
-    {
-        return false;
-    }
-
-    // --- PSOï¼šLINE ãƒˆãƒãƒ­ã‚¸æŒ‡å®šãŒè‚ï¼ˆIASetPrimitiveTopology ã ã‘ã§ã¯ç·šã«ãªã‚‰ãªã„ï¼‰ ---//
-    pipeline_state_ = std::make_unique<PipelineState>();
-    D3D12_INPUT_LAYOUT_DESC layout_desc = {};
-    layout_desc.pInputElementDescs = kDebugLineLayout;
-    layout_desc.NumElements = _countof(kDebugLineLayout);
-
-    PipelineStateBuilder ps_builder;
-    ps_builder
-        .SetRootSignature(root_signature_->GetRootSignature())
-        .SetVertexShader(vs_->GetBytecode())
-        .SetPixelShader(ps_->GetBytecode())
-        .SetInputLayout(layout_desc)
-        .SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE)
-        .SetDepthEnabled(true); // ãƒ¯ãƒ¼ãƒ«ãƒ‰ç©ºé–“ã€‚ãƒ¡ãƒƒã‚·ãƒ¥ã«éš ã‚Œã¦ã»ã—ã„ã®ã§ true//
-    if (!ps_builder.Build(device, pipeline_state_.get()))
-    {
-        return false;
-    }
-
-    // --- å‹•çš„é ‚ç‚¹ãƒãƒƒãƒ•ã‚¡ï¼ˆUPLOAD heap, Map ã—ã£ã±ãªã—ï¼‰ ---//
-    capacity_ = 4048;
-    const uint32_t buffer_size = capacity_ * sizeof(DebugLineVertex);
-
     D3D12_HEAP_PROPERTIES heap_props = {};
     heap_props.Type = D3D12_HEAP_TYPE_UPLOAD;
     heap_props.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -71,20 +28,94 @@ bool DebugLineRenderer::Initialize(ID3D12Device* device)
     HRESULT hr = device->CreateCommittedResource(
         &heap_props, D3D12_HEAP_FLAG_NONE, &desc,
         D3D12_RESOURCE_STATE_GENERIC_READ, nullptr,
-        IID_PPV_ARGS(&vertex_buffer_));
+        IID_PPV_ARGS(&out_buffer));
     if (FAILED(hr))
     {
         return false;
     }
 
-    // æ›¸ãè¾¼ã¿å°‚ç”¨ãªã®ã§ read range ã¯ç©ºã«ã—ã¦ Map ã—ã£ã±ãªã—ã«ã™ã‚‹//
+    // ‘‚«‚İê—p‚È‚Ì‚Å read range ‚Í‹ó‚É‚µ‚Ä Map ‚µ‚Á‚Ï‚È‚µ‚É‚·‚é
     D3D12_RANGE read_range = {0, 0};
-    hr = vertex_buffer_->Map(0, &read_range, &mapped_);
+    hr = out_buffer->Map(0, &read_range, &out_mapped);
     if (FAILED(hr))
     {
         return false;
     }
-    gpu_address_ = vertex_buffer_->GetGPUVirtualAddress();
+    out_gpu_address = out_buffer->GetGPUVirtualAddress();
+    return true;
+}
+
+bool DebugLineRenderer::Initialize(ID3D12Device* device)
+{
+    // --- ƒVƒF[ƒ_iüEOŠpŒ`‚Å‹¤’ÊFˆÊ’u‚ğ view_proj •ÏŠ·‚µ‚ÄF‚ğ“n‚·‚¾‚¯j ---//
+    vs_ = std::make_unique<Shader>();
+    if (!vs_->LoadFromFile(L"Shaders/debug_line.vs.hlsl", "VSMain", "vs_5_0"))
+    {
+        return false;
+    }
+
+    ps_ = std::make_unique<Shader>();
+    if (!ps_->LoadFromFile(L"Shaders/debug_line.ps.hlsl", "PSMain", "ps_5_0"))
+    {
+        return false;
+    }
+
+    // --- ƒ‹[ƒgƒVƒOƒlƒ`ƒƒFview_proj —p‚Ì CBV 1ŒÂ‚¾‚¯ ---//
+    root_signature_ = std::make_unique<RootSignature>();
+    RootSignatureBuilder rs_builder;
+    rs_builder.AddCbv(0, D3D12_SHADER_VISIBILITY_VERTEX);
+    if (!rs_builder.Build(device, root_signature_.get()))
+    {
+        return false;
+    }
+
+    D3D12_INPUT_LAYOUT_DESC layout_desc = {};
+    layout_desc.pInputElementDescs = kDebugLineLayout;
+    layout_desc.NumElements = _countof(kDebugLineLayout);
+
+    // --- ü—p PSOFLINE ƒgƒ|ƒƒWE[“x‘‚«‚İON ---//
+    pipeline_state_ = std::make_unique<PipelineState>();
+    PipelineStateBuilder line_builder;
+    line_builder
+        .SetRootSignature(root_signature_->GetRootSignature())
+        .SetVertexShader(vs_->GetBytecode())
+        .SetPixelShader(ps_->GetBytecode())
+        .SetInputLayout(layout_desc)
+        .SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_LINE)
+        .SetDepthEnabled(true); // ƒ[ƒ‹ƒh‹óŠÔBƒƒbƒVƒ…‚É‰B‚ê‚Ä‚Ù‚µ‚¢‚Ì‚Å true//
+    if (!line_builder.Build(device, pipeline_state_.get()))
+    {
+        return false;
+    }
+
+    // --- “h‚è—p PSOFTRIANGLE ƒgƒ|ƒƒWE”¼“§–¾i[“xƒeƒXƒgON / ‘‚«‚İOFFEƒAƒ‹ƒtƒ@ƒuƒŒƒ“ƒhj ---//
+    tri_pipeline_state_ = std::make_unique<PipelineState>();
+    PipelineStateBuilder tri_builder;
+    tri_builder
+        .SetRootSignature(root_signature_->GetRootSignature())
+        .SetVertexShader(vs_->GetBytecode())
+        .SetPixelShader(ps_->GetBytecode())
+        .SetInputLayout(layout_desc)
+        .SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE)
+        .SetDepthEnabled(true)
+        .SetDepthWriteEnabled(false)
+        .SetAlphaBlendEnabled(true);
+    if (!tri_builder.Build(device, tri_pipeline_state_.get()))
+    {
+        return false;
+    }
+
+    // --- “®“I’¸“_ƒoƒbƒtƒ@iüEOŠpŒ`‚Å‚»‚ê‚¼‚êŠm•Ûj ---//
+    capacity_ = 4048;
+    const uint32_t buffer_size = capacity_ * sizeof(DebugLineVertex);
+    if (!CreateDynamicVertexBuffer(device, buffer_size, vertex_buffer_, mapped_, gpu_address_))
+    {
+        return false;
+    }
+    if (!CreateDynamicVertexBuffer(device, buffer_size, tri_vertex_buffer_, tri_mapped_, tri_gpu_address_))
+    {
+        return false;
+    }
 
     return true;
 }
@@ -96,7 +127,13 @@ void DebugLineRenderer::Shutdown()
         vertex_buffer_->Unmap(0, nullptr);
         mapped_ = nullptr;
     }
+    if (tri_vertex_buffer_ && tri_mapped_)
+    {
+        tri_vertex_buffer_->Unmap(0, nullptr);
+        tri_mapped_ = nullptr;
+    }
     vertices_.clear();
+    tri_vertices_.clear();
 }
 
 void DebugLineRenderer::AddLine(const Vec3& start, const Vec3& end, const Vec4& color)
@@ -107,21 +144,26 @@ void DebugLineRenderer::AddLine(const Vec3& start, const Vec3& end, const Vec4& 
     vertices_.push_back(v1);
 }
 
+void DebugLineRenderer::AddTriangle(const Vec3& a, const Vec3& b, const Vec3& c, const Vec4& color)
+{
+    DebugLineVertex v0 = {{a.x, a.y, a.z}, {color.x, color.y, color.z, color.w}};
+    DebugLineVertex v1 = {{b.x, b.y, b.z}, {color.x, color.y, color.z, color.w}};
+    DebugLineVertex v2 = {{c.x, c.y, c.z}, {color.x, color.y, color.z, color.w}};
+    tri_vertices_.push_back(v0);
+    tri_vertices_.push_back(v1);
+    tri_vertices_.push_back(v2);
+}
+
 void DebugLineRenderer::Submit(RenderContext& context)
 {
-    if (vertices_.empty())
+    const bool has_lines = !vertices_.empty();
+    const bool has_tris = !tri_vertices_.empty();
+    if (!has_lines && !has_tris)
     {
         return;
     }
 
-    // capacity è¶…éã¯ clampï¼ˆã‚ãµã‚ŒãŸã¶ã‚“ã¯ã“ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã§ã¯æã‹ãªã„ï¼‰//
-    uint32_t vertex_count = static_cast<uint32_t>(vertices_.size());
-    if (vertex_count > capacity_)
-    {
-        vertex_count = capacity_;
-    }
-
-    // CB ã« view * projection ã‚’ç©ã‚€ï¼ˆHLSL ã® mul(pos, M) è¦ç´„ã«åˆã‚ã›ã¦ Transposeï¼‰//
+    // CB ‚É view * projection ‚ğÏ‚ŞiHLSL ‚Ì mul(pos, M) ‹K–ñ‚É‡‚í‚¹‚Ä TransposejBüEOŠpŒ`‚Å‹¤—L//
     Mat view_proj = Transpose(context.view * context.projection);
     ConstantBufferAllocation allocation = {};
     if (!context.cb_allocator->Allocate(sizeof(view_proj), &allocation))
@@ -131,20 +173,50 @@ void DebugLineRenderer::Submit(RenderContext& context)
     }
     memcpy(allocation.cpu, &view_proj, sizeof(view_proj));
 
-    // ä»Šãƒ•ãƒ¬ãƒ¼ãƒ ã®ç·šåˆ†ã‚’å‹•çš„ VB ã¸æ›¸ãè¾¼ã‚€//
-    memcpy(mapped_, vertices_.data(), vertex_count * sizeof(DebugLineVertex));
-
-    D3D12_VERTEX_BUFFER_VIEW vbv = {};
-    vbv.BufferLocation = gpu_address_;
-    vbv.SizeInBytes = vertex_count * sizeof(DebugLineVertex);
-    vbv.StrideInBytes = sizeof(DebugLineVertex);
-
     context.command_list->SetGraphicsRootSignature(root_signature_->GetRootSignature());
-    context.command_list->SetPipelineState(pipeline_state_->GetPipelineState());
-    context.command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
-    context.command_list->IASetVertexBuffers(0, 1, &vbv);
     context.command_list->SetGraphicsRootConstantBufferView(0, allocation.gpu);
-    context.command_list->DrawInstanced(vertex_count, 1, 0, 0);
+
+    // --- üiæ‚É•s“§–¾‚Å•`‚¢‚Ä[“x‚ğ‘‚­j ---//
+    if (has_lines)
+    {
+        uint32_t count = static_cast<uint32_t>(vertices_.size());
+        if (count > capacity_)
+        {
+            count = capacity_;
+        }
+        memcpy(mapped_, vertices_.data(), count * sizeof(DebugLineVertex));
+
+        D3D12_VERTEX_BUFFER_VIEW vbv = {};
+        vbv.BufferLocation = gpu_address_;
+        vbv.SizeInBytes = count * sizeof(DebugLineVertex);
+        vbv.StrideInBytes = sizeof(DebugLineVertex);
+
+        context.command_list->SetPipelineState(pipeline_state_->GetPipelineState());
+        context.command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_LINELIST);
+        context.command_list->IASetVertexBuffers(0, 1, &vbv);
+        context.command_list->DrawInstanced(count, 1, 0, 0);
+    }
+
+    // --- “h‚è‚Â‚Ô‚µOŠpŒ`iŒã‚©‚ç”¼“§–¾‚ÅƒuƒŒƒ“ƒhj ---//
+    if (has_tris)
+    {
+        uint32_t count = static_cast<uint32_t>(tri_vertices_.size());
+        if (count > capacity_)
+        {
+            count = capacity_;
+        }
+        memcpy(tri_mapped_, tri_vertices_.data(), count * sizeof(DebugLineVertex));
+
+        D3D12_VERTEX_BUFFER_VIEW vbv = {};
+        vbv.BufferLocation = tri_gpu_address_;
+        vbv.SizeInBytes = count * sizeof(DebugLineVertex);
+        vbv.StrideInBytes = sizeof(DebugLineVertex);
+
+        context.command_list->SetPipelineState(tri_pipeline_state_->GetPipelineState());
+        context.command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+        context.command_list->IASetVertexBuffers(0, 1, &vbv);
+        context.command_list->DrawInstanced(count, 1, 0, 0);
+    }
 
     Clear();
 }
@@ -152,4 +224,5 @@ void DebugLineRenderer::Submit(RenderContext& context)
 void DebugLineRenderer::Clear()
 {
     vertices_.clear();
+    tri_vertices_.clear();
 }

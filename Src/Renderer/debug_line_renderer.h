@@ -14,9 +14,10 @@ class DebugLineRenderer
 public:
     bool Initialize(ID3D12Device* device);
     void Shutdown();
-    void AddLine(const Vec3& start, const Vec3& end, const Vec4& color); // Debug から呼ぶ
-    void Submit(RenderContext& context);                                // 毎フレーム描画
-    void Clear();                                                       // 描画後に貯めた線を捨てる
+    void AddLine(const Vec3& start, const Vec3& end, const Vec4& color);            
+    void AddTriangle(const Vec3& a, const Vec3& b, const Vec3& c, const Vec4& color); 
+    void Submit(RenderContext& context);                                            
+    void Clear();                                                                 
 
 private:
     struct DebugLineVertex
@@ -25,14 +26,28 @@ private:
         float color[4];
     };
 
+
+    bool CreateDynamicVertexBuffer(ID3D12Device* device, uint32_t buffer_size,
+                                   ComPtr<ID3D12Resource>& out_buffer, void*& out_mapped,
+                                   D3D12_GPU_VIRTUAL_ADDRESS& out_gpu_address);
+
     std::unique_ptr<Shader> vs_;
     std::unique_ptr<Shader> ps_;
     std::unique_ptr<RootSignature> root_signature_;
-    std::unique_ptr<PipelineState> pipeline_state_;
-    
+    std::unique_ptr<PipelineState> pipeline_state_;    
+    std::unique_ptr<PipelineState> tri_pipeline_state_;
+
+    uint32_t capacity_ = 0;
+
+    //��//
     ComPtr<ID3D12Resource> vertex_buffer_;
-    void* mapped_ = nullptr;                     
+    void* mapped_ = nullptr;
     D3D12_GPU_VIRTUAL_ADDRESS gpu_address_ = 0;
-    uint32_t capacity_ = 0;                        
-    std::vector<DebugLineVertex> vertices_;        
+    std::vector<DebugLineVertex> vertices_;
+
+    //�h��Ԃ��O�p�`//
+    ComPtr<ID3D12Resource> tri_vertex_buffer_;
+    void* tri_mapped_ = nullptr;
+    D3D12_GPU_VIRTUAL_ADDRESS tri_gpu_address_ = 0;
+    std::vector<DebugLineVertex> tri_vertices_;
 };

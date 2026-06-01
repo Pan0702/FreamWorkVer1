@@ -31,9 +31,9 @@ bool CommandQueue::Initialize(ID3D12Device* device)
 bool CommandQueue::CreateCommandQueue(ID3D12Device* device)
 {
     D3D12_COMMAND_QUEUE_DESC queue_desc = {};
-    queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;   //�O���t�B�b�N�X�R�}���h�p
-    queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;   //�ʏ�̓t���O�Ȃ�
-    queue_desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;  //�ʏ�D��
+    queue_desc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;   //?O???t?B?b?N?X?R?}???h?p
+    queue_desc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;   //????t???O???
+    queue_desc.Priority = D3D12_COMMAND_QUEUE_PRIORITY_NORMAL;  //???D??
     HRESULT hr = device->CreateCommandQueue
                         (&queue_desc, IID_PPV_ARGS(&command_queue_));
     if (FAILED(hr))

@@ -1,24 +1,19 @@
-﻿#include "application.h"
+#include "application.h"
 #include "actor.h"
 #include "camera.h"
 #include "Components/transform_component.h"
-#include "Components/static_mesh_component.h"
 #include "world.h"
 #include "../Platform/window.h"
 #include "../Graphics/graphics_device.h"
 #include "../Graphics/swap_chain.h"
 #include "../Graphics/command_queue.h"
 #include "../Graphics/command_list.h"
-#include "../Renderer/scene.h"
 #include "../Graphics/depth_stencil.h"
 #include "../Graphics/constant_buffer_allocator.h"
 #include "../Core/Math/my_math.h"
 #include "../Platform/input.h"
 #include "../Renderer/scene_renderer.h"
-#include  "../Resource/texture2D.h"
-#include "../Resource/mesh.h"
-#include "../Resource/material.h"
-#include "../Resource/vertex_types.h"
+#include "../Resource/texture_manager.h"
 #include "../Debug/debug.h"
 #include "../Debug/debug_scene.h"
 #include "../Renderer/debug_line_renderer.h"
@@ -71,71 +66,6 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
     }
 
 
-    StaticVertex cube_vertices[24] = {
-        // ===== 前面 (-Z) =====  法線は (0, 0, -1)
-        {{-0.3f, -0.3f, -0.3f}, {0, 0, -1}, {0.0f, 1.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{-0.3f, +0.3f, -0.3f}, {0, 0, -1}, {0.0f, 0.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{+0.3f, +0.3f, -0.3f}, {0, 0, -1}, {1.0f, 0.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{+0.3f, -0.3f, -0.3f}, {0, 0, -1}, {1.0f, 1.0f}, {0, 0, 0}, {0, 0, 0}},
-
-        // ===== 背面 (+Z) =====  法線は (0, 0, +1)
-        {{+0.3f, -0.3f, +0.3f}, {0, 0, +1}, {0.0f, 1.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{+0.3f, +0.3f, +0.3f}, {0, 0, +1}, {0.0f, 0.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{-0.3f, +0.3f, +0.3f}, {0, 0, +1}, {1.0f, 0.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{-0.3f, -0.3f, +0.3f}, {0, 0, +1}, {1.0f, 1.0f}, {0, 0, 0}, {0, 0, 0}},
-
-        // ===== 左面 (-X) =====  法線は (-1, 0, 0)
-        {{-0.3f, -0.3f, +0.3f}, {-1, 0, 0}, {0.0f, 1.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{-0.3f, +0.3f, +0.3f}, {-1, 0, 0}, {0.0f, 0.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{-0.3f, +0.3f, -0.3f}, {-1, 0, 0}, {1.0f, 0.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{-0.3f, -0.3f, -0.3f}, {-1, 0, 0}, {1.0f, 1.0f}, {0, 0, 0}, {0, 0, 0}},
-
-        // ===== 右面 (+X) =====  法線は (+1, 0, 0)
-        {{+0.3f, -0.3f, -0.3f}, {+1, 0, 0}, {0.0f, 1.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{+0.3f, +0.3f, -0.3f}, {+1, 0, 0}, {0.0f, 0.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{+0.3f, +0.3f, +0.3f}, {+1, 0, 0}, {1.0f, 0.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{+0.3f, -0.3f, +0.3f}, {+1, 0, 0}, {1.0f, 1.0f}, {0, 0, 0}, {0, 0, 0}},
-
-        // ===== 下面 (-Y) =====  法線は (0, -1, 0)
-        {{-0.3f, -0.3f, +0.3f}, {0, -1, 0}, {0.0f, 1.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{-0.3f, -0.3f, -0.3f}, {0, -1, 0}, {0.0f, 0.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{+0.3f, -0.3f, -0.3f}, {0, -1, 0}, {1.0f, 0.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{+0.3f, -0.3f, +0.3f}, {0, -1, 0}, {1.0f, 1.0f}, {0, 0, 0}, {0, 0, 0}},
-
-        // ===== 上面 (+Y) =====  法線は (0, +1, 0)
-        {{-0.3f, +0.3f, -0.3f}, {0, +1, 0}, {0.0f, 1.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{-0.3f, +0.3f, +0.3f}, {0, +1, 0}, {0.0f, 0.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{+0.3f, +0.3f, +0.3f}, {0, +1, 0}, {1.0f, 0.0f}, {0, 0, 0}, {0, 0, 0}},
-        {{+0.3f, +0.3f, -0.3f}, {0, +1, 0}, {1.0f, 1.0f}, {0, 0, 0}, {0, 0, 0}},
-    };
-
-    VertexData vertex_data = {};
-    vertex_data.data = cube_vertices;
-    vertex_data.total_size = sizeof(cube_vertices);
-    vertex_data.stride = sizeof(cube_vertices[0]);
-
-    uint16_t cube_indices[36] = {
-        0, 1, 2, 0, 2, 3, // 前面
-        4, 5, 6, 4, 6, 7, // 背面 
-        8, 9, 10, 8, 10, 11, // 左面 
-        12, 13, 14, 12, 14, 15, // 右面 
-        16, 17, 18, 16, 18, 19, // 下面 
-        20, 21, 22, 20, 22, 23, // 上面 
-    };
-
-    IndexData index_data = {};
-    index_data.data = cube_indices;
-    index_data.total_size = sizeof(cube_indices);
-    index_data.format = DXGI_FORMAT_R16_UINT;
-    
-
-    mesh_ = std::make_unique<Mesh>();
-    if (!mesh_->Create(graphics_device_->GetDevice(), vertex_data, index_data, kStaticVertexLayout))
-    {
-        MessageBox(nullptr, L"Failed to create mesh", L"Error", MB_OK);
-        return false;
-    }
-    
     depth_stencil_ = std::make_unique<DepthStencil>();
     if (!depth_stencil_->Initialize(graphics_device_->GetDevice(), window_->GetWidth(), window_->GetHeight()))
     {
@@ -148,6 +78,8 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         MessageBox(nullptr, L"Failed to create descriptor heap", L"Error", MB_OK);
         return false;
     }
+    TextureManager::Get().Initialize(graphics_device_->GetDevice(), srv_heap_.get(),
+                                     command_queue_.get(), command_list_.get());
     cb_allocator_ = std::make_unique<ConstantBufferAllocator>();
     constexpr uint32_t kConstantBufferAllocatorSize = 1024 * 1024;
     if (!cb_allocator_->Initialize(graphics_device_->GetDevice(), kConstantBufferAllocatorSize))
@@ -155,35 +87,6 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         MessageBox(nullptr, L"Failed to create constant buffer allocator", L"Error", MB_OK);
         return false;
     }
-    LoadedImage image;
-    if (!TextureLoader::LoadFromFile(L"Texture/test.png", image))
-    {
-        MessageBox(nullptr, L"Failed to load texture", L"Error", MB_OK);
-        return false;
-    }
-    if (!command_list_->Reset())
-    {
-        MessageBox(nullptr, L"Failed to reset command list", L"Error", MB_OK);
-        return false;
-    }
-    texture_ = std::make_unique<Texture2D>();
-    if (!texture_->Initialize(graphics_device_->GetDevice(), command_queue_->GetCommandQueue(),
-                              command_list_->GetCommandList(), nullptr, image))
-    {
-        MessageBox(nullptr, L"Failed to create texture", L"Error", MB_OK);
-        return false;
-    }
-    material_ = std::make_unique<Material>();
-    material_->Create(graphics_device_->GetDevice(),L"Shaders/triangle.vs.hlsl", L"Shaders/triangle.ps.hlsl",mesh_->GetInputLayout());
-    material_->SetDiffuse(texture_.get());
-    UINT diffuse_srv_index = 0;
-    if (!srv_heap_->Allocate(diffuse_srv_index))
-    {
-        MessageBox(nullptr, L"Failed to allocate texture SRV", L"Error", MB_OK);
-        return false;
-    }
-    texture_->SetSrvIndex(diffuse_srv_index);
-    texture_->CreateSrv(graphics_device_->GetDevice(), srv_heap_->GetCpuHandle(diffuse_srv_index));
     input_ = std::make_unique<Input>();
     input_->Initialize(window_->GetHwnd());
     camera_ = std::make_unique<Camera>();
@@ -197,7 +100,6 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
         depth_stencil_->Resize(w, h);
         camera_->SetAspect(static_cast<float>(w) / static_cast<float>(h));
     });
-    scene_ = std::make_unique<Scene>();
     scene_renderer_ = std::make_unique<SceneRenderer>();
     if (!scene_renderer_->Initialize(graphics_device_->GetDevice(), window_->GetHwnd(),command_queue_->GetCommandQueue(),kFrameCount))
     {
@@ -214,16 +116,11 @@ bool Application::Initialize(const wchar_t* title, uint32_t width, uint32_t heig
     auto actor = std::make_unique<Actor>();
     auto* transform = actor->AddComponent<TransformComponent>();
     transform->position = Vec3(0.0f, 0.0f, 0.0f);
-    actor->AddComponent<StaticMeshComponent>(mesh_.get(), material_.get());
     test_actor_ = actor.get();
     actor->AddComponent<DebugComponent>();
     world_->AddActor(std::move(actor));
     debug_line_renderer_ = std::make_unique<DebugLineRenderer>();
     Debug::Get().Initialize(scene_renderer_->GetSpriteRenderer(), scene_renderer_->GetUIRenderer(),debug_line_renderer_.get());
-    render_object_ = std::make_unique<RenderObject>();
-    render_object_->SetMesh(mesh_.get());
-    render_object_->SetMaterial(material_.get());
-    scene_->AddObject(render_object_.get());
     window_->Show();
     DEBUG_LOG("Application initialized");
     return true;
@@ -242,6 +139,7 @@ void Application::Run()
 void Application::Shutdown()
 {
     Debug::Get().Shutdown();
+    TextureManager::Get().Shutdown();
     scene_renderer_->Shutdown();
 }
 

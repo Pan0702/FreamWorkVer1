@@ -128,8 +128,11 @@ void Debug::DrawLine3D(const Vec3& start, const Vec3& end, const Vec4& color)
     line_renderer_->AddLine(start, end, color);
 }
 
-void Debug::DrawBox3D(const Vec3& center, const Vec3& size, const Vec4& color, const Vec3& rotation)
+void Debug::DrawBox3D(const Vec3& center, const Vec3& size, const Vec4& color, const Vec3& rotation, bool fill)
 {
+    if (line_renderer_ == nullptr)
+        return;
+
     Mat rot_mat = RotateX(rotation.x) * RotateY(rotation.y) * RotateZ(rotation.z);
     const Vec3 h = size * 0.5f;
     Vec3 corners[8] = {};
@@ -147,14 +150,31 @@ void Debug::DrawBox3D(const Vec3& center, const Vec3& size, const Vec4& color, c
     }
 
     constexpr int edges[12][2] = {
-        {0, 1}, {2, 3}, {4, 5}, {6, 7}, // z辺
-        {0, 2}, {1, 3}, {4, 6}, {5, 7}, // y辺
-        {0, 4}, {1, 5}, {2, 6}, {3, 7}, // x辺
+        {0, 1}, {2, 3}, {4, 5}, {6, 7}, 
+        {0, 2}, {1, 3}, {4, 6}, {5, 7}, 
+        {0, 4}, {1, 5}, {2, 6}, {3, 7}, 
     };
 
     for (auto& e : edges)
     {
         line_renderer_->AddLine(corners[e[0]], corners[e[1]], color);
+    }
+
+    if (fill)
+    {
+        constexpr int faces[6][4] = {
+            {0, 1, 3, 2}, 
+            {4, 5, 7, 6}, 
+            {0, 1, 5, 4}, 
+            {2, 3, 7, 6}, 
+            {0, 2, 6, 4}, 
+            {1, 3, 7, 5}, 
+        };
+        for (auto& f : faces)
+        {
+            line_renderer_->AddTriangle(corners[f[0]], corners[f[1]], corners[f[2]], color);
+            line_renderer_->AddTriangle(corners[f[0]], corners[f[2]], corners[f[3]], color);
+        }
     }
 }
 
@@ -179,9 +199,31 @@ void Debug::DrawSphere3D(const Vec3& center, float radius, const Vec4& color)
     }
 }
 
-void Debug::DrawSprite3D(Texture2D* texture, const Vec3& position, const Vec2& size, const Vec4& color)
+void Debug::DrawSprite3D(Texture2D* texture, const Mat& mat, const Vec2& size, const Vec2& src_pos,
+    const Vec2& src_size, float alpha)
 {
+    if (sprite_renderer_ == nullptr)
+    {
+        return;
+    }
+
+    SpriteDrawCommand command = {};
+    command.texture = texture;
+    command.world = mat;
+    command.size = size;
+    command.src_rect = Vec4(src_pos.x, src_pos.y, src_size.x, src_size.y);
+    command.color = Vec4(1.0f, 1.0f, 1.0f, alpha);
+    command.use_texture = texture != nullptr;
+    sprite_renderer_->DrawImmediate(command);
 }
+
+void Debug::DrawSprite3D( Texture2D* texture, const Vec3& position, const Vec3& rotation,const Vec2& size,
+                    const Vec2& src_pos, const Vec2& src_size, float alpha)
+{
+    const Mat world = RotateX(rotation.x) * RotateY(rotation.y) * RotateZ(rotation.z) * Translate(position);
+    DrawSprite3D(texture, world, size, src_pos, src_size, alpha);
+}
+
 
 
 void Debug::Watch(const char* name, float value)
