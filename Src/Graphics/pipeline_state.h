@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 
 #include "../Core/common.h"
@@ -25,6 +25,7 @@ public:
     PipelineStateBuilder& SetDepthEnabled(bool enabled);
     PipelineStateBuilder& SetAlphaBlendEnabled(bool enabled);
     PipelineStateBuilder& SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE type);
+    PipelineStateBuilder& SetDepthWriteEnabled(bool enabled);
     bool Build(ID3D12Device* device, PipelineState*out_pipeline_state) const;
 
 private:
@@ -35,6 +36,7 @@ private:
 
     bool depth_enable_ = true;
     bool blend_alpha_enable_ = false;
+    bool depth_write_ = true;
 
     DXGI_FORMAT rtv_format_ = DXGI_FORMAT_R8G8B8A8_UNORM;
     DXGI_FORMAT dsv_format_ = DXGI_FORMAT_D32_FLOAT;

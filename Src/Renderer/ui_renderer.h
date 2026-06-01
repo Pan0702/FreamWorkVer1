@@ -12,6 +12,9 @@
 #include "../Graphics/vertex_buffer.h"
 #include "sprite_draw_command.h"
 #include "../Engine/Components/sprite_component.h"
+
+struct RenderContext;
+
 struct UISpriteCBData
 {
     Vec2 sprite_pos;

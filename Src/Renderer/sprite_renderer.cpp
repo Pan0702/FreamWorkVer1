@@ -37,13 +37,13 @@ bool SpriteRenderer::Initialize(ID3D12Device* device)
     }
 
     vertex_shader_ = std::make_unique<Shader>();
-    if (!vertex_shader_->LoadFromFile(L"Shaders/sprite.vs.hlsl", "VSMain", "vs_5_0"))
+    if (!vertex_shader_->LoadFromFile(L"Shaders/sprite_world.vs.hlsl", "VSMain", "vs_5_0"))
     {
         return false;
     }
 
     pixel_shader_ = std::make_unique<Shader>();
-    if (!pixel_shader_->LoadFromFile(L"Shaders/sprite.ps.hlsl", "PSMain", "ps_5_0"))
+    if (!pixel_shader_->LoadFromFile(L"Shaders/sprite_world.ps.hlsl", "PSMain", "ps_5_0"))
     {
         return false;
     }
@@ -70,7 +70,8 @@ bool SpriteRenderer::Initialize(ID3D12Device* device)
         .SetVertexShader(vertex_shader_->GetBytecode())
         .SetPixelShader(pixel_shader_->GetBytecode())
         .SetInputLayout(layout_desc)
-        .SetDepthEnabled(false)
+        .SetDepthEnabled(true)
+        .SetDepthWriteEnabled(false)
         .SetAlphaBlendEnabled(true);
 
     return ps_builder.Build(device, pipeline_state_.get());
@@ -114,6 +115,7 @@ void SpriteRenderer::Collect()
         SpriteDrawCommand command = {};
         command.texture = component->texture;
         command.position = component->position;
+        command.world = Translate(Vec3(component->position.x, component->position.y, 0.0f));
         command.size = component->size;
         command.color = component->color;
         command.src_rect = component->src_rect;
@@ -156,13 +158,13 @@ void SpriteRenderer::Submit(RenderContext& context)
 
 void SpriteRenderer::SubmitCommand(RenderContext& context, const SpriteDrawCommand& command)
 {
-    SpriteCBData cb_data = {};
-    cb_data.sprite_pos = command.position;
-    cb_data.sprite_size = command.size;
+    SpriteWorldCBData cb_data = {};
+    const Mat world = Scale(Vec3(command.size.x, command.size.y, 1.0f)) * command.world;
+    cb_data.wvp = Transpose(world * context.view * context.projection);
     cb_data.color = command.color;
-    cb_data.screen_size = context.screen_size;
-    cb_data.rotation = command.rotation;
-    cb_data.use_texture = command.use_texture ? 1.0f : 0.0f;
+    cb_data.src_rect = command.src_rect;
+    cb_data.options = Vec4(command.use_texture ? 1.0f : 0.0f, 0.0f, 0.0f, 0.0f);
+
 
     ConstantBufferAllocation allocation = {};
     if (!context.cb_allocator->Allocate(sizeof(cb_data), &allocation))

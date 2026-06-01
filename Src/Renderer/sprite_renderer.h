@@ -15,14 +15,12 @@ class DescriptorHeap;
 struct RenderContext;
 class SpriteComponent;
 
-struct SpriteCBData
+struct SpriteWorldCBData
 {
-    Vec2 sprite_pos;
-    Vec2 sprite_size;
+    Mat wvp;
     Vec4 color;
-    Vec2 screen_size;
-    float rotation;
-    float use_texture;
+    Vec4 src_rect;
+    Vec4 options;
 };
 
 class SpriteRenderer

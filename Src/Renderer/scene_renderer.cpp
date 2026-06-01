@@ -73,6 +73,9 @@ void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* ca
     mesh_renderer_->Sort();
     mesh_renderer_->Submit(context);
 
+    // デバッグ描画（線・箱・球など）。メッシュの後に描いて深度で隠れるようにする
+    debug_renderer_->Submit(context);
+
     sprite_renderer_->Collect();
     sprite_renderer_->Sort();
     sprite_renderer_->Submit(context);

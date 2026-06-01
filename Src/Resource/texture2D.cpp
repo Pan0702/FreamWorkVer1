@@ -1,9 +1,8 @@
-﻿#include "texture2D.h"
+#include "texture2D.h"
 
-bool Texture2D::Initialize(ID3D12Device* device, ID3D12CommandQueue* queue, ID3D12GraphicsCommandList* cmd_list,
-                           ID3D12CommandAllocator* allocator, const LoadedImage& image)
+bool Texture2D::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* cmd_list, const LoadedImage& image)
 {
-    //テクスチャリソース作成
+    // テクスチャリソース作成
     D3D12_HEAP_PROPERTIES heap_props = {};
     heap_props.Type = D3D12_HEAP_TYPE_DEFAULT;
     heap_props.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
@@ -32,14 +31,11 @@ bool Texture2D::Initialize(ID3D12Device* device, ID3D12CommandQueue* queue, ID3D
         return false;
     }
 
-    //アップロードバッファー作成
-
+    // アップロードバッファー作成
     D3D12_HEAP_PROPERTIES upload_heap_props = {};
     upload_heap_props.Type = D3D12_HEAP_TYPE_UPLOAD;
-    upload_heap_props.CPUPageProperty =
-        D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
-    upload_heap_props.MemoryPoolPreference =
-        D3D12_MEMORY_POOL_UNKNOWN;
+    upload_heap_props.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+    upload_heap_props.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
     upload_heap_props.CreationNodeMask = 1;
     upload_heap_props.VisibleNodeMask = 1;
 
@@ -58,23 +54,23 @@ bool Texture2D::Initialize(ID3D12Device* device, ID3D12CommandQueue* queue, ID3D
     upload_desc.Flags = D3D12_RESOURCE_FLAG_NONE;
     hr = device->CreateCommittedResource(&upload_heap_props, D3D12_HEAP_FLAG_NONE, &upload_desc,
                                          D3D12_RESOURCE_STATE_GENERIC_READ,
-                                         nullptr,IID_PPV_ARGS(&upload_buffer_));
+                                         nullptr, IID_PPV_ARGS(&upload_buffer_));
     if (FAILED(hr))
     {
         MessageBox(nullptr, L"Failed to create CreateCommittedResource File:texture2D", L"Error", MB_OK);
         return false;
     }
 
-    // MapのデータをMemcpyしてUnmap
+    // Map のデータを memcpy して Unmap
     uint8_t* mapped = nullptr;
-    D3D12_RANGE read_range = {0,0};
-    hr = upload_buffer_ ->Map(0, &read_range, reinterpret_cast<void**>(&mapped));
+    D3D12_RANGE read_range = {0, 0};
+    hr = upload_buffer_->Map(0, &read_range, reinterpret_cast<void**>(&mapped));
     if (FAILED(hr))
     {
         MessageBox(nullptr, L"Failed to Map File:texture2D", L"Error", MB_OK);
         return false;
     }
-    
+
     uint32_t src_row_pitch = image.width * 4;
     const uint8_t* src = image.pixels.data();
     for (uint32_t y = 0; y < image.height; ++y)
@@ -83,10 +79,8 @@ bool Texture2D::Initialize(ID3D12Device* device, ID3D12CommandQueue* queue, ID3D
         src += src_row_pitch;
     }
     upload_buffer_->Unmap(0, nullptr);
-    
-    
-    // CopyTextureRegion記録
-    
+
+    // CopyTextureRegion を記録
     D3D12_TEXTURE_COPY_LOCATION src_loc = {};
     src_loc.pResource = upload_buffer_.Get();
     src_loc.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
@@ -96,15 +90,16 @@ bool Texture2D::Initialize(ID3D12Device* device, ID3D12CommandQueue* queue, ID3D
     src_loc.PlacedFootprint.Footprint.Height = image.height;
     src_loc.PlacedFootprint.Footprint.Depth = 1;
     src_loc.PlacedFootprint.Footprint.RowPitch = aligned_row_pitch;
-    
-    //　destination(コピー先)の略
+
+    // destination(コピー先)
     D3D12_TEXTURE_COPY_LOCATION dst_loc = {};
     dst_loc.pResource = texture_.Get();
     dst_loc.Type = D3D12_TEXTURE_COPY_TYPE_SUBRESOURCE_INDEX;
     dst_loc.SubresourceIndex = 0;
-    
+
     cmd_list->CopyTextureRegion(&dst_loc, 0, 0, 0, &src_loc, nullptr);
-    // ===== Step 5: テクスチャ状態を COPY_DEST →PIXEL_SHADER_RESOURCE =====
+
+    // テクスチャ状態を COPY_DEST → PIXEL_SHADER_RESOURCE
     D3D12_RESOURCE_BARRIER barrier = {};
     barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     barrier.Transition.pResource = texture_.Get();
@@ -113,19 +108,8 @@ bool Texture2D::Initialize(ID3D12Device* device, ID3D12CommandQueue* queue, ID3D
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
     cmd_list->ResourceBarrier(1, &barrier);
 
-    // コマンドリストを閉じて実行して、待機
-    cmd_list->Close();
-    ID3D12CommandList* command_lists[] = {cmd_list};
-    queue->ExecuteCommandLists(1, command_lists);
-    
-    //GPU完了待ち(Fence同期）
-    ComPtr<ID3D12Fence> fence;
-    device->CreateFence(0,D3D12_FENCE_FLAG_NONE,IID_PPV_ARGS(&fence));
-    HANDLE event = CreateEventW(nullptr,FALSE,FALSE,nullptr);
-    queue->Signal(fence.Get(),1);
-    fence->SetEventOnCompletion(1,event);
-    WaitForSingleObject(event,INFINITE);
-    CloseHandle(event);
+    // ここまで「記録」のみ。Close/Execute/GPU同期は呼び出し側（TextureManager）が行う。
+    // upload_buffer_ はメンバなので、呼び出し側が GPU 完了を待つまで生存する。
     return true;
 }
 
