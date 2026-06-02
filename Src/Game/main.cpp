@@ -1,12 +1,13 @@
+#include "GameMain.h"
 #include "../Core/common.h"
-#include "../Engine/application.h"
+
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine, int nCmdShow)
 {
-    Application app;
-    if (!app.Initialize(L"FrameWork", 1280, 720))
+    GameMain game;
+    if (!game.Initialize(L"FrameWork", kWindowWidth, kWindwoHeight))
         return -1;
-    app.Run();
-    app.Shutdown();
+    game.Run();
+    game.Shutdown();
     return 0;
 }

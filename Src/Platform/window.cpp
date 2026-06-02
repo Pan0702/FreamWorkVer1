@@ -1,6 +1,11 @@
 #pragma execution_character_set("shift_jis")
+#include <tchar.h>
+
 #include "Window.h"
 #include "../Debug/ImGui/imgui_impl_win32.h"
+#include "../Core/common.h"
+#include "../Game/GameMain.h"
+
 Window::Window()
 {
 }
@@ -95,6 +100,11 @@ uint32_t Window::GetHeight() const
 WindowSize Window::GetSize() const
 {
     return size_;
+}
+
+void Window::DispFPS(const wchar_t* title)
+{
+    SetWindowText(hwnd_, title);
 }
 
 void Window::SetResizeCallback(ResizeCallback callback)

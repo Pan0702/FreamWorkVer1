@@ -14,7 +14,7 @@ void DebugComponent::Render()
 
     // 1. Static box: verifies DrawBox output.
     debug.DrawBox(Vec2(100.0f, 100.0f), Vec2(200.0f, 150.0f),
-                  Vec4(1.0f, 0.0f, 0.0f, 1.0f), time_); // Red
+                  Vec4(1.0f, 0.0f, 0.0f, 1.0f)); // Red
 
     // 2. Animated box: verifies per-frame rendering.
     const float x = 400.0f + std::sin(time_) * 100.0f;
@@ -23,9 +23,9 @@ void DebugComponent::Render()
 
     // 3. Line and circle: verifies other Debug APIs.
     debug.DrawLine(Vec2(0, 0), Vec2(500, 500), Vec4(1, 1, 0, 1));
-    debug.DrawCircle(Vec2(640, 360), 80.0f, Vec4(0, 1, 1, 1));
+    debug.DrawCircle(Vec2(100, 100), 10.0f, Vec4(0, 1, 1, 1));
     
-    Texture2D* tex = TextureManager::Get().Load(L"Texture/cat-qr.png");
+    Texture2D* tex = TextureManager::Get().Load(L"Texture/clock.png");
     debug.DrawSprite3D(tex,Vec3(0.0f, 0.0f, 0.0f),Vec3(0.0f, time_, time_),
                        Vec2(1.0f, 1.0f),Vec2(0.0f, 0.0f),Vec2(1.0f, 1.0f),1.0f);
     

@@ -7,19 +7,19 @@
 
 bool TextureLoader::LoadFromFile(const wchar_t* filename, LoadedImage& image)
 {
-    //IWIC の I は Interface、WIC は Windows Imaging Component。 
+    //IWIC �� I �� Interface�AWIC �� Windows Imaging Component�B 
     ComPtr<IWICImagingFactory> factory;
     ComPtr<IWICBitmapDecoder> decoder;
     ComPtr<IWICBitmapFrameDecode> frame;
     ComPtr<IWICFormatConverter> converter;
 
-    //Comライブラリの初期化（exは拡張版って意味)
+    //Com���C�u�����̏������iex�͊g���ł��ĈӖ�)
     HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     if (FAILED(hr))
     {
         return false;
     }
-    //Comオブジェクトのインスタンスを作る関数。
+    //Com�I�u�W�F�N�g�̃C���X�^���X�����֐��B
     hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&factory));
     if (FAILED(hr))
     {

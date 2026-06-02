@@ -28,7 +28,6 @@ public:
         const Vec2& size, const Vec2& src_pos, const Vec2& src_size, float alpha);
     void DrawSprite3D(Texture2D* texture,const Mat& mat,const Vec2& size, const Vec2& src_pos, const Vec2& src_size, float alpha);
     void Watch(const char* name, float value);
-
 private:
     Debug() = default;
 

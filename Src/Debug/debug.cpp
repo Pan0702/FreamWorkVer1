@@ -6,6 +6,8 @@
 #include "../Renderer/debug_line_renderer.h"
 #include <cmath>
 
+#include "../Game/GameMain.h"
+
 namespace
 {
     constexpr float kHalf = 0.5f;
@@ -63,10 +65,18 @@ void Debug::DrawSprite(Texture2D* texture, const Vec2& position, const Vec2& siz
         return;
     }
 
+    Vec2 pixcel_pos = Vec2(
+        (position.x / kWindowWidth) * static_cast<float>(game_main->GetWindow().GetWidth())
+        , (position.y / kWindwoHeight) * static_cast<float>(game_main->GetWindow().GetSize().width));
+
+    Vec2 pixcel_size = Vec2(
+        (size.x / kWindowWidth) * static_cast<float>(game_main->GetWindow().GetWidth())
+        , (size.y / kWindwoHeight) * static_cast<float>(game_main->GetWindow().GetSize().width));
+
     SpriteDrawCommand command = {};
     command.texture = texture;
-    command.position = Vec2(position.x + size.x * kHalf, position.y + size.y * kHalf);
-    command.size = size;
+    command.position = Vec2(pixcel_pos.x + pixcel_size.x * kHalf, pixcel_pos.y + pixcel_size.y * kHalf);
+    command.size = pixcel_size;
     command.color = color;
     command.use_texture = true;
     ui_renderer_->DrawImmediate(command);
@@ -79,9 +89,17 @@ void Debug::DrawBox(const Vec2& position, const Vec2& size, const Vec4& color, f
         return;
     }
 
+    Vec2 pixcel_pos = Vec2(
+        (position.x / kWindowWidth) * static_cast<float>(game_main->GetWindow().GetWidth())
+        , (position.y / kWindwoHeight) * static_cast<float>(game_main->GetWindow().GetSize().width));
+
+    Vec2 pixcel_size = Vec2(
+        (size.x / kWindowWidth) * static_cast<float>(game_main->GetWindow().GetWidth())
+        , (size.y / kWindwoHeight) * static_cast<float>(game_main->GetWindow().GetSize().width));
+
     SpriteDrawCommand command = {};
-    command.position = Vec2(position.x + size.x * kHalf, position.y + size.y * kHalf);
-    command.size = size;
+    command.position = Vec2(pixcel_pos.x + pixcel_size.x * kHalf, pixcel_pos.y + pixcel_size.y * kHalf);
+    command.size = pixcel_size;
     command.color = color;
     command.rotation = rotation;
     command.use_texture = false;
@@ -95,11 +113,19 @@ void Debug::DrawLine(const Vec2& start, const Vec2& end, const Vec4& color)
         return;
     }
 
-    const float dx = end.x - start.x;
-    const float dy = end.y - start.y;
+    Vec2 start_vec2 = Vec2(
+        (start.x / kWindowWidth) * static_cast<float>(game_main->GetWindow().GetWidth())
+        , (start.y / kWindwoHeight) * static_cast<float>(game_main->GetWindow().GetHeight()));
+
+    Vec2 end_vec2 = Vec2(
+        (end.x / kWindowWidth) * static_cast<float>(game_main->GetWindow().GetWidth())
+        , (end.y / kWindwoHeight) * static_cast<float>(game_main->GetWindow().GetHeight()));
+
+    const float dx = end_vec2.x - start_vec2.x;
+    const float dy = end_vec2.y - start_vec2.y;
     const float length = std::sqrt(dx * dx + dy * dy);
     SpriteDrawCommand command = {};
-    command.position = Vec2((start.x + end.x) * kHalf, (start.y + end.y) * kHalf);
+    command.position = Vec2((start_vec2.x + end_vec2.x) * kHalf, (start_vec2.y + end_vec2.y) * kHalf);
     command.size = Vec2(length, 2.0f);
     command.color = color;
     command.rotation = std::atan2(dy, dx);
@@ -112,11 +138,11 @@ void Debug::DrawCircle(const Vec2& center, float radius, const Vec4& color)
     constexpr int kSegments = 32;
     for (int i = 0; i < kSegments; ++i)
     {
-        const float a0 = k2PI * static_cast<float>(i) / static_cast<float>(kSegments);
+        const float a0 = k2PI * static_cast<float>(i)     / static_cast<float>(kSegments);
         const float a1 = k2PI * static_cast<float>(i + 1) / static_cast<float>(kSegments);
         const Vec2 p0(center.x + std::cos(a0) * radius, center.y + std::sin(a0) * radius);
         const Vec2 p1(center.x + std::cos(a1) * radius, center.y + std::sin(a1) * radius);
-        DrawLine(p0, p1, color);
+        DrawLine(p0, p1, color); // 変換は DrawLine に任せる（二重変換しない）
     }
 }
 
@@ -150,9 +176,9 @@ void Debug::DrawBox3D(const Vec3& center, const Vec3& size, const Vec4& color, c
     }
 
     constexpr int edges[12][2] = {
-        {0, 1}, {2, 3}, {4, 5}, {6, 7}, 
-        {0, 2}, {1, 3}, {4, 6}, {5, 7}, 
-        {0, 4}, {1, 5}, {2, 6}, {3, 7}, 
+        {0, 1}, {2, 3}, {4, 5}, {6, 7},
+        {0, 2}, {1, 3}, {4, 6}, {5, 7},
+        {0, 4}, {1, 5}, {2, 6}, {3, 7},
     };
 
     for (auto& e : edges)
@@ -163,12 +189,12 @@ void Debug::DrawBox3D(const Vec3& center, const Vec3& size, const Vec4& color, c
     if (fill)
     {
         constexpr int faces[6][4] = {
-            {0, 1, 3, 2}, 
-            {4, 5, 7, 6}, 
-            {0, 1, 5, 4}, 
-            {2, 3, 7, 6}, 
-            {0, 2, 6, 4}, 
-            {1, 3, 7, 5}, 
+            {0, 1, 3, 2},
+            {4, 5, 7, 6},
+            {0, 1, 5, 4},
+            {2, 3, 7, 6},
+            {0, 2, 6, 4},
+            {1, 3, 7, 5},
         };
         for (auto& f : faces)
         {
@@ -182,7 +208,7 @@ void Debug::DrawSphere3D(const Vec3& center, float radius, const Vec4& color)
 {
     if (sprite_renderer_ == nullptr)
         return;
-    
+
     constexpr int kSegments = 32;
     for (int i = 0; i < kSegments; ++i)
     {
@@ -190,17 +216,17 @@ void Debug::DrawSphere3D(const Vec3& center, float radius, const Vec4& color)
         const float a1 = k2PI * static_cast<float>(i + 1) / static_cast<float>(kSegments);
         const float c0 = std::cos(a0), s0 = std::sin(a0);
         const float c1 = std::cos(a1), s1 = std::sin(a1);
-        line_renderer_->AddLine(center + Vec3(c0,s0,0.0f) * radius,
-            center + Vec3(c1,s1,0.0f) * radius, color);
-        line_renderer_->AddLine(center + Vec3(c0,0.0f,s0) * radius,
-            center + Vec3(c1,0.0f,s1) * radius, color);
-        line_renderer_->AddLine(center + Vec3(0.0f,c0,s0) * radius,
-            center + Vec3(0.0f,c1,s1) * radius, color);
+        line_renderer_->AddLine(center + Vec3(c0, s0, 0.0f) * radius,
+                                center + Vec3(c1, s1, 0.0f) * radius, color);
+        line_renderer_->AddLine(center + Vec3(c0, 0.0f, s0) * radius,
+                                center + Vec3(c1, 0.0f, s1) * radius, color);
+        line_renderer_->AddLine(center + Vec3(0.0f, c0, s0) * radius,
+                                center + Vec3(0.0f, c1, s1) * radius, color);
     }
 }
 
 void Debug::DrawSprite3D(Texture2D* texture, const Mat& mat, const Vec2& size, const Vec2& src_pos,
-    const Vec2& src_size, float alpha)
+                         const Vec2& src_size, float alpha)
 {
     if (sprite_renderer_ == nullptr)
     {
@@ -217,13 +243,12 @@ void Debug::DrawSprite3D(Texture2D* texture, const Mat& mat, const Vec2& size, c
     sprite_renderer_->DrawImmediate(command);
 }
 
-void Debug::DrawSprite3D( Texture2D* texture, const Vec3& position, const Vec3& rotation,const Vec2& size,
-                    const Vec2& src_pos, const Vec2& src_size, float alpha)
+void Debug::DrawSprite3D(Texture2D* texture, const Vec3& position, const Vec3& rotation, const Vec2& size,
+                         const Vec2& src_pos, const Vec2& src_size, float alpha)
 {
     const Mat world = RotateX(rotation.x) * RotateY(rotation.y) * RotateZ(rotation.z) * Translate(position);
     DrawSprite3D(texture, world, size, src_pos, src_size, alpha);
 }
-
 
 
 void Debug::Watch(const char* name, float value)

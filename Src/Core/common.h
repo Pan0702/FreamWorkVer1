@@ -31,3 +31,6 @@
 
 template<typename T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
+
+inline constexpr uint32_t kWindowWidth = 1280;
+inline constexpr uint32_t kWindwoHeight = 720;
