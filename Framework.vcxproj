@@ -44,6 +44,7 @@
     <ClInclude Include="Src\Engine\Components\sprite_component.h" />
     <ClInclude Include="Src\Engine\Components\static_mesh_component.h" />
     <ClInclude Include="Src\Engine\Components\transform_component.h" />
+    <ClInclude Include="Src\Engine\render_system.h" />
     <ClInclude Include="Src\Engine\world.h" />
     <ClInclude Include="Src\Graphics\command_list.h" />
     <ClInclude Include="Src\Graphics\command_queue.h" />
@@ -97,6 +98,7 @@
     <ClCompile Include="Src\Engine\Components\sprite_component.cpp" />
     <ClCompile Include="Src\Engine\Components\static_mesh_component.cpp" />
     <ClCompile Include="Src\Engine\Components\transform_component.cpp" />
+    <ClCompile Include="Src\Engine\render_system.cpp" />
     <ClCompile Include="Src\Engine\world.cpp" />
     <ClCompile Include="Src\Platform\input.cpp" />
     <ClCompile Include="Src\Graphics\constant_buffer_allocator.cpp" />

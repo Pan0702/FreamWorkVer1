@@ -19,6 +19,10 @@ class Window
 public:
     Window();
     ~Window();
+    Window(const Window&) = delete;
+    Window& operator=(const Window&) = delete;
+    Window(Window&&) = delete;
+    Window& operator=(Window&&) = delete;
     // ウィンドウを作成する
     // title: タイトルバーに表示する文字列
     // width: ウィンドウの横幅
