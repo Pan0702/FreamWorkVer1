@@ -116,6 +116,11 @@ UIRenderer* SceneRenderer::GetUIRenderer()
     return ui_renderer_.get();
 }
 
+DebugLineRenderer* SceneRenderer::GetDebugLineRenderer()
+{
+    return debug_renderer_.get();
+}
+
 void SceneRenderer::BeginRenderTarget(RendererData& renderer_data)
 {
     auto command_list = renderer_data.command_list->GetCommandList();

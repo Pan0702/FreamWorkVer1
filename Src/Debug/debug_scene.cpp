@@ -29,5 +29,5 @@ void DebugComponent::Render()
     debug.DrawSprite3D(tex,Vec3(0.0f, 0.0f, 0.0f),Vec3(0.0f, time_, time_),
                        Vec2(1.0f, 1.0f),Vec2(0.0f, 0.0f),Vec2(1.0f, 1.0f),1.0f);
     
-    debug.DrawBox3D(Vec3(0, 0, -5), Vec3(2, 2, 2), Vec4(1, 1, 1, 1), Vec3(0, 45.0f * kDegToRad, 0),true);
+    debug.DrawBox3D(Vec3(0, 0, -5), Vec3(2, 2, 2), Vec4(1, 1, 1, 1), Vec3(0, 45.0f * kDegToRad * time_, 0),true);
 }

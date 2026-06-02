@@ -14,14 +14,14 @@ struct Vec4 : public XMFLOAT4
     {
     }
 
-    //åˆæœŸåŒ–
+    //‰Šú‰»
     
     Vec4(const XMVECTOR& v)
     {
         XMStoreFloat4(reinterpret_cast<XMFLOAT4*>(this), v);
     }
 
-    //å››å‰‡æ¼”ç®—ï¼ˆéç ´å£Šãƒ»constï¼‰
+    //l‘¥‰‰Zi”ñ”j‰óEconstj
     Vec4 operator+(const Vec4& v) const { return Vec4(x + v.x, y + v.y, z + v.z, w + v.w); }
     Vec4 operator-(const Vec4& v) const { return Vec4(x - v.x, y - v.y, z - v.z, w - v.w); }
     Vec4 operator*(const Vec4& v) const { return Vec4(x * v.x, y * v.y, z * v.z, w * v.w); }
@@ -32,7 +32,7 @@ struct Vec4 : public XMFLOAT4
     Vec4 operator*(float n) const { return Vec4(x * n, y * n, z * n, w * n); }
     Vec4 operator/(float n) const { return Vec4(x / n, y / n, z / n, w / n); }
 
-    //è¤‡åˆä»£å…¥ï¼ˆç ´å£Šãƒ»è‡ªèº«ã‚’å‚ç…§ã§è¿”ã™ï¼‰
+    //•¡‡‘ã“üi”j‰óE©g‚ğQÆ‚Å•Ô‚·j
     Vec4& operator+=(const Vec4& v) { x += v.x; y += v.y; z += v.z; w += v.w; return *this; }
     Vec4& operator-=(const Vec4& v) { x -= v.x; y -= v.y; z -= v.z; w -= v.w; return *this; }
     Vec4& operator*=(const Vec4& v) { x *= v.x; y *= v.y; z *= v.z; w *= v.w; return *this; }
@@ -43,15 +43,15 @@ struct Vec4 : public XMFLOAT4
     Vec4& operator*=(float n) { x *= n; y *= n; z *= n; w *= n; return *this; }
     Vec4& operator/=(float n) { x /= n; y /= n; z /= n; w /= n; return *this; }
 
-    //æ¯”è¼ƒ
+    //”äŠr
     bool operator==(const Vec4& v) const { return x == v.x && y == v.y && z == v.z && w == v.w; }
     bool operator!=(const Vec4& v) const { return !(*this == v); }
 
-    //å˜é …
+    //’P€
     Vec4 operator+() const { return Vec4(x, y, z, w); }
     Vec4 operator-() const { return Vec4(-x, -y, -z, -w); }
 
-    //ä»£å…¥
+    //‘ã“ü
     Vec4& operator=(const Vec4& v) = default;
 
     Vec4& operator=(const XMVECTOR& v)
@@ -60,7 +60,7 @@ struct Vec4 : public XMFLOAT4
         return *this;
     }
 
-    //å¤‰æ›
+    //•ÏŠ·
     operator XMVECTOR() const
     {
         return XMLoadFloat4(reinterpret_cast<const XMFLOAT4*>(this));
@@ -71,7 +71,7 @@ struct Vec4 : public XMFLOAT4
         return {x, y, z, w};
     }
 
-    //é•·ã•ãƒ»æ­£è¦åŒ–
+    //’·‚³E³‹K‰»
     float LengthSquared() const { return x * x + y * y + z * z + w * w; }
     float Length() const { return std::sqrt(LengthSquared()); }
 

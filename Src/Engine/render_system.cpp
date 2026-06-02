@@ -1,4 +1,4 @@
-Ôªø#include "render_system.h"
+#include "render_system.h"
 #include "../Platform/window.h"
 #include "../Graphics/graphics_device.h"
 #include "../Graphics/swap_chain.h"
@@ -12,10 +12,21 @@
 #include "../Renderer/scene_renderer.h"
 #include "../Debug/debug.h"
 
+RenderSystem::RenderSystem() = default;
+RenderSystem::~RenderSystem() = default;
+
 bool RenderSystem::Initialize(Window* window)
 {
     window_ = window;
-      graphics_device_ = std::make_unique<GraphicsDevice>();
+
+    // ÉEÉBÉìÉhÉEÇ™ñ≥Ç¢Ç∆ swap chain ÇçÏÇÍÇ»Ç¢ÅB
+    if (window_ == nullptr)
+    {
+        MessageBox(nullptr, L"Invalid window", L"Error", MB_OK);
+        return false;
+    }
+
+    graphics_device_ = std::make_unique<GraphicsDevice>();
 #ifdef _DEBUG
     constexpr bool enable_debug = true;
 #else
@@ -36,7 +47,8 @@ bool RenderSystem::Initialize(Window* window)
 
     swap_chain_ = std::make_unique<SwapChain>();
     if (!swap_chain_->Initialize(graphics_device_->GetFactory(), graphics_device_->GetDevice(),
-                                 command_queue_->GetCommandQueue(), window_->GetHwnd(), window_->GetWidth(), window_->GetHeight()))
+                                 command_queue_->GetCommandQueue(), window_->GetHwnd(), window_->GetWidth(),
+                                 window_->GetHeight()))
     {
         MessageBox(nullptr, L"Failed to create swap chain", L"Error", MB_OK);
         return false;
@@ -49,21 +61,23 @@ bool RenderSystem::Initialize(Window* window)
         return false;
     }
 
-
     depth_stencil_ = std::make_unique<DepthStencil>();
     if (!depth_stencil_->Initialize(graphics_device_->GetDevice(), window_->GetWidth(), window_->GetHeight()))
     {
         MessageBox(nullptr, L"Failed to create depth stencil", L"Error", MB_OK);
         return false;
     }
+
     srv_heap_ = std::make_unique<DescriptorHeap>();
     if (!srv_heap_->Initialize(graphics_device_->GetDevice(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 64, true))
     {
         MessageBox(nullptr, L"Failed to create descriptor heap", L"Error", MB_OK);
         return false;
     }
+
     TextureManager::Get().Initialize(graphics_device_->GetDevice(), srv_heap_.get(),
                                      command_queue_.get(), command_list_.get());
+
     cb_allocator_ = std::make_unique<ConstantBufferAllocator>();
     constexpr uint32_t kConstantBufferAllocatorSize = 1024 * 1024;
     if (!cb_allocator_->Initialize(graphics_device_->GetDevice(), kConstantBufferAllocatorSize))
@@ -71,17 +85,19 @@ bool RenderSystem::Initialize(Window* window)
         MessageBox(nullptr, L"Failed to create constant buffer allocator", L"Error", MB_OK);
         return false;
     }
+
     scene_renderer_ = std::make_unique<SceneRenderer>();
-    if (!scene_renderer_->Initialize(graphics_device_->GetDevice(), window->GetHwnd(),command_queue_->GetCommandQueue(),kFrameCount))
+    if (!scene_renderer_->Initialize(graphics_device_->GetDevice(), window_->GetHwnd(),
+                                     command_queue_->GetCommandQueue(), kFrameCount))
     {
         MessageBox(nullptr, L"Failed to create scene renderer", L"Error", MB_OK);
         return false;
     }
-    debug_line_renderer_ = std::make_unique<DebugLineRenderer>();
-    Debug::Get().Initialize(scene_renderer_->GetSpriteRenderer(), scene_renderer_->GetUIRenderer(),debug_line_renderer_.get());
-  return true;
-}
 
+    Debug::Get().Initialize(scene_renderer_->GetSpriteRenderer(), scene_renderer_->GetUIRenderer(),
+                            scene_renderer_->GetDebugLineRenderer());
+    return true;
+}
 void RenderSystem::Render(World* world, Camera* camera)
 {
     if (!command_list_->Reset())
@@ -115,7 +131,15 @@ void RenderSystem::Render(World* world, Camera* camera)
 
 void RenderSystem::Shutdown()
 {
-    scene_renderer_->Shutdown();
+    if (command_queue_ != nullptr)
+    {
+        command_queue_->WaitIdle();
+    }
+
+    if (scene_renderer_ != nullptr)
+    {
+        scene_renderer_->Shutdown();
+    }
 }
 
 void RenderSystem::WaitForGPU() const
@@ -150,7 +174,11 @@ SceneRenderer* RenderSystem::GetSceneRenderer() const
 
 DebugLineRenderer* RenderSystem::GetDebugLineRenderer() const
 {
-    return debug_line_renderer_.get();
+    if (scene_renderer_ == nullptr)
+    {
+        return nullptr;
+    }
+    return scene_renderer_->GetDebugLineRenderer();
 }
 
 DepthStencil* RenderSystem::GetDepthStencil() const

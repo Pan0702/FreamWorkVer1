@@ -38,6 +38,7 @@ public:
     MeshRenderer* GetMeshRenderer();
     SpriteRenderer* GetSpriteRenderer();
     UIRenderer* GetUIRenderer();
+    DebugLineRenderer* GetDebugLineRenderer();
 
 private:
     void BeginRenderTarget(RendererData& renderer_data);

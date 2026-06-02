@@ -10,7 +10,7 @@ struct Vec3 : public XMFLOAT3
     {
     }
 
-    //åˆæœŸåŒ–
+    //‰Šú‰»
     Vec3(float x, float y, float z) : XMFLOAT3(x, y, z)
     {
     }
@@ -21,7 +21,7 @@ struct Vec3 : public XMFLOAT3
         XMStoreFloat3((this), v);
     }
 
-    //å››å‰‡æ¼”ç®—ï¼ˆéç ´å£Šãƒ»constï¼‰
+    //l‘¥‰‰Zi”ñ”j‰óEconstj
     Vec3 operator+(const Vec3& v) const { return Vec3(x + v.x, y + v.y, z + v.z); }
     Vec3 operator-(const Vec3& v) const { return Vec3(x - v.x, y - v.y, z - v.z); }
     Vec3 operator*(const Vec3& v) const { return Vec3(x * v.x, y * v.y, z * v.z); }
@@ -32,7 +32,7 @@ struct Vec3 : public XMFLOAT3
     Vec3 operator*(float n) const { return Vec3(x * n, y * n, z * n); }
     Vec3 operator/(float n) const { return Vec3(x / n, y / n, z / n); }
 
-    //è¤‡åˆä»£å…¥ï¼ˆç ´å£Šãƒ»è‡ªèº«ã‚’å‚ç…§ã§è¿”ã™ï¼‰
+    //•¡‡‘ã“üi”j‰óE©g‚ğQÆ‚Å•Ô‚·j
     Vec3& operator+=(const Vec3& v)
     {
         x += v.x;
@@ -97,15 +97,15 @@ struct Vec3 : public XMFLOAT3
         return *this;
     }
 
-    //æ¯”è¼ƒ
+    //”äŠr
     bool operator==(const Vec3& v) const { return x == v.x && y == v.y && z == v.z; }
     bool operator!=(const Vec3& v) const { return !(*this == v); }
 
-    //å˜é …
+    //’P€
     Vec3 operator+() const { return Vec3(x, y, z); }
     Vec3 operator-() const { return Vec3(-x, -y, -z); }
 
-    //ä»£å…¥
+    //‘ã“ü
     Vec3& operator=(const Vec3& v) = default;
 
     Vec3& operator=(const XMVECTOR& v)
@@ -114,7 +114,7 @@ struct Vec3 : public XMFLOAT3
         return *this;
     }
 
-    //å¤‰æ›
+    //•ÏŠ·
     operator XMVECTOR() const
     {
         
@@ -126,7 +126,7 @@ struct Vec3 : public XMFLOAT3
         return {x, y, z};
     }
 
-    //é•·ã•ãƒ»æ­£è¦åŒ–
+    //’·‚³E³‹K‰»
     float LengthSquared() const { return x * x + y * y + z * z; }
     float Length() const { return std::sqrt(LengthSquared()); }
 

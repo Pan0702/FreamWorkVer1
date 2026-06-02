@@ -24,8 +24,9 @@ private:
     void Update();
     void Render();
     void WaitForGPU() const;
+    void RegisterResizeCallback();
 
-    Window window;
+    Window window_;
     Input input_;
     Camera camera_;
     std::unique_ptr<RenderSystem> render_system_;

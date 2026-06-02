@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <memory>
 class DebugLineRenderer;
 class SceneRenderer;
@@ -19,6 +19,8 @@ class CommandList;
 class RenderSystem
 {
 public:
+    RenderSystem();
+    ~RenderSystem();
     bool Initialize(Window* window);
     void Render(World* world, Camera* camera);
     void Shutdown();
@@ -41,7 +43,6 @@ private:
     std::unique_ptr<DescriptorHeap> srv_heap_;
     std::unique_ptr<ConstantBufferAllocator> cb_allocator_;
     std::unique_ptr<SceneRenderer> scene_renderer_;
-    std::unique_ptr<DebugLineRenderer> debug_line_renderer_;
     
     Window* window_ = nullptr;
 };

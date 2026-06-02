@@ -44,6 +44,9 @@
     <ClInclude Include="Src\Engine\Components\sprite_component.h" />
     <ClInclude Include="Src\Engine\Components\static_mesh_component.h" />
     <ClInclude Include="Src\Engine\Components\transform_component.h" />
+    <ClInclude Include="Src\Engine\level_base.h" />
+    <ClInclude Include="Src\Engine\level_data.h" />
+    <ClInclude Include="Src\Engine\level_manager.h" />
     <ClInclude Include="Src\Engine\render_system.h" />
     <ClInclude Include="Src\Engine\world.h" />
     <ClInclude Include="Src\Graphics\command_list.h" />
@@ -75,9 +78,13 @@
     <ClInclude Include="Src\Resource\mesh.h" />
     <ClInclude Include="Src\Resource\texture2D.h" />
     <ClInclude Include="Src\Resource\texture_loder.h" />
+    <ClInclude Include="Src\Resource\texture_manager.h" />
     <ClInclude Include="Src\Resource\vertex_types.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Engine\level_data.cpp" />
+    <ClCompile Include="Src\Engine\level_manager.cpp" />
+    <ClCompile Include="Src\Resource\texture_manager.cpp" />
     <None Include="Shaders\sprite.ps.hlsl" />
     <None Include="Shaders\sprite.vs.hlsl" />
     <None Include="Shaders\debug_line.vs.hlsl" />

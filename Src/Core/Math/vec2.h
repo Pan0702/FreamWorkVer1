@@ -13,14 +13,14 @@ struct Vec2 : public XMFLOAT2
     {
     }
 
-    //åˆæœŸåŒ–
+    //‰Šú‰»
 
     Vec2(const XMVECTOR& v)
     {
         XMStoreFloat2((this), v);
     }
 
-    //å››å‰‡æ¼”ç®—ï¼ˆéç ´å£Šãƒ»constï¼‰
+    //l‘¥‰‰Zi”ñ”j‰óEconstj
     Vec2 operator+(const Vec2& v) const { return Vec2(x + v.x, y + v.y); }
     Vec2 operator-(const Vec2& v) const { return Vec2(x - v.x, y - v.y); }
     Vec2 operator*(const Vec2& v) const { return Vec2(x * v.x, y * v.y); }
@@ -31,7 +31,7 @@ struct Vec2 : public XMFLOAT2
     Vec2 operator*(float n) const { return Vec2(x * n, y * n); }
     Vec2 operator/(float n) const { return Vec2(x / n, y / n); }
 
-    //è¤‡åˆä»£å…¥ï¼ˆç ´å£Šãƒ»è‡ªèº«ã‚’å‚ç…§ã§è¿”ã™ï¼‰
+    //•¡‡‘ã“üi”j‰óE©g‚ğQÆ‚Å•Ô‚·j
     Vec2& operator+=(const Vec2& v) { x += v.x; y += v.y; return *this; }
     Vec2& operator-=(const Vec2& v) { x -= v.x; y -= v.y; return *this; }
     Vec2& operator*=(const Vec2& v) { x *= v.x; y *= v.y; return *this; }
@@ -42,15 +42,15 @@ struct Vec2 : public XMFLOAT2
     Vec2& operator*=(float n) { x *= n; y *= n; return *this; }
     Vec2& operator/=(float n) { x /= n; y /= n; return *this; }
 
-    //æ¯”è¼ƒ
+    //”äŠr
     bool operator==(const Vec2& v) const { return x == v.x && y == v.y; }
     bool operator!=(const Vec2& v) const { return !(*this == v); }
 
-    //å˜é …
+    //’P€
     Vec2 operator+() const { return Vec2(x, y); }
     Vec2 operator-() const { return Vec2(-x, -y); }
 
-    //ä»£å…¥
+    //‘ã“ü
     Vec2& operator=(const Vec2& v) = default;
 
     Vec2& operator=(const XMVECTOR& v)
@@ -59,7 +59,7 @@ struct Vec2 : public XMFLOAT2
         return *this;
     }
 
-    //å¤‰æ›
+    //•ÏŠ·
     explicit operator XMVECTOR() const
     {
         return XMLoadFloat2((this));
@@ -70,7 +70,7 @@ struct Vec2 : public XMFLOAT2
         return {x, y};
     }
 
-    //é•·ã•ãƒ»æ­£è¦åŒ–
+    //’·‚³E³‹K‰»
     float LengthSquared() const { return x * x + y * y; }
     float Length() const { return std::sqrt(LengthSquared()); }
 
