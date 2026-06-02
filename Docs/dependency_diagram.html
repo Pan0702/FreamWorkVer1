@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <title>FreamWorkVer1 依存関係図</title>
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: #1e1e2e;
+      color: #cdd6f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem;
+    }
+    h1 { color: #89b4fa; margin-bottom: 0.5rem; }
+    p  { color: #a6adc8; margin-bottom: 2rem; }
+    .mermaid {
+      background: #181825;
+      border-radius: 12px;
+      padding: 2rem;
+      max-width: 1100px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <h1>FreamWorkVer1 — モジュール依存関係図</h1>
+  <p>矢印は「依存する側 → 依存される側」の方向です</p>
+
+  <div class="mermaid">
+graph TD
+
+  %% ── エントリーポイント ─────────────────────────────────────────
+  subgraph Game["🎮 Game"]
+    main["main.cpp"]
+  end
+
+  %% ── エンジン層 ────────────────────────────────────────────────
+  subgraph Engine["⚙️ Engine"]
+    Application["Application"]
+    World["World"]
+    Actor["Actor"]
+    Component["Component (base)"]
+    Camera["Camera"]
+    AttachContext["AttachContext"]
+  end
+
+  subgraph Components["🧩 Engine/Components"]
+    TransformComp["TransformComponent"]
+    SpriteComp["SpriteComponent"]
+    StaticMeshComp["StaticMeshComponent"]
+  end
+
+  %% ── レンダラー層 ──────────────────────────────────────────────
+  subgraph Renderer["🖼️ Renderer"]
+    SceneRenderer["SceneRenderer"]
+    SpriteRenderer["SpriteRenderer"]
+    UIRenderer["UIRenderer"]
+    MeshRenderer["MeshRenderer"]
+    DebugLineRenderer["DebugLineRenderer"]
+    Scene["Scene"]
+    RenderObject["RenderObject"]
+    DrawCommand["DrawCommand"]
+    SpriteDrawCmd["SpriteDrawCommand"]
+    RenderContext["RenderContext"]
+  end
+
+  %% ── グラフィクス層 ────────────────────────────────────────────
+  subgraph Graphics["📦 Graphics (DX12)"]
+    GraphicsDevice["GraphicsDevice"]
+    SwapChain["SwapChain"]
+    CommandQueue["CommandQueue"]
+    CommandList["CommandList"]
+    DepthStencil["DepthStencil"]
+    DescriptorHeap["DescriptorHeap"]
+    CBAllocator["ConstantBufferAllocator"]
+    ConstantBuffer["ConstantBuffer"]
+    PipelineState["PipelineState"]
+    RootSignature["RootSignature"]
+    Shader["Shader"]
+    IndexBuffer["IndexBuffer"]
+    VertexBuffer["VertexBuffer"]
+  end
+
+  %% ── リソース層 ────────────────────────────────────────────────
+  subgraph Resource["📁 Resource"]
+    Material["Material"]
+    Mesh["Mesh"]
+    Texture2D["Texture2D"]
+    TextureLoder["TextureLoder"]
+    TextureManager["TextureManager"]
+    VertexTypes["VertexTypes"]
+  end
+
+  %% ── プラットフォーム層 ────────────────────────────────────────
+  subgraph Platform["🖥️ Platform"]
+    Window["Window"]
+    Input["Input"]
+    KeyCode["KeyCode"]
+  end
+
+  %% ── デバッグ層 ────────────────────────────────────────────────
+  subgraph DebugMod["🐛 Debug"]
+    DebugSys["Debug"]
+    DebugScene["DebugScene"]
+    ImGui["ImGui"]
+  end
+
+  %% ── コア層 ────────────────────────────────────────────────────
+  subgraph Core["🔢 Core"]
+    common["common.h"]
+    MyMath["my_math"]
+    vec2["vec2"]
+    vec3["vec3"]
+    vec4["vec4"]
+    Mat["mat"]
+  end
+
+  %% ══════════════════════════════════════════════════════════════
+  %% 依存関係エッジ
+  %% ══════════════════════════════════════════════════════════════
+
+  %% Game
+  main --> Application
+  main --> common
+
+  %% Engine
+  Application --> World
+  Application --> Actor
+  Application --> Camera
+  Application --> Window
+  Application --> GraphicsDevice
+  Application --> SwapChain
+  Application --> CommandQueue
+  Application --> CommandList
+  Application --> DepthStencil
+  Application --> CBAllocator
+  Application --> SceneRenderer
+  Application --> TextureManager
+  Application --> DebugSys
+  Application --> DebugScene
+  Application --> DebugLineRenderer
+  Application --> TransformComp
+  Application --> MyMath
+
+  World --> Actor
+  World --> AttachContext
+  Actor --> Component
+  Actor --> AttachContext
+  Camera --> MyMath
+
+  %% Components
+  TransformComp --> Component
+  TransformComp --> MyMath
+  SpriteComp --> Component
+  SpriteComp --> MyMath
+  StaticMeshComp --> Component
+
+  %% Renderer
+  SceneRenderer --> SpriteRenderer
+  SceneRenderer --> UIRenderer
+  SceneRenderer --> MeshRenderer
+  SceneRenderer --> common
+
+  SpriteRenderer --> IndexBuffer
+  SpriteRenderer --> VertexBuffer
+  SpriteRenderer --> PipelineState
+  SpriteRenderer --> RootSignature
+  SpriteRenderer --> Shader
+  SpriteRenderer --> SpriteDrawCmd
+  SpriteRenderer --> MyMath
+
+  UIRenderer --> IndexBuffer
+  UIRenderer --> VertexBuffer
+  UIRenderer --> PipelineState
+  UIRenderer --> RootSignature
+  UIRenderer --> Shader
+  UIRenderer --> SpriteDrawCmd
+  UIRenderer --> SpriteComp
+
+  MeshRenderer --> DrawCommand
+  MeshRenderer --> common
+
+  Scene --> RenderObject
+  RenderObject --> MyMath
+  DrawCommand --> MyMath
+  SpriteDrawCmd --> MyMath
+  RenderContext --> common
+  RenderContext --> MyMath
+
+  %% Graphics
+  SwapChain --> Window
+  DepthStencil --> DescriptorHeap
+
+  %% Resource
+  Material --> PipelineState
+  Material --> RootSignature
+  Mesh --> IndexBuffer
+  Mesh --> VertexBuffer
+  Texture2D --> TextureLoder
+  TextureManager --> Texture2D
+
+  %% Platform
+  Input --> KeyCode
+  Input --> Window
+
+  %% Debug
+  DebugSys --> common
+  DebugSys --> MyMath
+  DebugScene --> MyMath
+  DebugScene --> Component
+
+  %% Core
+  MyMath --> vec2
+  MyMath --> vec3
+  MyMath --> vec4
+  MyMath --> Mat
+  Mat --> vec3
+
+  %% ── スタイル ───────────────────────────────────────────────────
+  classDef game     fill:#f38ba8,stroke:#f38ba8,color:#1e1e2e
+  classDef engine   fill:#89b4fa,stroke:#89b4fa,color:#1e1e2e
+  classDef comp     fill:#74c7ec,stroke:#74c7ec,color:#1e1e2e
+  classDef renderer fill:#a6e3a1,stroke:#a6e3a1,color:#1e1e2e
+  classDef graphics fill:#fab387,stroke:#fab387,color:#1e1e2e
+  classDef resource fill:#f9e2af,stroke:#f9e2af,color:#1e1e2e
+  classDef platform fill:#cba6f7,stroke:#cba6f7,color:#1e1e2e
+  classDef debug    fill:#eba0ac,stroke:#eba0ac,color:#1e1e2e
+  classDef core     fill:#a6adc8,stroke:#a6adc8,color:#1e1e2e
+
+  class main game
+  class Application,World,Actor,Component,Camera,AttachContext engine
+  class TransformComp,SpriteComp,StaticMeshComp comp
+  class SceneRenderer,SpriteRenderer,UIRenderer,MeshRenderer,DebugLineRenderer,Scene,RenderObject,DrawCommand,SpriteDrawCmd,RenderContext renderer
+  class GraphicsDevice,SwapChain,CommandQueue,CommandList,DepthStencil,DescriptorHeap,CBAllocator,ConstantBuffer,PipelineState,RootSignature,Shader,IndexBuffer,VertexBuffer graphics
+  class Material,Mesh,Texture2D,TextureLoder,TextureManager,VertexTypes resource
+  class Window,Input,KeyCode platform
+  class DebugSys,DebugScene,ImGui debug
+  class common,MyMath,vec2,vec3,vec4,Mat core
+  </div>
+
+  <script>
+    mermaid.initialize({ startOnLoad: true, theme: 'dark' });
+  </script>
+</body>
+</html>
