@@ -121,17 +121,18 @@ void MeshRenderer::Submit(RenderContext& context)
         MeshObjectCB obj = {};
         obj.world = Transpose(command.world);
         obj.wvp = Transpose(command.world * context.view * context.projection);
-        if (!context.cb_allocator->Allocate(sizeof(obj), &light_alloc))
+        ConstantBufferAllocation alloc = {};
+        if (!context.cb_allocator->Allocate(sizeof(obj), &alloc))
         {
             continue;
         }
         memcpy(light_alloc.cpu, &obj, sizeof(obj));
 
         command.material->Apply(context.command_list, context.srv_heap);
-        context.command_list->SetGraphicsRootConstantBufferView(0, light_alloc.gpu);
+        context.command_list->SetGraphicsRootConstantBufferView(0, alloc.gpu);
         if (has_light)
         {
-            context.command_list->SetGraphicsRootConstantBufferView(1, light_alloc.gpu);
+            context.command_list->SetGraphicsRootConstantBufferView(2, light_alloc.gpu);
         }
         D3D12_VERTEX_BUFFER_VIEW vbv = command.mesh->GetVertexBufferView();
         context.command_list->IASetVertexBuffers(0, 1, &vbv);
