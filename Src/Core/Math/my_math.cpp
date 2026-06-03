@@ -54,3 +54,38 @@ Mat PerspectiveFovLH(float fov, float aspect, float zNear, float zFar)
 {
     return XMMatrixPerspectiveFovLH(fov, aspect, zNear, zFar);
 }
+
+Quat QuatIdentity()
+{
+    return Quat(XMQuaternionIdentity());
+}
+
+Quat QuatFromAxisAngle(const Vec3& axis, float angle)
+{
+    return Quat(XMQuaternionRotationAxis(axis, angle));
+}
+
+Quat QuatFromEuler(const Vec3& euler)
+{
+    return Quat(XMQuaternionRotationRollPitchYaw(euler.x, euler.y, euler.z));
+}
+
+Quat Slerp(const Quat& a, const Quat& b, float t)
+{
+    return Quat(XMQuaternionSlerp(a, b, t));
+}
+
+Mat ToMat(const Quat& q)
+{
+    return XMMatrixRotationQuaternion(q);
+}
+
+Quat ToQuat(const Mat& m)
+{
+    return Quat(XMQuaternionRotationMatrix(m));
+}
+
+Vec3 Rotate(const Quat& q, const Vec3& v)
+{
+    return Vec3(XMVector3Rotate(v, q));
+}

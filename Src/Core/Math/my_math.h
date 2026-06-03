@@ -3,6 +3,7 @@
 #include "vec3.h"
 #include "vec4.h"
 #include "mat.h"
+#include "quat.h"
 #include <numbers>
 Mat Identity();
 Mat Transpose(const Mat& m);
@@ -15,6 +16,15 @@ Mat Translate(const Vec3& trans);
 Mat LookAtLH(const XMVECTOR& eye, const XMVECTOR& at, const XMVECTOR& up);
 Mat LookAtRH(const XMVECTOR& eye, const XMVECTOR& at, const XMVECTOR& up);
 Mat PerspectiveFovLH(float fov, float aspect, float zNear, float zFar);
+
+Quat QuatIdentity();
+Quat QuatFromAxisAngle(const Vec3& axis, float angle);
+Quat QuatFromEuler(const Vec3& euler);
+Quat Slerp(const Quat& a, const Quat& b, float t);
+
+Mat ToMat(const Quat& q);
+Quat ToQuat(const Mat& m);
+Vec3 Rotate(const Quat& q,const Vec3& v);
 
 constexpr float kPI = std::numbers::pi_v<float>;
 constexpr float k2PI = 2.0f * kPI;
