@@ -113,7 +113,8 @@ namespace
             aiProcess_CalcTangentSpace |
             aiProcess_ConvertToLeftHanded |
             aiProcess_JoinIdenticalVertices |
-            aiProcess_JoinIdenticalVertices;
+            aiProcess_PreTransformVertices;
+
 
         const aiScene* scene = importer.ReadFile(in_path, flags);
         if (scene == nullptr || (scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE) != 0 || scene->mRootNode == nullptr)
