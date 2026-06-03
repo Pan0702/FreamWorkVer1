@@ -11,6 +11,7 @@ public:
     void RegisterActor(Actor* actor);
     void UnregisterActor(Actor* actor);
     void SetAttachContext(const AttachContext& context);
+    AttachContext GetAttachContext() const;
     void Tick(float dt);
 
 private:

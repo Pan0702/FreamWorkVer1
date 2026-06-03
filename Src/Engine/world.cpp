@@ -20,6 +20,11 @@ void World::SetAttachContext(const AttachContext& context)
     attach_context_ = context;
 }
 
+AttachContext World::GetAttachContext() const
+{
+    return attach_context_;
+}
+
 void World::Tick(float dt)
 {
     for (const auto& actor : actors_)

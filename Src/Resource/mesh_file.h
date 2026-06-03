@@ -12,5 +12,5 @@ struct MeshFileHeader
     uint32_t reserved[2];
 };
 
-static constexpr uint32_t kMeshMagic[4] = {'M', 'E', 'S', 'H'};
+static constexpr char kMeshMagic[4] = {'M', 'E', 'S', 'H'};
 static constexpr uint32_t kMeshVersion = 1;

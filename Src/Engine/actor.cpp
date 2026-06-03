@@ -15,7 +15,13 @@ void Actor::OnSpawn(World* world)
 {
     world_ = world;
     if (world_)
+    {
         world_->RegisterActor(this);
+        // ワールドに入った時点で actor をアタッチ状態にする。
+        // これで以降の AddComponent が即座に OnAttach を呼び、
+        // StaticMeshComponent 等が各レンダラーに登録される。
+        Attach(world_->GetAttachContext());
+    }
     Begin();
 }
 

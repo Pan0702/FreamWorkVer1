@@ -1,4 +1,5 @@
 #pragma once
+#include "../Core/common.h"
 #include <memory>
 class DebugLineRenderer;
 class SceneRenderer;
@@ -14,6 +15,7 @@ class GraphicsDevice;
 class CommandQueue;
 class SwapChain;
 class CommandList;
+
 
 
 class RenderSystem
@@ -33,6 +35,7 @@ public:
     SceneRenderer* GetSceneRenderer() const;
     DebugLineRenderer* GetDebugLineRenderer() const;
     DepthStencil* GetDepthStencil() const;
+    ID3D12Device* GetDevice() const;
     
 private:
     std::unique_ptr<GraphicsDevice> graphics_device_;

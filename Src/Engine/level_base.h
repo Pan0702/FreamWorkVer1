@@ -9,8 +9,8 @@ class World;
 class LevelBase
 {
 public:
-    LevelBase();
-    virtual ~LevelBase();
+    LevelBase() = default;
+    virtual ~LevelBase() = default;
     virtual void Tick(float dt){}
     virtual void OnEnter(){}
     virtual void OnExit(){}

@@ -42,12 +42,27 @@ Mesh* MeshManager::Load(const std::string& path)
         MessageBox(nullptr, L"Failed to read file", L"Error", MB_OK);
         return nullptr;
     }
-    if (std::memcmp(header.magic,kMeshMagic,4) != 0 ||
-        header.version != kMeshVersion ||
-        header.vertex_count != sizeof(StaticVertex)||
-        header.index_stride != sizeof(uint32_t))
+    if (std::memcmp(header.magic, kMeshMagic, 4) != 0)
     {
-        MessageBox(nullptr, L"Invalid file format", L"Error", MB_OK);
+        MessageBoxA(nullptr, "Invalid magic", "Error", MB_OK);
+        return nullptr;
+    }
+
+    if (header.version != kMeshVersion)
+    {
+        MessageBoxA(nullptr, "Invalid version", "Error", MB_OK);
+        return nullptr;
+    }
+
+    if (header.vertex_stride != sizeof(StaticVertex))
+    {
+        MessageBoxA(nullptr, "Invalid vertex stride", "Error", MB_OK);
+        return nullptr;
+    }
+
+    if (header.index_stride != sizeof(uint32_t))
+    {
+        MessageBoxA(nullptr, "Invalid index stride", "Error", MB_OK);
         return nullptr;
     }
     

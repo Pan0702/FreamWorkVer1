@@ -14,7 +14,7 @@ bool GameInstance::Initialize()
     attach_context.ui_renderer = scene_renderer->GetUIRenderer();
     world_.SetAttachContext(attach_context);
     level_manager_.Initialize(&world_);
-    
+    level_manager_.OpenLevel("Test");
     return true;
 }
 

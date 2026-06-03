@@ -188,3 +188,8 @@ DepthStencil* RenderSystem::GetDepthStencil() const
 {
     return depth_stencil_.get();
 }
+
+ID3D12Device* RenderSystem::GetDevice() const
+{
+    return graphics_device_->GetDevice();
+}

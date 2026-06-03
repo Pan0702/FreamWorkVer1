@@ -1,5 +1,7 @@
 #include "level_factory.h"
 
+#include "../Game/test_level.h"
+
 void LevelFactory::Initialize()
 {
     //レベルの登録
@@ -8,6 +10,7 @@ void LevelFactory::Initialize()
     //{
     //    return std::make_unique<TitleLevel>();
     //});
+    Register<TestLevel>("Test");
 }
 
 std::unique_ptr<LevelBase> LevelFactory::Create(const std::string& name)

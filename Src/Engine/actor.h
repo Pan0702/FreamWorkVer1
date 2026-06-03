@@ -3,21 +3,26 @@
 #include <type_traits>
 #include <vector>
 #include <utility>
-
+#include "world.h"
 #include "attach_context.h"
 #include "component.h"
 
-class World;
+
 struct AttachContext;
+
 class Actor
 {
 public:
     Actor() = default;
     virtual ~Actor();
-    virtual void Begin(){}
+
+    virtual void Begin()
+    {
+    }
+
     void OnSpawn(World* world);
     World* GetWorld() const;
-    
+
     Actor(const Actor&) = delete;
     Actor& operator=(const Actor&) = delete;
 
@@ -30,6 +35,10 @@ public:
         T* result = component.get();
         result->SetOwner(this);
         components_.push_back(std::move(component));
+        if (attached_ && world_ != nullptr)
+        {
+            result->OnAttach(world_->GetAttachContext());
+        }
         return result;
     }
 
@@ -47,13 +56,13 @@ public:
         }
         return nullptr;
     }
-    
+
     void Tick(float dt);
 
 private:
     void Attach(const AttachContext& context);
     void Detach();
-    
+
     World* world_ = nullptr;
     std::vector<std::unique_ptr<Component>> components_;
     bool attached_ = false;

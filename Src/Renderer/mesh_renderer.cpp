@@ -116,6 +116,7 @@ void MeshRenderer::Submit(RenderContext& context)
     {
         memcpy(light_alloc.cpu, &light_cb, sizeof(light_cb));
     }
+    context.command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST); 
     for (const DrawCommand& command : draw_commands_)
     {
         MeshObjectCB obj = {};
