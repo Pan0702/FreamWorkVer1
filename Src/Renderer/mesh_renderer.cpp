@@ -126,7 +126,7 @@ void MeshRenderer::Submit(RenderContext& context)
         {
             continue;
         }
-        memcpy(light_alloc.cpu, &obj, sizeof(obj));
+        memcpy(alloc.cpu, &obj, sizeof(obj));
 
         command.material->Apply(context.command_list, context.srv_heap);
         context.command_list->SetGraphicsRootConstantBufferView(0, alloc.gpu);
