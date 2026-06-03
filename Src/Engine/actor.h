@@ -2,16 +2,22 @@
 #include <memory>
 #include <type_traits>
 #include <vector>
+#include <utility>
 
 #include "attach_context.h"
 #include "component.h"
 
+class World;
+struct AttachContext;
 class Actor
 {
 public:
     Actor() = default;
-    ~Actor();
-
+    virtual ~Actor();
+    virtual void Begin(){}
+    void OnSpawn(World* world);
+    World* GetWorld() const;
+    
     Actor(const Actor&) = delete;
     Actor& operator=(const Actor&) = delete;
 
@@ -41,12 +47,14 @@ public:
         }
         return nullptr;
     }
-
-    void Attach(const AttachContext& context);
-    void Detach();
+    
     void Tick(float dt);
 
 private:
+    void Attach(const AttachContext& context);
+    void Detach();
+    
+    World* world_ = nullptr;
     std::vector<std::unique_ptr<Component>> components_;
     bool attached_ = false;
 };

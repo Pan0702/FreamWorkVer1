@@ -44,9 +44,8 @@ public:
 
     // �E�B���h�E�̏c�̃T�C�Y���擾����
     uint32_t GetHeight() const;
-
-    // �E�B���h�E�̃T�C�Y���擾����
-    WindowSize GetSize() ;
+    WindowSize GetSize() const;
+    
     void DispFPS(const wchar_t* title);
 
 

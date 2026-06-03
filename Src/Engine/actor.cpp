@@ -1,8 +1,27 @@
 #include "actor.h"
+#include "world.h"
 
 Actor::~Actor()
 {
     Detach();
+    if (world_)
+    {
+        world_->UnregisterActor(this);
+        world_ = nullptr;
+    }
+}
+
+void Actor::OnSpawn(World* world)
+{
+    world_ = world;
+    if (world_)
+        world_->RegisterActor(this);
+    Begin();
+}
+
+World* Actor::GetWorld() const
+{
+    return world_;  
 }
 
 void Actor::Attach(const AttachContext& context)

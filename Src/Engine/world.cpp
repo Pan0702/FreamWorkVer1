@@ -4,26 +4,15 @@
 
 #include "actor.h"
 
-Actor* World::AddActor(std::unique_ptr<Actor> actor)
+
+void World::RegisterActor(Actor* actor)
 {
-    Actor* result = actor.get();
-    result->Attach(attach_context_);
-    actors_.push_back(std::move(actor));
-    return result;
+    actors_.push_back(actor);
 }
 
-void World::RemoveActor(Actor* actor)
+void World::UnregisterActor(Actor* actor)
 {
-    auto it = std::ranges::find_if(actors_,
-                                   [actor](const std::unique_ptr<Actor>& candidate)
-                                   {
-                                       return candidate.get() == actor;
-                                   });
-    if (it != actors_.end())
-    {
-        (*it)->Detach();
-        actors_.erase(it);
-    }
+    std::erase(actors_, actor);
 }
 
 void World::SetAttachContext(const AttachContext& context)

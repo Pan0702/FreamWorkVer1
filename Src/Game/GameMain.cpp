@@ -76,8 +76,7 @@ bool GameMain::Initialize(const wchar_t* title, int32_t width, int32_t height)
         render_system_->GetDepthStencil()->Resize(w, h);
         camera_.SetAspect(static_cast<float>(w) / static_cast<float>(h));
     });
-    application_.Initialize();
-    level_manager_.Initialize();
+    game_instance_.Initialize();
     window_.Show();
     camera_.pos_ = Vec3(0, 0, 5.0f);
     camera_.look_ = Vec3(0, 0, -1.0f);
@@ -112,13 +111,12 @@ void GameMain::Tick()
     
     delta_time_ = ClacDeltaTime();
     input_.Update();
-    application_.Tick( delta_time_);
-    level_manager_.Tick(delta_time_);
+    game_instance_.Tick( delta_time_);
 }
 
 void GameMain::Render()
 {
-    application_.Render();
+    game_instance_.Render();
 }
 
 void GameMain::ClacFPS()
