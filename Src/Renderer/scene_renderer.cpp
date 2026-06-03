@@ -70,14 +70,14 @@ void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* ca
                                static_cast<float>(renderer_data.window->GetHeight()));
     
     context.light_dir = Vec3(0.3f,-1.0f,0.5f).Normalized();
-    context.loight_color = Vec3(1.0f,1.0f,1.0f);
+    context.light_color = Vec3(1.0f,1.0f,1.0f);
     context.ambient = Vec3(0.15f,0.15f,0.15f);
 
     mesh_renderer_->Collect();
     mesh_renderer_->Sort();
     mesh_renderer_->Submit(context);
 
-    // ƒfƒoƒbƒO•`‰æiüE” E‹…‚È‚ÇjBƒƒbƒVƒ…‚ÌŒã‚É•`‚¢‚Ä[“x‚Å‰B‚ê‚é‚æ‚¤‚É‚·‚é
+    // ï¿½fï¿½oï¿½bï¿½Oï¿½`ï¿½ï¿½iï¿½ï¿½ï¿½Eï¿½ï¿½ï¿½Eï¿½ï¿½ï¿½È‚Çjï¿½Bï¿½ï¿½ï¿½bï¿½Vï¿½ï¿½ï¿½ÌŒï¿½É•`ï¿½ï¿½ï¿½Ä[ï¿½xï¿½Å‰Bï¿½ï¿½ï¿½æ‚¤ï¿½É‚ï¿½ï¿½ï¿½
     debug_renderer_->Submit(context);
 
     sprite_renderer_->Collect();
