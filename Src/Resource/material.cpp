@@ -13,6 +13,7 @@ bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_
     builder
         .AddCbv(0, D3D12_SHADER_VISIBILITY_VERTEX)
         .AddSrvTable(0, 1, D3D12_SHADER_VISIBILITY_PIXEL)
+        .AddCbv(1, D3D12_SHADER_VISIBILITY_PIXEL)
         .AddStaticSampler(0, D3D12_SHADER_VISIBILITY_PIXEL, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
 
     if (!builder.Build(device, root_signature_.get()))

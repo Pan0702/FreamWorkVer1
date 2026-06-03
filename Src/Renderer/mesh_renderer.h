@@ -13,7 +13,7 @@ class StaticMeshComponent;
 class MeshRenderer
 {
 public:
-    bool Initialize(ID3D12Device* device);
+    bool Initialize(const ID3D12Device* device);
     void Render(ID3D12GraphicsCommandList* command_list, const std::vector<RenderObject*>& render_objects,
                 Camera* camera, DescriptorHeap* descriptor_heap);
     void Register(StaticMeshComponent* component);

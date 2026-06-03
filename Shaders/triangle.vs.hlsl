@@ -18,13 +18,14 @@ struct PSInput
 cbuffer SceneCB : register(b0)
 {
     float4x4 wvp;
+    float4x4 world;
 };
 PSInput VSMain(VSInput input)
 {
     PSInput output;
     //“¯ŸÀ•W‚Ìw¬•ª
     output.position = mul(float4(input.position, 1.0),wvp);
-    output.normal = input.normal;
+    output.normal = normalize(mul(float4(input.normal, 0.0),world).xyz);
     output.uv = input.uv;
     return output;
 }
