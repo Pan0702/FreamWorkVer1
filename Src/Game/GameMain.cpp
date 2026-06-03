@@ -4,6 +4,7 @@
 #include "../Graphics/depth_stencil.h"
 #include "../Resource/texture_manager.h"
 #include "../Debug/debug.h"
+#include "../Resource/mesh_manager.h"
 GameMain* game_main = nullptr;
 namespace
 {
@@ -100,6 +101,7 @@ void GameMain::Shutdown()
 {
     Debug::Get().Shutdown();
     TextureManager::Get().Shutdown();
+    MeshManager::Get().Shutdown();
     if (render_system_ != nullptr)
     {
         render_system_->Shutdown();

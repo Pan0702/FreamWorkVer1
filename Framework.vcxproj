@@ -78,6 +78,8 @@
     <ClInclude Include="Src\Renderer\ui_renderer.h" />
     <ClInclude Include="Src\Resource\material.h" />
     <ClInclude Include="Src\Resource\mesh.h" />
+    <ClInclude Include="Src\Resource\mesh_file.h" />
+    <ClInclude Include="Src\Resource\mesh_manager.h" />
     <ClInclude Include="Src\Resource\texture2D.h" />
     <ClInclude Include="Src\Resource\texture_loder.h" />
     <ClInclude Include="Src\Resource\texture_manager.h" />
@@ -89,6 +91,7 @@
     <ClCompile Include="Src\Engine\level_manager.cpp" />
     <ClCompile Include="Src\Engine\render_system.cpp" />
     <ClCompile Include="Src\Game\GameMain.cpp" />
+    <ClCompile Include="Src\Resource\mesh_manager.cpp" />
     <ClCompile Include="Src\Resource\texture_manager.cpp" />
     <None Include="Shaders\sprite.ps.hlsl" />
     <None Include="Shaders\sprite.vs.hlsl" />
