@@ -70,6 +70,16 @@ Vec3 TransformNormal(const Mat& m, const Vec3& v)
     return Vec3(XMVector3TransformNormal(v, m));
 }
 
+Vec3 TransformCoord(const Mat& m, const Vec3& v)
+{
+    return Vec3(XMVector3TransformCoord(v, m));
+}
+
+Vec3 TransformVector(const Mat& m, const Vec3& v)
+{
+    return Vec3(XMVector3TransformNormal(v, m));
+}
+
 Quat QuatIdentity()
 {
     return Quat(XMQuaternionIdentity());

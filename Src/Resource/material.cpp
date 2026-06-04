@@ -1,19 +1,35 @@
 ﻿#include "material.h"
+
+#include "vertex_types.h"
+#include "../Engine/render_system.h"
+#include "../Game/GameMain.h"
 #include "../Graphics/root_signature.h"
 #include "../Graphics/pipeline_state.h"
 #include "../Graphics/shader.h"
 #include "../Resource/texture2D.h"
 #include "../Graphics/descriptor_heap.h"
 
+Material::Material()
+{
+    if (!Create(game_main->GetRenderSystem()->GetDevice(), L"Shaders/triangle.vs.hlsl", L"Shaders/triangle.ps.hlsl",
+                      kStaticVertexLayout))
+    {
+        MessageBox(nullptr, L"Failed to create material", L"Error", MB_OK);
+   
+    }
+}
+
 bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_t* ps_path,
                       std::span<const D3D12_INPUT_ELEMENT_DESC> input_layout)
 {
+    base_color_ = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
     root_signature_ = std::make_unique<RootSignature>();
     RootSignatureBuilder builder;
     builder
         .AddCbv(0, D3D12_SHADER_VISIBILITY_VERTEX)
         .AddSrvTable(0, 1, D3D12_SHADER_VISIBILITY_PIXEL)
         .AddCbv(1, D3D12_SHADER_VISIBILITY_PIXEL)
+        .AddCbv(2, D3D12_SHADER_VISIBILITY_PIXEL)       
         .AddStaticSampler(0, D3D12_SHADER_VISIBILITY_PIXEL, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
 
     if (!builder.Build(device, root_signature_.get()))
@@ -87,6 +103,11 @@ void Material::SetHeight(Texture2D* height)
     height_ = height;
 }
 
+void Material::SetBaseColor(const Vec4& color)
+{
+    base_color_ = color;
+}
+
 Texture2D* Material::GetDiffuse() const
 {
     return diffuse_;
@@ -105,4 +126,9 @@ Texture2D* Material::GetSpecular() const
 Texture2D* Material::GetHeight() const
 {
     return height_;
+}
+
+Vec4 Material::GetBaseColor() const
+{
+    return base_color_;
 }

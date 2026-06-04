@@ -17,16 +17,10 @@ void TestLevel::OnEnter()
     Mesh* mesh = MeshManager::Get().Load("Mesh/box1.mesh");
 
     // 2) マテリアル作成（triangleシェーダ＝Lambert対応済み）
-    ID3D12Device* device = game_main->GetRenderSystem()->GetDevice();
     material_ = std::make_unique<Material>();
-    if (!material_->Create(device, L"Shaders/triangle.vs.hlsl", L"Shaders/triangle.ps.hlsl",
-                      kStaticVertexLayout))
-    {
-        MessageBox(nullptr, L"Failed to create material", L"Error", MB_OK);
-    }
     // 診断テクスチャを1枚（Material::Apply は SRV slot0 を使う実装なので、何か1枚要る）
     material_->SetDiffuse(TextureManager::Get().Load(L"Texture/clock.png"));
-
+    material_->SetBaseColor(Vec4(1,0,0,1));
     // 3) Actor を生成して Mesh コンポーネントを載せる
     Actor* a = SpawnActor();
     auto* t = a->AddComponent<TransformComponent>();
@@ -37,17 +31,25 @@ void TestLevel::OnEnter()
 
 void TestLevel::Tick(float dt)
 {
-    static float num = 3;
+    static float num = 0;
+    float radius = 5.0f; 
+    static Vec3 target = Vec3(0, 0, 0);
     if (game_main->GetInput().CheckKey(Key::kA, KeyState::kDown))
     {
-        num += 0.1f;
+        num += 0.02f;
     }
     if (game_main->GetInput().CheckKey(Key::kD, KeyState::kDown))
     {
-        num -= 0.1f;
+        num -= 0.02f;
     }
-    game_main->GetCamera().pos_ = Vec3(0, 0, num);
+    Vec3 baseOffset = {0.0f, 0.0f, -radius};   
+    Mat  rotY       = RotateY(num);          
+    Vec3 offset     = TransformVector(rotY, baseOffset);  
+
+    Vec3 cameraPos = target + offset;
     
-    //Debug::Get().DrawBox3D(Vec3(0, 0, -5), Vec3(2, 2, 2), Vec4(1, 1, 1, 1), Vec3(0, 0, 0),true);
-    LevelBase::Tick(dt);
+    game_main->GetCamera().pos_ = cameraPos;
+    game_main->GetCamera().look_ = target ;
+    Debug::Get().DrawSphere3D(target, 1.0f, Vec4(1, 0, 0, 1));
+ LevelBase::Tick(dt);
 }

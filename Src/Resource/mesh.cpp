@@ -46,3 +46,8 @@ const std::vector<D3D12_INPUT_ELEMENT_DESC>& Mesh::GetInputLayout()
 {
     return input_layout_;   
 }
+
+MeshMaterialDesc& Mesh::GetMaterialDesc()
+{
+    return material_desc_;
+}

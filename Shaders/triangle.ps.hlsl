@@ -13,12 +13,17 @@ cbuffer LightCB : register(b1)
     float4 light_color;
     float4 ambient;
 }
+cbuffer MaterialCB : register(b2)
+{
+    float4 base_color;
+}
 float4 PSMain(PSInput input) : SV_TARGET
 {
     float3 N = normalize(input.normal);
     float3 L = normalize(-light_dir.xyz);
     float ndotl = saturate(dot(N,L));
     float4 tex = g_texture.Sample(g_sampler, input.uv);
-    float3 lit = tex.rgb * (light_color.rgb * ndotl + ambient.rgb);
-    return  float4(lit, tex.a);
+    float4 albedo = base_color * tex;
+    float3 lit = albedo.rgb * (light_color.rgb * ndotl + ambient.rgb);
+    return  float4(lit, albedo.a);
 }

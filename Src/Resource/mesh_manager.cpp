@@ -95,6 +95,7 @@ Mesh* MeshManager::Load(const std::string& path)
         return nullptr;
     }
     
+    mesh->GetMaterialDesc().base_color
     Mesh* result = mesh.get();
     cache_.emplace(path, std::move(mesh));
     return result;   

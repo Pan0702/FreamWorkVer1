@@ -27,10 +27,16 @@ namespace
         Vec4 light_color;
         Vec4 ambient;
     };
+    
+    struct MaterialCB
+    {
+        Vec4 base_color;
+    };
 }
 bool MeshRenderer::Initialize(const ID3D12Device* device)
 {
     (void)device;
+    
     return true;
 }
 
@@ -134,6 +140,15 @@ void MeshRenderer::Submit(RenderContext& context)
         if (has_light)
         {
             context.command_list->SetGraphicsRootConstantBufferView(2, light_alloc.gpu);
+        }
+        
+        MaterialCB mat_cb = {};
+        mat_cb.base_color = command.material->GetBaseColor();
+        ConstantBufferAllocation mat_alloc = {};
+        if (context.cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
+        {
+            memcpy(mat_alloc.cpu, &mat_cb, sizeof(mat_cb));
+            context.command_list->SetGraphicsRootConstantBufferView(3, mat_alloc.gpu);
         }
         D3D12_VERTEX_BUFFER_VIEW vbv = command.mesh->GetVertexBufferView();
         context.command_list->IASetVertexBuffers(0, 1, &vbv);
