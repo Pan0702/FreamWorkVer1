@@ -51,6 +51,7 @@
     <ClInclude Include="Src\Engine\render_system.h" />
     <ClInclude Include="Src\Engine\world.h" />
     <ClInclude Include="Src\Game\GameMain.h" />
+    <ClInclude Include="Src\Game\test_level.h" />
     <ClInclude Include="Src\Graphics\command_list.h" />
     <ClInclude Include="Src\Graphics\command_queue.h" />
     <ClInclude Include="Src\Graphics\constant_buffer_allocator.h" />
@@ -91,6 +92,7 @@
     <ClCompile Include="Src\Engine\level_manager.cpp" />
     <ClCompile Include="Src\Engine\render_system.cpp" />
     <ClCompile Include="Src\Game\GameMain.cpp" />
+    <ClCompile Include="Src\Game\test_level.cpp" />
     <ClCompile Include="Src\Resource\mesh_manager.cpp" />
     <ClCompile Include="Src\Resource\texture_manager.cpp" />
     <None Include="Shaders\sprite.ps.hlsl" />

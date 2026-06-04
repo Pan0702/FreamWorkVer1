@@ -55,6 +55,21 @@ Mat PerspectiveFovLH(float fov, float aspect, float zNear, float zFar)
     return XMMatrixPerspectiveFovLH(fov, aspect, zNear, zFar);
 }
 
+Vec3 TransformDirection(const Mat& m, const Vec3& v)
+{
+    return Vec3(XMVector3TransformNormal(v, m));
+}
+
+Vec3 TransformPoint(const Mat& m, const Vec3& v)
+{
+    return Vec3(XMVector3Transform(v, m));
+}
+
+Vec3 TransformNormal(const Mat& m, const Vec3& v)
+{
+    return Vec3(XMVector3TransformNormal(v, m));
+}
+
 Quat QuatIdentity()
 {
     return Quat(XMQuaternionIdentity());

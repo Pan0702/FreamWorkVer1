@@ -16,7 +16,9 @@ Mat Translate(const Vec3& trans);
 Mat LookAtLH(const XMVECTOR& eye, const XMVECTOR& at, const XMVECTOR& up);
 Mat LookAtRH(const XMVECTOR& eye, const XMVECTOR& at, const XMVECTOR& up);
 Mat PerspectiveFovLH(float fov, float aspect, float zNear, float zFar);
-
+Vec3 TransformDirection(const Mat& m, const Vec3& v);
+Vec3 TransformPoint(const Mat& m, const Vec3& v);
+Vec3 TransformNormal(const Mat& m, const Vec3& v);
 Quat QuatIdentity();
 Quat QuatFromAxisAngle(const Vec3& axis, float angle);
 Quat QuatFromEuler(const Vec3& euler);
