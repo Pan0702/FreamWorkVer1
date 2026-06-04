@@ -31,6 +31,8 @@ namespace
     struct MaterialCB
     {
         Vec4 base_color;
+        int has_texture;
+        int pad [3];
     };
 }
 bool MeshRenderer::Initialize(const ID3D12Device* device)
@@ -144,6 +146,7 @@ void MeshRenderer::Submit(RenderContext& context)
         
         MaterialCB mat_cb = {};
         mat_cb.base_color = command.material->GetBaseColor();
+        mat_cb.has_texture = (command.material->GetDiffuse() != nullptr) ? 1 : 0;
         ConstantBufferAllocation mat_alloc = {};
         if (context.cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
         {

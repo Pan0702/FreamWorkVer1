@@ -17,10 +17,10 @@ void TestLevel::OnEnter()
     Mesh* mesh = MeshManager::Get().Load("Mesh/box1.mesh");
 
     // 2) マテリアル作成（triangleシェーダ＝Lambert対応済み）
-    material_ = std::make_unique<Material>();
-    // 診断テクスチャを1枚（Material::Apply は SRV slot0 を使う実装なので、何か1枚要る）
-    material_->SetDiffuse(TextureManager::Get().Load(L"Texture/clock.png"));
-    material_->SetBaseColor(Vec4(1,0,0,1));
+    material_ = std::make_unique<Material>(mesh->GetMaterialDesc());
+    // // 診断テクスチャを1枚（Material::Apply は SRV slot0 を使う実装なので、何か1枚要る）
+    // material_->SetDiffuse(TextureManager::Get().Load(L"Texture/clock.png"));
+    // material_->SetBaseColor(Vec4(1,0,0,1));
     // 3) Actor を生成して Mesh コンポーネントを載せる
     Actor* a = SpawnActor();
     auto* t = a->AddComponent<TransformComponent>();

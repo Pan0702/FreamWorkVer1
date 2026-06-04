@@ -9,10 +9,23 @@ struct MeshFileHeader
     uint32_t index_count;   
     uint32_t vertex_stride;
     uint32_t index_stride;
-    Vec4 MaterialColor;
-    uint32_t diffuse_path_length;;
+    uint32_t submesh_count;
+    uint32_t material_count;
     uint32_t reserved[2];//予備領域
 };
 
+struct SubMesh
+{
+    uint32_t index_start;
+    uint32_t index_count;
+    uint32_t material_slot;
+};
+
+struct Material
+{
+    Vec4 base_color;
+    uint32_t diffuse_texture_length;
+    uint32_t reserved;
+};
 static constexpr char kMeshMagic[4] = {'M', 'E', 'S', 'H'};
-static constexpr uint32_t kMeshVersion = 2;
+static constexpr uint32_t kMeshVersion = 3;

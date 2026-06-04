@@ -2,6 +2,7 @@
 #include <span>
 #include <memory>
 #include <vector>
+#include <string>
 #include "../Core/common.h"
 #include "../Graphics/index_buffer.h"
 #include "../Graphics/vertex_buffer.h"

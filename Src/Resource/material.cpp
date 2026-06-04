@@ -1,5 +1,6 @@
 ﻿#include "material.h"
 
+#include "texture_manager.h"
 #include "vertex_types.h"
 #include "../Engine/render_system.h"
 #include "../Game/GameMain.h"
@@ -17,6 +18,25 @@ Material::Material()
         MessageBox(nullptr, L"Failed to create material", L"Error", MB_OK);
    
     }
+}
+
+Material::Material(const MeshMaterialDesc& desc)
+{
+    if (!Create(game_main->GetRenderSystem()->GetDevice(), L"Shaders/triangle.vs.hlsl", L"Shaders/triangle.ps.hlsl",
+                  kStaticVertexLayout))
+    {
+        MessageBox(nullptr, L"Failed to create material", L"Error", MB_OK);
+   
+    }
+    Texture2D* texture = TextureManager::Get().Load(desc.diffuse_texture_path.c_str());
+    if (texture)
+    {
+        SetDiffuse(texture);
+    }else
+    {
+        SetDiffuse(nullptr);
+    }
+    SetBaseColor(desc.base_color);
 }
 
 bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_t* ps_path,

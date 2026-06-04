@@ -73,7 +73,15 @@ Mesh* MeshManager::Load(const std::string& path)
         static_cast<std::streamsize>(header.vertex_count * sizeof(StaticVertex)));
     ifs.read(reinterpret_cast<char*>(indices.data()),
         static_cast<std::streamsize>(header.index_count * sizeof(uint32_t)));
-    
+
+    std::wstring diffuse_path;
+    if (header.diffuse_path_length > 0)
+    {
+        diffuse_path.resize(header.diffuse_path_length);
+        ifs.read(reinterpret_cast<char*>(diffuse_path.data()),
+            static_cast<std::streamsize>(header.diffuse_path_length * sizeof(wchar_t)));
+    }
+
     if (!ifs)
     {
         return nullptr;
@@ -95,7 +103,8 @@ Mesh* MeshManager::Load(const std::string& path)
         return nullptr;
     }
     
-    mesh->GetMaterialDesc().base_color
+    mesh->GetMaterialDesc().base_color = header.material_color;
+    mesh->GetMaterialDesc().diffuse_texture_path = diffuse_path;
     Mesh* result = mesh.get();
     cache_.emplace(path, std::move(mesh));
     return result;   
