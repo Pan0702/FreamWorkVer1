@@ -36,7 +36,7 @@ namespace
                    const std::vector<std::uint32_t>& indices,
                    const std::vector<MaterialData>& materials,
                    const std::vector<SubMeshData>& sub_meshes);
-    bool ConvertMesh(const char* in_path, const char* out_path);
+    bool ConvertMesh(const char* in_path, const char* out_path, const std::string& tex_folder);
 
     bool CheckCountFitsUint32(std::size_t count, const char* label)
     {
@@ -121,7 +121,27 @@ namespace
         return true;
     }
 
-    bool ConvertMesh(const char* in_path, const char* out_path)
+    // assimp が返すパス（フォルダ込みの場合あり）からファイル名だけを取り出し、
+    // Assets/Texture/<tex_folder>/<filename> という相対パスを組み立てる。
+    std::wstring BuildTexturePath(const aiString& tex, const std::string& tex_folder)
+    {
+        std::filesystem::path src(tex.C_Str());
+        const std::filesystem::path filename = src.filename();
+        if (filename.empty())
+        {
+            return std::wstring();
+        }
+
+        std::filesystem::path full = "Assets/Texture";
+        if (!tex_folder.empty())
+        {
+            full /= tex_folder;
+        }
+        full /= filename;
+        return full.generic_wstring();
+    }
+
+    bool ConvertMesh(const char* in_path, const char* out_path, const std::string& tex_folder)
     {
         Assimp::Importer importer;
         const unsigned int flags =
@@ -178,8 +198,7 @@ namespace
             aiString tex;
             if (material->GetTexture(aiTextureType_DIFFUSE, 0, &tex) == AI_SUCCESS)
             {
-                std::string s = tex.C_Str();
-                data.diffuse_path = std::wstring(s.begin(), s.end());
+                data.diffuse_path = BuildTexturePath(tex, tex_folder);
             }
             materials.push_back(data);
         }
@@ -260,6 +279,7 @@ namespace
             if (!mat.diffuse_path.empty())
             ofs.write(reinterpret_cast<const char*>(mat.diffuse_path.c_str()),
                       static_cast<std::streamsize>(mat.diffuse_path.size() * sizeof(std::wstring::value_type)));
+            printf("write %ls\n", mat.diffuse_path.c_str());
         }
         
         if (!ofs)
@@ -297,8 +317,10 @@ int main(int argc, char** argv)
     {
         in_path = argv[1];
         out_path = argv[2];
+        // 任意: Assets/Texture/ の下のサブフォルダ
+        const std::string tex_folder = (argc >= 4) ? argv[3] : "";
 
-        const bool ok = ConvertMesh(in_path.c_str(), out_path.c_str());
+        const bool ok = ConvertMesh(in_path.c_str(), out_path.c_str(), tex_folder);
         std::printf(ok ? "[OK] %s -> %s\n" : "[FAILED] %s\n", in_path.c_str(), out_path.c_str());
         return ok ? 0 : 2;
     }
@@ -318,13 +340,19 @@ int main(int argc, char** argv)
         std::getline(std::cin, out_path);
         out_path = StripQuotes(out_path);
 
+        // Assets/Texture/ の下のサブフォルダ（空Enterでサブフォルダなし= Assets/Texture/直下）
+        std::printf("texture folder (under Assets/Texture/, empty = none): ");
+        std::string tex_folder;
+        std::getline(std::cin, tex_folder);
+        tex_folder = StripQuotes(tex_folder);
+
         if (in_path.empty() || out_path.empty())
         {
             std::printf("?p?X??????\n");
         }
         else
         {
-            const bool ok = ConvertMesh(in_path.c_str(), out_path.c_str());
+            const bool ok = ConvertMesh(in_path.c_str(), out_path.c_str(), tex_folder);
             std::printf(ok ? "[OK] %s -> %s\n" : "[FAILED] %s\n",
                         in_path.c_str(), out_path.c_str());
         }

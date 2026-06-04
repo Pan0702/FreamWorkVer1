@@ -16,17 +16,24 @@ TestLevel::~TestLevel() = default;
 
 void TestLevel::OnEnter()
 {
-    Mesh* mesh = MeshManager::Get().Load("Mesh/box1.mesh");
-    
+    Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/box1.mesh");
     material_slot_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDecs());
-    // // 診断テクスチャを1枚（Material::Apply は SRV slot0 を使う実装なので、何か1枚要る）
-    // material_->SetDiffuse(TextureManager::Get().Load(L"Texture/clock.png"));
-    // material_->SetBaseColor(Vec4(1,0,0,1));
-    // 3) Actor を生成して Mesh コンポーネントを載せる
+    material_slot_->GetMaterial(0)->SetDiffuse(TextureManager::Get().Load(L"Assets/Texture/NormalMap.png"));
+    material_slot_->GetMaterial(0)->SetNormal(TextureManager::Get().Load(L"Assets/Texture/NormalMap.png"));
+
     Actor* a = SpawnActor();
     auto* t = a->AddComponent<TransformComponent>();
     a->AddComponent<StaticMeshComponent>(mesh, material_slot_.get());
     t->position = Vec3(0, 0, 0);
+    
+    Mesh* mesh2 = MeshManager::Get().Load("Assets/Mesh/box1.mesh");
+    material_slot_2_ = std::make_unique<MaterialSlot>(mesh2->GetMaterialDecs());
+    material_slot_2_->GetMaterial(0)->SetDiffuse(TextureManager::Get().Load(L"Assets/Texture/NormalMap.png"));
+    
+    Actor* a2 = SpawnActor();
+    auto* t2 = a2->AddComponent<TransformComponent>();
+    a2->AddComponent<StaticMeshComponent>(mesh, material_slot_2_.get());
+    t2->position = Vec3(3, 0, 0);
     LevelBase::OnEnter();
 }
 

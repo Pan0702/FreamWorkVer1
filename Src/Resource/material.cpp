@@ -1,4 +1,4 @@
-﻿#include "material.h"
+#include "material.h"
 
 #include "texture_manager.h"
 #include "vertex_types.h"
@@ -13,28 +13,31 @@
 Material::Material()
 {
     if (!Create(game_main->GetRenderSystem()->GetDevice(), L"Shaders/triangle.vs.hlsl", L"Shaders/triangle.ps.hlsl",
-                      kStaticVertexLayout))
+                kStaticVertexLayout))
     {
         MessageBox(nullptr, L"Failed to create material", L"Error", MB_OK);
-   
     }
 }
 
 Material::Material(const MeshMaterialDesc& desc)
 {
     if (!Create(game_main->GetRenderSystem()->GetDevice(), L"Shaders/triangle.vs.hlsl", L"Shaders/triangle.ps.hlsl",
-                  kStaticVertexLayout))
+                kStaticVertexLayout))
     {
         MessageBox(nullptr, L"Failed to create material", L"Error", MB_OK);
-   
     }
-    
+
     Texture2D* texture = TextureManager::Get().Load(desc.diffuse_texture_path.c_str());
     if (texture)
     {
         SetDiffuse(texture);
-    }else
+    }
+    else
     {
+        if (!desc.diffuse_texture_path.empty())
+        {
+            printf("Failed to load texture %s\n", desc.diffuse_texture_path.c_str());
+        }
         SetDiffuse(nullptr);
     }
     SetBaseColor(desc.base_color);
@@ -47,10 +50,11 @@ bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_
     root_signature_ = std::make_unique<RootSignature>();
     RootSignatureBuilder builder;
     builder
-        .AddCbv(0, D3D12_SHADER_VISIBILITY_VERTEX)
-        .AddSrvTable(0, 1, D3D12_SHADER_VISIBILITY_PIXEL)
-        .AddCbv(1, D3D12_SHADER_VISIBILITY_PIXEL)
-        .AddCbv(2, D3D12_SHADER_VISIBILITY_PIXEL)       
+        .AddCbv(0, D3D12_SHADER_VISIBILITY_VERTEX) //b0
+        .AddSrvTable(0, 1, D3D12_SHADER_VISIBILITY_PIXEL) //t0
+        .AddCbv(1, D3D12_SHADER_VISIBILITY_PIXEL) // b1
+        .AddCbv(2, D3D12_SHADER_VISIBILITY_PIXEL) // b2 
+        .AddSrvTable(1,1, D3D12_SHADER_VISIBILITY_PIXEL) // t1
         .AddStaticSampler(0, D3D12_SHADER_VISIBILITY_PIXEL, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
 
     if (!builder.Build(device, root_signature_.get()))
@@ -100,8 +104,11 @@ void Material::Apply(ID3D12GraphicsCommandList* command_list, DescriptorHeap* de
     command_list->SetPipelineState(pipeline_state_->GetPipelineState());
     ID3D12DescriptorHeap* heaps[] = {descriptor_heap->GetHeap()};
     command_list->SetDescriptorHeaps(1, heaps);
-    command_list->SetGraphicsRootDescriptorTable(1,
-                                                 descriptor_heap->GetGpuHandle(0));
+    const uint32_t srv_index = (diffuse_ != nullptr) ? diffuse_->GetSrvIndex() : 0;
+    command_list->SetGraphicsRootDescriptorTable(1,descriptor_heap->GetGpuHandle(srv_index));
+    const uint32_t norm_index = (normal_ != nullptr) ? normal_->GetSrvIndex() : 0;
+    command_list->SetGraphicsRootDescriptorTable(4,descriptor_heap->GetGpuHandle(norm_index));
+    
 }
 
 void Material::SetDiffuse(Texture2D* diffuse)
@@ -147,6 +154,26 @@ Texture2D* Material::GetSpecular() const
 Texture2D* Material::GetHeight() const
 {
     return height_;
+}
+
+float Material::GetSpecularPower() const
+{
+    return specular_power_;
+}
+
+float Material::GetSpecularIntensity() const
+{
+    return specular_intensity_;
+}
+
+void Material::SetSpecularPower(float power)
+{
+    specular_power_ = power;
+}
+
+void Material::SetSpecularIntensity(float intensity)
+{
+    specular_intensity_ = intensity;
 }
 
 Vec4 Material::GetBaseColor() const

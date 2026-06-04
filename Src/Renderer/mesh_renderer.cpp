@@ -26,13 +26,16 @@ namespace
         Vec4 light_dir;
         Vec4 light_color;
         Vec4 ambient;
+        Vec4 camera_pos;
     };
     
     struct MaterialCB
     {
         Vec4 base_color;
         int has_texture;
-        int pad [3];
+        float specular_intensity;
+        float specular_power;
+        int has_normal_map;;
     };
 }
 bool MeshRenderer::Initialize(const ID3D12Device* device)
@@ -119,6 +122,7 @@ void MeshRenderer::Submit(RenderContext& context)
     light_cb.light_dir = Vec4(context.light_dir.x, context.light_dir.y, context.light_dir.z, 0.0f);
     light_cb.light_color = Vec4(context.light_color.x, context.light_color.y, context.light_color.z, 0.0f);
     light_cb.ambient = Vec4(context.ambient.x, context.ambient.y, context.ambient.z, 0.0f);
+    light_cb.camera_pos = Vec4(context.camera_pos.x, context.camera_pos.y, context.camera_pos.z, 1.0f);
     const bool has_light = context.cb_allocator->Allocate(sizeof(light_cb), &light_alloc);
     if (has_light)
     {
@@ -166,6 +170,10 @@ void MeshRenderer::Submit(RenderContext& context)
             MaterialCB mat_cb = {};
             mat_cb.base_color = mat->GetBaseColor();
             mat_cb.has_texture = (mat->GetDiffuse() != nullptr) ? 1 : 0;
+            mat_cb.specular_intensity = mat->GetSpecularIntensity();
+            mat_cb.specular_power = mat->GetSpecularPower();
+            mat_cb.has_normal_map = (mat->GetNormal() != nullptr) ? 1 : 0;
+            
             ConstantBufferAllocation mat_alloc = {};
             if (context.cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
             {

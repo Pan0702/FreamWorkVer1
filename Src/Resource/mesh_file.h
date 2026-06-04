@@ -21,6 +21,8 @@ struct SubMeshEntry
     uint32_t material_slot;
 };
 
+
+
 struct MaterialEntry
 {
     Vec4 base_color;

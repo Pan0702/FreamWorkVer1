@@ -72,12 +72,12 @@ void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* ca
     context.light_dir = Vec3(0.3f,-1.0f,0.5f).Normalized();
     context.light_color = Vec3(1.0f,1.0f,1.0f);
     context.ambient = Vec3(0.15f,0.15f,0.15f);
+    context.camera_pos = camera->pos_;
 
     mesh_renderer_->Collect();
     mesh_renderer_->Sort();
     mesh_renderer_->Submit(context);
-
-    // �f�o�b�O�`��i���E���E���Ȃǁj�B���b�V���̌�ɕ`���Đ[�x�ŉB���悤�ɂ���
+    
     debug_renderer_->Submit(context);
 
     sprite_renderer_->Collect();

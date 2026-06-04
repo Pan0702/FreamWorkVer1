@@ -28,6 +28,10 @@ public:
     Texture2D* GetNormal() const;
     Texture2D* GetSpecular() const;
     Texture2D* GetHeight() const;
+    float GetSpecularPower() const;
+    float GetSpecularIntensity() const;
+    void SetSpecularPower(float power);
+    void SetSpecularIntensity(float intensity);
     Vec4 GetBaseColor() const;
 
 private:
@@ -39,5 +43,7 @@ private:
     Texture2D* normal_ = nullptr;
     Texture2D* specular_ = nullptr;
     Texture2D* height_ = nullptr;
+    float specular_power_ = 1.0f;
+    float specular_intensity_ = 1.0f;   
     Vec4 base_color_;
 };
