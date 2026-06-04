@@ -11,7 +11,6 @@
 class DescriptorHeap;
 class Texture2D;
 
-
 class Material
 {
 public:

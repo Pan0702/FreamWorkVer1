@@ -1,4 +1,4 @@
-ï»¿#include "mesh_manager.h"
+#include "mesh_manager.h"
 
 #include <fstream>
 
@@ -73,15 +73,34 @@ Mesh* MeshManager::Load(const std::string& path)
         static_cast<std::streamsize>(header.vertex_count * sizeof(StaticVertex)));
     ifs.read(reinterpret_cast<char*>(indices.data()),
         static_cast<std::streamsize>(header.index_count * sizeof(uint32_t)));
-
-    std::wstring diffuse_path;
-    if (header.diffuse_path_length > 0)
+    
+    //SubMeshArray
+    std::vector<SubMeshEntry> sub_meshes(header.submesh_count);
+    if (header.submesh_count > 0)
     {
-        diffuse_path.resize(header.diffuse_path_length);
-        ifs.read(reinterpret_cast<char*>(diffuse_path.data()),
-            static_cast<std::streamsize>(header.diffuse_path_length * sizeof(wchar_t)));
+        ifs.read(reinterpret_cast<char*>(sub_meshes.data()),
+            static_cast<std::streamsize>(header.submesh_count * sizeof(SubMeshEntry)));
     }
-
+    
+    //MaterialArray
+    std::vector<MaterialEntry> materials(header.material_count);
+    if (header.material_count > 0)
+    {
+        ifs.read(reinterpret_cast<char*>(materials.data()),
+            static_cast<std::streamsize>(header.material_count * sizeof(MaterialEntry)));
+    }
+    
+    std::vector<std::wstring> diffuse_paths(header.material_count);
+    for (uint32_t i = 0; i < header.material_count; ++i)
+    {
+        const uint32_t len = materials[i].diffuse_texture_length;
+        if (len > 0)
+        {
+            diffuse_paths[i].resize(len);
+            ifs.read(reinterpret_cast<char*>(diffuse_paths[i].data()),
+                static_cast<std::streamsize>(len * sizeof(wchar_t)));
+        }
+    }
     if (!ifs)
     {
         return nullptr;
@@ -103,8 +122,25 @@ Mesh* MeshManager::Load(const std::string& path)
         return nullptr;
     }
     
-    mesh->GetMaterialDesc().base_color = header.material_color;
-    mesh->GetMaterialDesc().diffuse_texture_path = diffuse_path;
+    //Change MaterialEntry -> MeshMaterialDesc
+    std::vector<MeshMaterialDesc> descs(header.material_count);
+    for (uint32_t i = 0; i < header.material_count; ++i)
+    {
+        descs[i].base_color = materials[i].base_color;
+        descs[i].diffuse_texture_path = diffuse_paths[i].c_str();
+    }
+    mesh->SetMaterialDescs(descs);
+    
+    //@Change SubMeshEntry -> SubMesh
+    std::vector<SubMesh> sub_decs(header.submesh_count);
+    for (uint32_t i = 0; i < header.submesh_count; ++i)
+    {
+        sub_decs[i].index_start = sub_meshes[i].index_start;
+        sub_decs[i].index_count = sub_meshes[i].index_count;
+        sub_decs[i].material_slot = sub_meshes[i].material_slot;
+    }
+    mesh->SetSubMeshes(sub_decs);
+    
     Mesh* result = mesh.get();
     cache_.emplace(path, std::move(mesh));
     return result;   

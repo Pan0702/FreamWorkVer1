@@ -47,7 +47,22 @@ const std::vector<D3D12_INPUT_ELEMENT_DESC>& Mesh::GetInputLayout()
     return input_layout_;   
 }
 
-MeshMaterialDesc& Mesh::GetMaterialDesc()
+void Mesh::SetMaterialDescs(std::span<const MeshMaterialDesc> material_descs)
 {
-    return material_desc_;
+    material_descs_.assign(material_descs.begin(), material_descs.end());
+}
+
+void Mesh::SetSubMeshes(std::span<const SubMesh> sub_meshes)
+{
+    sub_meshes_.assign(sub_meshes.begin(), sub_meshes.end());
+}
+
+const std::vector<MeshMaterialDesc>& Mesh::GetMaterialDecs()
+{
+    return material_descs_;  
+}
+
+const std::vector<SubMesh>& Mesh::GetSubMeshes()
+{
+    return sub_meshes_;
 }

@@ -28,6 +28,7 @@ Material::Material(const MeshMaterialDesc& desc)
         MessageBox(nullptr, L"Failed to create material", L"Error", MB_OK);
    
     }
+    
     Texture2D* texture = TextureManager::Get().Load(desc.diffuse_texture_path.c_str());
     if (texture)
     {

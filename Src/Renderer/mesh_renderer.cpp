@@ -12,7 +12,7 @@
 #include "../Resource/mesh.h"
 #include "render_context.h"
 #include "render_object.h"
-
+#include "../Resource/material_slot.h"
 namespace 
 {
     //CB = constant buffer
@@ -81,7 +81,7 @@ void MeshRenderer::Collect()
     draw_commands_.clear();
     for (StaticMeshComponent* component : registered_)
     {
-        if (component == nullptr || component->GetMesh() == nullptr || component->GetMaterial() == nullptr)
+        if (component == nullptr || component->GetMesh() == nullptr || component->GetMaterialSlot() == nullptr)
         {
             continue;
         }
@@ -97,8 +97,8 @@ void MeshRenderer::Collect()
 
         DrawCommand command = {};
         command.mesh = component->GetMesh();
-        command.material = component->GetMaterial();
-        command.world = world;
+       command.world = world;
+        command.material_slot = component->GetMaterialSlot();
         draw_commands_.push_back(command);
     }
 }
@@ -127,6 +127,7 @@ void MeshRenderer::Submit(RenderContext& context)
     context.command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST); 
     for (const DrawCommand& command : draw_commands_)
     {
+        // モデル共通
         MeshObjectCB obj = {};
         obj.world = Transpose(command.world);
         obj.wvp = Transpose(command.world * context.view * context.projection);
@@ -137,26 +138,43 @@ void MeshRenderer::Submit(RenderContext& context)
         }
         memcpy(alloc.cpu, &obj, sizeof(obj));
 
-        command.material->Apply(context.command_list, context.srv_heap);
-        context.command_list->SetGraphicsRootConstantBufferView(0, alloc.gpu);
-        if (has_light)
-        {
-            context.command_list->SetGraphicsRootConstantBufferView(2, light_alloc.gpu);
-        }
-        
-        MaterialCB mat_cb = {};
-        mat_cb.base_color = command.material->GetBaseColor();
-        mat_cb.has_texture = (command.material->GetDiffuse() != nullptr) ? 1 : 0;
-        ConstantBufferAllocation mat_alloc = {};
-        if (context.cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
-        {
-            memcpy(mat_alloc.cpu, &mat_cb, sizeof(mat_cb));
-            context.command_list->SetGraphicsRootConstantBufferView(3, mat_alloc.gpu);
-        }
+        // 頂点/インデックスバッファのバインドは1回(全サブメッシュ共通)
         D3D12_VERTEX_BUFFER_VIEW vbv = command.mesh->GetVertexBufferView();
         context.command_list->IASetVertexBuffers(0, 1, &vbv);
         D3D12_INDEX_BUFFER_VIEW ibv = command.mesh->GetIndexBufferView();
         context.command_list->IASetIndexBuffer(&ibv);
-        context.command_list->DrawIndexedInstanced(command.mesh->GetIndexCount(), 1, 0, 0, 0);
+
+        //  サブメッシュごと(マテリアルが変わる) 
+        for (const SubMesh& sub : command.mesh->GetSubMeshes())
+        {
+            Material* mat = command.material_slot->GetMaterial(sub.material_slot);
+            if (mat == nullptr)
+            {
+                continue;
+            }
+
+            mat->Apply(context.command_list, context.srv_heap);
+
+            // b0(wvp/world): Apply でルートシグネチャが変わるので毎回セット
+            context.command_list->SetGraphicsRootConstantBufferView(0, alloc.gpu);
+            if (has_light)
+            {
+                context.command_list->SetGraphicsRootConstantBufferView(2, light_alloc.gpu);
+            }
+
+            // b2(material): この sub のマテリアルの色
+            MaterialCB mat_cb = {};
+            mat_cb.base_color = mat->GetBaseColor();
+            mat_cb.has_texture = (mat->GetDiffuse() != nullptr) ? 1 : 0;
+            ConstantBufferAllocation mat_alloc = {};
+            if (context.cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
+            {
+                memcpy(mat_alloc.cpu, &mat_cb, sizeof(mat_cb));
+                context.command_list->SetGraphicsRootConstantBufferView(3, mat_alloc.gpu);
+            }
+
+            // この sub の範囲だけ描く
+            context.command_list->DrawIndexedInstanced(sub.index_count, 1, sub.index_start, 0, 0);
+        }
     }
 }

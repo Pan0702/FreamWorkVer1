@@ -18,14 +18,29 @@
 
 namespace
 {
+    struct SubMeshData 
+    {
+        uint32_t index_start;
+        uint32_t index_count;
+        uint32_t material_slot;
+    };
+    
+    struct MaterialData
+    {
+        Vec4 base_color;
+        std::wstring diffuse_path;
+    };
+
     bool WriteMesh(const char* out_path,
                    const std::vector<StaticVertex>& vertices,
-                   const std::vector<std::uint32_t>& indices);
+                   const std::vector<std::uint32_t>& indices,
+                   const std::vector<MaterialData>& materials,
+                   const std::vector<SubMeshData>& sub_meshes);
     bool ConvertMesh(const char* in_path, const char* out_path);
 
     bool CheckCountFitsUint32(std::size_t count, const char* label)
     {
-        if (count > static_cast<std::size_t>(std::numeric_limits<std::uint32_t>::max()))
+        if (count > static_cast<std::size_t>((std::numeric_limits<std::uint32_t>::max)()))
         {
             std::printf("%s count exceeds uint32_t range\n", label);
             return false;
@@ -127,7 +142,7 @@ namespace
 
         std::vector<StaticVertex> vertices;
         std::vector<std::uint32_t> indices;
-
+        std::vector<SubMeshData> sub_meshes;
         for (unsigned int m = 0; m < scene->mNumMeshes; ++m)
         {
             const aiMesh* mesh = scene->mMeshes[m];
@@ -135,12 +150,40 @@ namespace
             {
                 continue;
             }
-
-            if (!AppendMesh(*mesh, vertices, indices))
-            {
-                return false;
-            }
+            
+            const uint32_t start = static_cast<uint32_t>(vertices.size());
+            
+            if (!AppendMesh(*mesh,vertices,indices)) return false;
+            
+            SubMeshData data = {};
+            data.index_start = start;
+            data.index_count = static_cast<uint32_t>(indices.size()) - start;
+            data.material_slot = mesh->mMaterialIndex;
+            sub_meshes.push_back(data);
         }
+        
+        std::vector<MaterialData> materials;
+        
+        for (unsigned int m = 0; m < scene->mNumMaterials; ++m)
+        {
+            const aiMaterial* material = scene->mMaterials[m];
+            MaterialData data = {};
+            data.base_color = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
+            
+            aiColor4D color;
+            if (material->Get(AI_MATKEY_COLOR_DIFFUSE, color) == AI_SUCCESS)
+            {
+                data.base_color = Vec4(color.r, color.g, color.b, color.a);
+            }
+            aiString tex;
+            if (material->GetTexture(aiTextureType_DIFFUSE, 0, &tex) == AI_SUCCESS)
+            {
+                std::string s = tex.C_Str();
+                data.diffuse_path = std::wstring(s.begin(), s.end());
+            }
+            materials.push_back(data);
+        }
+        
 
         if (vertices.empty() || indices.empty())
         {
@@ -148,12 +191,14 @@ namespace
             return false;
         }
 
-        return WriteMesh(out_path, vertices, indices);
+        return WriteMesh(out_path, vertices, indices, materials, sub_meshes);
     }
 
     bool WriteMesh(const char* out_path,
                    const std::vector<StaticVertex>& vertices,
-                   const std::vector<std::uint32_t>& indices)
+                   const std::vector<std::uint32_t>& indices,
+                   const std::vector<MaterialData>& materials,
+                   const std::vector<SubMeshData>& sub_meshes)
     {
         if (!CheckCountFitsUint32(vertices.size(), "vertex") ||
             !CheckCountFitsUint32(indices.size(), "index"))
@@ -168,7 +213,9 @@ namespace
         header.index_count = static_cast<std::uint32_t>(indices.size());
         header.vertex_stride = sizeof(StaticVertex);
         header.index_stride = sizeof(std::uint32_t);
-
+        header.material_count = materials.size();
+        header.submesh_count = sub_meshes.size();
+        
         const std::filesystem::path output_path(out_path);
         const std::filesystem::path parent = output_path.parent_path();
         if (!parent.empty())
@@ -194,7 +241,27 @@ namespace
                   static_cast<std::streamsize>(vertices.size() * sizeof(StaticVertex)));
         ofs.write(reinterpret_cast<const char*>(indices.data()),
                   static_cast<std::streamsize>(indices.size() * sizeof(std::uint32_t)));
-
+        for (const auto& sub_mesh : sub_meshes)
+        {
+            SubMeshEntry e = { sub_mesh.index_start, sub_mesh.index_count,
+                sub_mesh.material_slot };
+            ofs.write(reinterpret_cast<const char*>(&e), sizeof(e));
+        }
+        for (const auto& mat : materials)
+        {
+            MaterialEntry e = {};
+            e.base_color = mat.base_color;
+            e.diffuse_texture_length =
+        static_cast<std::uint32_t>(mat.diffuse_path.size());
+            ofs.write(reinterpret_cast<const char*>(&e), sizeof(e));
+        }
+        for (const auto& mat : materials)
+        {
+            if (!mat.diffuse_path.empty())
+            ofs.write(reinterpret_cast<const char*>(mat.diffuse_path.c_str()),
+                      static_cast<std::streamsize>(mat.diffuse_path.size() * sizeof(std::wstring::value_type)));
+        }
+        
         if (!ofs)
         {
             std::printf("write failed: %s\n", out_path);
@@ -203,7 +270,7 @@ namespace
 
         return true;
     }
-    // 前後のダブルクオートを除去（パスをドラッグ＆ペーストすると " が付くことがある）
+
     std::string StripQuotes(std::string s)
     {
         if (s.size() >= 2 && s.front() == '"' && s.back() == '"')
@@ -228,8 +295,7 @@ int main(int argc, char** argv)
 
     if (argc >= 3)
     {
-        // --- CLIモード（引数あり）: バッチ実行向け。終了時に待たない ---
-        in_path  = argv[1];
+        in_path = argv[1];
         out_path = argv[2];
 
         const bool ok = ConvertMesh(in_path.c_str(), out_path.c_str());
@@ -254,7 +320,7 @@ int main(int argc, char** argv)
 
         if (in_path.empty() || out_path.empty())
         {
-            std::printf("パスが空です\n");
+            std::printf("?p?X??????\n");
         }
         else
         {
@@ -265,7 +331,7 @@ int main(int argc, char** argv)
 
         std::printf("\n if continue convert anything key push / Esc key finish...\n");
         const int key = _getch();
-        if (key == 27)   // 27 = ESC
+        if (key == 27) // 27 = ESC
         {
             break;
         }

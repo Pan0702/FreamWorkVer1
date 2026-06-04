@@ -14,14 +14,14 @@ struct MeshFileHeader
     uint32_t reserved[2];//予備領域
 };
 
-struct SubMesh
+struct SubMeshEntry
 {
     uint32_t index_start;
     uint32_t index_count;
     uint32_t material_slot;
 };
 
-struct Material
+struct MaterialEntry
 {
     Vec4 base_color;
     uint32_t diffuse_texture_length;

@@ -3,14 +3,15 @@
 #include "../attach_context.h"
 #include "../../Renderer/mesh_renderer.h"
 
-StaticMeshComponent::StaticMeshComponent(Mesh* mesh, Material* material)
-    : mesh_(mesh), material_(material)
+
+StaticMeshComponent::StaticMeshComponent(Mesh* mesh, MaterialSlot* material_slot)
+    : mesh_(mesh), material_slot_(material_slot)
 {
 }
 
 StaticMeshComponent::~StaticMeshComponent()
 {
-    OnDetach();
+    StaticMeshComponent::OnDetach();
 }
 
 void StaticMeshComponent::OnAttach(const AttachContext& context)
@@ -36,17 +37,15 @@ void StaticMeshComponent::SetMesh(Mesh* mesh)
     mesh_ = mesh;
 }
 
-void StaticMeshComponent::SetMaterial(Material* material)
-{
-    material_ = material;
-}
 
 Mesh* StaticMeshComponent::GetMesh() const
 {
     return mesh_;
 }
 
-Material* StaticMeshComponent::GetMaterial() const
+
+
+MaterialSlot* StaticMeshComponent::GetMaterialSlot() const
 {
-    return material_;
+    return material_slot_;
 }

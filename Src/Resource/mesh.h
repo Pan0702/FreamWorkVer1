@@ -26,6 +26,12 @@ struct MeshMaterialDesc
     std::wstring diffuse_texture_path;
 };
 
+struct SubMesh
+{
+    uint32_t index_start;
+    uint32_t index_count;
+    uint32_t material_slot;   
+};
 class Mesh
 {
 public:
@@ -34,11 +40,15 @@ public:
     D3D12_INDEX_BUFFER_VIEW GetIndexBufferView();
     uint32_t GetIndexCount();
     const std::vector<D3D12_INPUT_ELEMENT_DESC>& GetInputLayout();
-    MeshMaterialDesc& GetMaterialDesc();
+    void SetMaterialDescs(std::span<const MeshMaterialDesc> material_descs);
+    void SetSubMeshes(std::span<const SubMesh> sub_meshes);
+    const std::vector<MeshMaterialDesc>& GetMaterialDecs(); 
+    const std::vector<SubMesh>& GetSubMeshes();
 private:
     std::unique_ptr<VertexBuffer> vertex_buffer_;
     std::unique_ptr<IndexBuffer> index_buffer_;
     std::vector<D3D12_INPUT_ELEMENT_DESC> input_layout_;
-    MeshMaterialDesc material_desc_;
+    std::vector<MeshMaterialDesc> material_descs_;
+    std::vector<SubMesh> sub_meshes_;
     uint32_t index_count_ = 0;
 };
