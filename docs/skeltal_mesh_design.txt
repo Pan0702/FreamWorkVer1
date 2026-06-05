@@ -1,0 +1,322 @@
+================================================================================
+ スケルタルメッシュ / アニメーション 設計書（GPUスキニング）
+ 対象プロジェクト: FreamWorkVer1 (C++ / DirectX 12)
+ ゴール: Level 上でキャラクターをアニメーションさせる
+ 方針: 既存の静的メッシュ経路は一切触らず、スケルタル経路を並走させる
+       実装ファイルは本人が書く（このドキュメントは規約・指針）
+================================================================================
+
+--------------------------------------------------------------------------------
+0. 全体像
+--------------------------------------------------------------------------------
+[FBX]
+  -> MeshConverter 拡張 (assimp: ボーン/ウェイト/アニメ抽出)
+[.skmesh]  スキンド頂点 + スケルトン(ノード階層 + InverseBindPose) + サブメッシュ + マテリアル
+[.anim]    アニメーションクリップ (ノードごとのキーフレーム)
+  -> ランタイムロード
+[SkeletalMesh] [Skeleton] [AnimationClip]
+  -> SkeletalMeshComponent (メッシュ+スケルトン保持) + AnimationComponent (時刻->ポーズ->ボーンパレット)
+  -> MeshRenderer にスキンド経路を追加 (DrawCommand にボーンパレット GPU アドレス)
+[skinned.vs.hlsl]  b1 にボーン行列パレットを渡し GPU スキニング
+  -> Level 上でキャラがアニメ
+
+既存(触らない)経路:
+  Mesh / StaticMeshComponent / triangle.vs.hlsl / triangle.ps.hlsl / MeshManager(.mesh, magic "MESH")
+
+================================================================================
+ 確定した主要な設計判断（サマリ）
+================================================================================
+1. GPU スキニング。ボーンパレットは定数バッファ b1(VERTEX 可視)、上限 128 ボーン、ボーン専用CB。
+2. 4 ボーン影響固定（超過は上位 4 本に絞って正規化）。
+3. メッシュとアニメは別ファイル（.skmesh / .anim、magic "SKMS" / "ANIM"）。1 メッシュに複数アニメ。
+4. 回転はクォータニオン + slerp（既存 Slerp 利用）。位置/スケールは線形補間。
+5. スキニング行列 = inverseBindPose[j] * globalPose[node_of_j]（row-vector 規約、後述）。
+6. 既存の静的経路（Mesh / triangle.hlsl / StaticMeshComponent）は一切触らず並走。
+7. コンバータはスキンド時に aiProcess_PreTransformVertices と ConvertToLeftHanded を外す。
+8. スケルトンは「ボーンだけ」ではなく aiNode ツリー全体（ノード階層）を保持する。
+9. 非一様スケールを含むリグは対象外（法線スキニングが崩れる可能性を許容）。
+10. リターゲット（別スケルトンへの流用）はしない。同一スケルトン階層前提。
+
+================================================================================
+ 行列規約（プロジェクト共通・厳守）  ※最重要
+================================================================================
+根拠（既存コードが事実上の正解）:
+  - triangle.vs.hlsl : mul(float4(position,1.0), wvp)  => 行ベクトル(row-vector)規約（ベクトルが左）
+  - mesh_renderer.cpp : wvp = Transpose(world * view * projection) を作り Transpose して渡す
+  - Mat = XMFLOAT4X4、Identity = XMMatrixIdentity、行列積は DirectXMath の operator*
+  - DirectXMath は内部 row-major かつ row-vector。v * M の合成は M_total = M_local * M_parent（左が先に当たる）
+
+規約:
+  - 行ベクトル規約。点 p の変換は p' = p * M（HLSL は mul(p, M)）。
+  - 階層合成順（子のローカルを先に、親を後に掛ける）:
+        globalPose[node] = localPose[node] * globalPose[parent]
+        （ルートは globalPose[root] = localPose[root]）
+  - スキニング行列（CPU で構築し、そのまま GPU へ。HLSL 側で追加転置しない）:
+        skin[j] = inverseBindPose[j] * globalPose[node_of_j]
+        （inverse bind が先 = 左）
+  - HLSL:
+        skinnedPos = mul(float4(pos,1), skin);
+        output.position = mul(skinnedPos, wvp);
+        skinnedNormal = mul(float4(normal,0), skin);  // 接線も同様
+
+assimp 行列の扱い:
+  - aiBone::mOffsetMatrix（inverse bind pose）と aiNode::mTransformation（local bind）は
+    row-major 格納だが column-vector 規約の値。
+  - 読み込み時に転置して row-vector 規約に合わせる（コンバータで Transpose してから書き出す）。
+  - 注意: 転置の最終確定は机上で決め切らず、ステップ4（1本ボーンのバインドポーズ描画）で実測して確定する。
+          mOffsetMatrix の手性は環境/ビルドで揺れることがあるため、最小アセットで1回見て確定する。
+
+================================================================================
+ 1. データ構造
+================================================================================
+
+1-1. スキンド頂点（Src/Resource/vertex_types.h に追記）
+--------------------------------------------------------------------------------
+struct SkinnedVertex
+{
+    float position[3];
+    float normal[3];
+    float uv[2];
+    float tangent[3];
+    float bitangent[3];
+    uint32_t bone_indices[4];   // BLENDINDICES (skin_index を指す)
+    float    bone_weights[4];   // BLENDWEIGHT  (合計 1.0 に正規化)
+};
+
+入力レイアウト kSkinnedVertexLayout[]:
+  - 既存 kStaticVertexLayout の 5 要素に加えて
+  - "BLENDINDICES", DXGI_FORMAT_R32G32B32A32_UINT
+  - "BLENDWEIGHT",  DXGI_FORMAT_R32G32B32A32_FLOAT
+設計判断: 4 ボーン固定（UE5 既定 4、最大 8）。5 本以上はコンバータで上位 4 本に絞り正規化。
+
+1-2. スケルトン（新規 Src/Resource/skeleton.h / .cpp）  ※指摘1への対応
+--------------------------------------------------------------------------------
+重要: 「ボーンだけ」を入れる設計は破綻する。aiNodeAnim は aiBone と必ずしも一致せず、
+      中間ノード・補助ノード・FBX 由来の空ノードも姿勢伝播に関わる。
+      よって aiNode ツリー全体を 1:1 で写し、頂点に影響するノードだけ skin 情報を持つ二層構造にする。
+
+struct SkeletonNode
+{
+    std::string name;
+    int  parent_index;          // ルートは -1。配列は親が必ず子より前（topo 順）
+    Mat  local_bind_transform;  // = aiNode::mTransformation（転置して row-vector 化）
+
+    // このノードが頂点に影響する「ジョイント」のときだけ有効
+    int  skin_index = -1;       // -1: 非スキンノード。>=0: ボーンパレットの何番か
+    Mat  inverse_bind_pose;     // skin_index>=0 のときのみ意味を持つ（aiBone::mOffsetMatrix、転置）
+};
+
+class Skeleton
+{
+    std::vector<SkeletonNode> nodes_;   // aiNode ツリー全体（topo 順）
+    uint32_t skin_count_ = 0;           // skin_index を持つノード数 = ボーンパレット長
+    // name -> node_index マップ（アニメチャンネルの解決に使用）
+};
+
+ポイント:
+  - nodes_ は階層全体。グローバル変換は全ノードを親->子に辿って計算（中間ノードを飛ばすと崩れる）。
+  - ボーンパレットは skin_index を持つノードだけを詰める。頂点の bone_indices はこの skin_index を指す。
+  - 命名を Bone -> SkeletonNode、bones_ -> nodes_ にして「ボーンだけ入れる実装」へ流れるのを構造的に防ぐ。
+
+1-3. アニメーションクリップ（新規 Src/Resource/animation_clip.h / .cpp）
+--------------------------------------------------------------------------------
+template<class T> struct Key { float time; T value; };
+
+struct NodeAnimation                // 1 ノード分のチャンネル（aiNodeAnim 相当）
+{
+    std::string node_name;          // bone_index ではなくノード名で持つ（指摘6）
+    std::vector<Key<Vec3>> position_keys;
+    std::vector<Key<Quat>> rotation_keys;  // 回転はクォータニオンで slerp
+    std::vector<Key<Vec3>> scale_keys;
+};
+
+class AnimationClip
+{
+    float duration_;            // 秒
+    float ticks_per_second_;
+    std::vector<NodeAnimation> channels_;
+};
+
+回転はクォータニオン + slerp。位置/スケールは線形補間。
+既存 my_math に Quat / Slerp / MatrixFromQuaternion / QuatFromMatrix が揃っているので自作不要。
+
+================================================================================
+ 2. ファイルフォーマット（新規 Src/Resource/skmesh_file.h）
+================================================================================
+既存 .mesh（magic "MESH"）と区別するため別マジックにする。
+
+2-1. .skmesh（magic "SKMS"）
+--------------------------------------------------------------------------------
+[Header]  vertex_count, index_count, vertex_stride(=SkinnedVertex),
+          submesh_count, material_count, node_count, skin_count, version
+[SkinnedVertex[]]
+[uint32 index[]]
+[SubMeshEntry[]]                       既存と同型を流用
+[MaterialEntry[] + テクスチャ文字列]   既存と同型を流用
+[NodeEntry[]]   parent_index, local_bind_transform(16 float),
+                skin_index(int, -1 可), inverse_bind_pose(16 float, skin_index>=0 のみ有効),
+                name_length
+[ノード名文字列群]
+
+2-2. .anim（magic "ANIM"）  ※指摘6: ノード名ベースで保存
+--------------------------------------------------------------------------------
+[Header]  duration, ticks_per_second, channel_count, version
+[ChannelHeader[]]  node_name_length, pos_key_count, rot_key_count, scale_key_count
+[各チャンネル]     node_name 文字列, PositionKey[], RotationKey[], ScaleKey[]
+
+設計判断:
+  - メッシュとアニメを別ファイルに分ける（1 メッシュに idle/walk/run を後から足せる。UE5 の AnimSequence 相当）。
+  - .anim のチャンネルは bone_index ではなく node_name(文字列) で保存。
+    ロード時に Skeleton の name->index マップで解決し、解決できないチャンネルは無視（警告ログ）。
+    これで .anim が特定 .skmesh に固く結合しない。
+  - 割り切り: リターゲットはしない。同一スケルトン階層前提。
+
+================================================================================
+ 3. コンバータ拡張（Tools/MeshConverterData/MeshConverter/main.cpp）  ※山場
+================================================================================
+assimp から追加抽出するもの:
+  1. スキンウェイト: aiMesh::mBones[] を走査 -> 各 aiBone::mWeights[] から
+     「どの頂点に・どのボーンが・どれだけ効くか」を頂点側に集約。
+     1 頂点 4 本超は上位 4 本に絞り、合計 1.0 へ正規化。
+  2. インバースバインドポーズ: aiBone::mOffsetMatrix（転置して書き出し）。
+  3. ノード階層: aiNode ツリーを辿って parent_index を確定。
+     ボーンに使われていないノードも階層に含める（中間ノード経由で変換が伝播するため）。
+     -> SkeletonNode を topo 順（親が子より前）に並べる。
+     -> aiBone に対応するノードに skin_index を採番、inverse_bind_pose を設定。
+  4. アニメーション: aiScene::mAnimations[] -> aiNodeAnim（チャンネル）からキーフレーム。
+     node_name で保存。
+
+postprocess フラグ規約（スキンド時）:  ※指摘3
+  使う:
+    aiProcess_Triangulate
+    aiProcess_GenSmoothNormals
+    aiProcess_CalcTangentSpace
+    aiProcess_LimitBoneWeights        // 4 本上限を assimp 側でも担保
+    aiProcess_PopulateArmatureData    // ボーン/アーマチュア情報の補完
+  使わない:
+    aiProcess_PreTransformVertices    // 階層を破壊する（致命的）
+    aiProcess_ConvertToLeftHanded     // 座標系変換が offset/transform/anim/頂点に一貫適用される
+                                      // 保証を自前で持てないうちは外す。座標系は後段で一括処理。
+  単位/座標系:
+    インポート時に変換しない。崩れの切り分けが不能になるため、まず素のまま通し、
+    ステップ4 で 1 本ボーンを見て必要なら一括変換を 1 箇所だけ入れる。
+
+出所の明文化:
+  local_bind_transform = aiNode::mTransformation（転置して row-vector 化）
+  inverse_bind_pose     = aiBone::mOffsetMatrix（転置して row-vector 化）
+
+================================================================================
+ 4. ランタイムロード
+================================================================================
+  - SkeletalMeshManager::Load(path) -> SkeletalMesh（VB/IB + SubMesh + Skeleton）。MeshManager のスキンド版。
+  - AnimationManager::Load(path)    -> AnimationClip。
+  - キャッシュ機構は既存 MeshManager と同型（path -> unique_ptr）。
+  - 読み込み時の検証: magic / version / vertex_stride(=SkinnedVertex) をチェック。
+
+================================================================================
+ 5. スキニング & アニメ再生
+================================================================================
+
+5-1. ポーズ計算（AnimationComponent、毎フレーム）
+--------------------------------------------------------------------------------
+  1. クリップ時刻を進める（time += dt、duration で wrap してループ）。
+  2. 各ノードについて、対応する NodeAnimation を name で引き、ローカル姿勢 T/R/S を評価。
+  3. 階層を親->子の順に辿って globalPose[node] = localPose[node] * globalPose[parent]。
+  4. skin_index>=0 のノードだけ skin[skin_index] = inverse_bind_pose * globalPose[node]。
+  5. 結果を std::vector<Mat>（ボーンパレット、長さ skin_count_）として保持。
+
+欠損補完規則（成分単位）:  ※指摘5  identity で埋めない。必ず bind 由来で埋める。
+  - そのノードに対応する NodeAnimation が存在しない
+        -> localPose[node] = node.local_bind_transform（丸ごとバインド）
+  - チャンネルはあるが position_keys が空
+        -> T は local_bind_transform から抽出した平行移動成分を使う
+  - rotation_keys が空 -> R は bind から抽出（identity ではない）
+  - scale_keys が空    -> S は bind から抽出
+  - キーが 1 本だけ    -> 補間せずその値
+  - 時刻がキー範囲外    -> 端のキーでクランプ（ループは時刻側で wrap 済み前提）
+  最終 localPose = compose(T, R, S)。
+
+5-2. GPU への受け渡し
+--------------------------------------------------------------------------------
+ボーンパレットを定数バッファで頂点シェーダの b1(VERTEX) に渡す。
+cbuffer BoneCB : register(b1)   // VERTEX 可視、ボーン専用。他の値を相乗りさせない（指摘4）
+{
+    float4x4 bones[128];        // 128 * 64 = 8192 bytes。64KB 制限に余裕
+};
+  - 256 だと 65536 byte = 上限ぴったりで他値を一切足せないため 128 で固定。超過モデルは対象外。
+  - スキンド用に別ルートシグネチャ/PSO を組む（既存マテリアルは壊さない）。
+    既存ルートシグネチャは b0(VS) 止まりなので拡張する。
+
+5-3. skinned.vs.hlsl
+--------------------------------------------------------------------------------
+float4x4 skin =
+    input.weights.x * bones[input.indices.x] +
+    input.weights.y * bones[input.indices.y] +
+    input.weights.z * bones[input.indices.z] +
+    input.weights.w * bones[input.indices.w];
+float4 skinnedPos = mul(float4(input.position,1), skin);
+output.position = mul(skinnedPos, wvp);
+float3 skinnedNormal = mul(float4(input.normal,0), skin).xyz;   // 接線も同様
+
+法線スキニングの割り切り（指摘7）:
+  - 法線/接線は位置と同じ skin 行列で変換する。
+  - 前提: リグに非一様スケールを含めない。含む場合は崩れる可能性を許容。
+  - normal matrix / dual quaternion skinning は対象外（将来課題）。
+
+================================================================================
+ 6. Component / Level 統合
+================================================================================
+  - SkeletalMeshComponent : SkeletalMesh* + MaterialSlot* を保持（StaticMeshComponent と対）。
+  - AnimationComponent    : AnimationClip* を再生し、ボーンパレットを生成。
+                            SkeletalMeshComponent がそれをレンダラへ渡す。
+  - MeshRenderer の Collect/Submit にスキンド経路を追加（または専用 SkinnedMeshRenderer に分離）。
+    DrawCommand にボーンパレット GPU アドレスを追加。
+  - test_level.cpp でキャラ .skmesh + .anim をロードして Actor に乗せる -> Level でアニメ。
+
+================================================================================
+ 7. 検証アセットと受け入れ基準（設計の一部）  ※指摘8
+================================================================================
+コンバータが山場。いきなりキャラを使わず、小さいアセットから段階検証する。
+
+検証アセット（小さい順に用意）:
+  A. 1 ボーン・四角形    : ボーン 1 本、頂点全部 weight=1.0
+  B. 2 ボーン・帯ポリゴン : 根本と先端、weight ブレンドが 1 箇所
+  C. 1 関節アニメ        : B に「先端ボーンが回転するだけ」の短いクリップ
+
+受け入れ基準（この順で緑になってから次へ）:
+  1. コンバータ   : A を変換し、bone(skin)_count=1、全頂点 weight.x=1, index.x=0 をダンプ確認
+  2. ロード       : A の inverse_bind_pose を ImGui 表示、ほぼ単位 or 既知値であること
+  3. スキニング配線: A をバインドポーズ描画（アニメ無し）-> 元の四角形と一致
+       => ここが緑なら「頂点レイアウト・ボーン CB・mul 順・転置」が全部正しい
+  4. ブレンド     : B でブレンド境界が滑らかに出る
+  5. 再生         : C を再生、先端だけ曲がる。根本は動かない
+       => ここが緑なら「階層伝播・欠損補完・slerp・時刻更新」が正しい
+  6. キャラ投入   : はじめてキャラ .skmesh / .anim を投入
+
+ステップ 3 が通った瞬間に、行列規約・転置・CB バインドという崩れの 8 割が同時に検証される。
+
+================================================================================
+ 8. 実装着手順（推奨）
+================================================================================
+  (1) vertex_types(SkinnedVertex) + skeleton.h + animation_clip.h + skmesh_file.h   ← データ器
+  (2) コンバータ拡張（山場、assimp）-> .skmesh / .anim を 1 個吐く
+  (3) SkeletalMeshManager / AnimationManager でロード（ImGui で中身ダンプ確認）
+  (4) skinned.vs.hlsl + スキンド用 PSO + バインドポーズ表示（アニメ無しで形が出る）
+      ※ ここで assimp 行列の転置の有無を実測確定する
+  (5) AnimationComponent でポーズ計算 -> ボーンパレット -> 動く
+  (6) SkeletalMeshComponent + test_level 統合 -> Level でキャラがアニメ
+
+各ステップは「前のステップで目に見える確認ができる」順。
+
+================================================================================
+ 付録: レビュー指摘と対応の対照表
+================================================================================
+  指摘1 Bone だけ格納は破綻         -> SkeletonNode 二層構造。階層全体を持ち skin_index>=0 だけパレット化
+  指摘2 行列規約未固定              -> row-vector / global=local*parent / skin=invBind*global を厳守規約化。assimp 行列は転置
+  指摘3 local_bind 出所が曖昧       -> aiNode::mTransformation 由来 + postprocess フラグ規約（PreTransform/ConvertToLeftHanded 外す）
+  指摘4 256 ボーン CB 上限ギリ      -> 128 固定・ボーン専用 CB と明記
+  指摘5 欠損チャンネル未設計        -> 成分単位で bind 由来補完（identity 禁止）を規約化
+  指摘6 名前マッチが弱い            -> .anim はノード名保存 -> ロード時リマップ。リターゲットはしない割り切り
+  指摘7 非一様スケール法線          -> 非一様スケール非対応と明記、将来課題
+  指摘8 検証が弱い                  -> 1->2 ボーン->1 関節の最小アセット + 受け入れ基準を設計の一部に格上げ
+================================================================================

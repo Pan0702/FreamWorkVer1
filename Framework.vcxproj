@@ -77,11 +77,15 @@
     <ClInclude Include="Src\Renderer\sprite_draw_command.h" />
     <ClInclude Include="Src\Renderer\sprite_renderer.h" />
     <ClInclude Include="Src\Renderer\ui_renderer.h" />
+    <ClInclude Include="Src\Resource\animation_clip.h" />
     <ClInclude Include="Src\Resource\material.h" />
     <ClInclude Include="Src\Resource\material_slot.h" />
     <ClInclude Include="Src\Resource\mesh.h" />
     <ClInclude Include="Src\Resource\mesh_file.h" />
+    <ClInclude Include="Src\Resource\mesh_format_common.h" />
     <ClInclude Include="Src\Resource\mesh_manager.h" />
+    <ClInclude Include="Src\Resource\skelton.h" />
+    <ClInclude Include="Src\Resource\skmesh_file.h" />
     <ClInclude Include="Src\Resource\texture2D.h" />
     <ClInclude Include="Src\Resource\texture_loder.h" />
     <ClInclude Include="Src\Resource\texture_manager.h" />
@@ -94,8 +98,10 @@
     <ClCompile Include="Src\Engine\render_system.cpp" />
     <ClCompile Include="Src\Game\GameMain.cpp" />
     <ClCompile Include="Src\Game\test_level.cpp" />
+    <ClCompile Include="Src\Resource\animation_clip.cpp" />
     <ClCompile Include="Src\Resource\material_slot.cpp" />
     <ClCompile Include="Src\Resource\mesh_manager.cpp" />
+    <ClCompile Include="Src\Resource\skelton.cpp" />
     <ClCompile Include="Src\Resource\texture_manager.cpp" />
     <None Include="Shaders\sprite.ps.hlsl" />
     <None Include="Shaders\sprite.vs.hlsl" />
@@ -152,7 +158,6 @@
     <ClCompile Include="Src\Platform\window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="codingGuidLine.txt" />
     <Content Include="Src\Platform\key_code.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

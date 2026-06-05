@@ -36,3 +36,8 @@ constexpr float k2PI = 2.0f * kPI;
 constexpr float kHalfPi = kPI * 0.5f;
 constexpr float kDegToRad = kPI / 180.0f;
 constexpr float kRadToDeg = 180.0f / kPI;
+
+using uint32 = uint32_t;
+using int32 = int32_t;
+using uint64 =uint64_t;
+using int64 = int64_t;
