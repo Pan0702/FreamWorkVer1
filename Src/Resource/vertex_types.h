@@ -1,6 +1,9 @@
 #pragma once
 #include "../Core/common.h"
 
+//////////////////////////////
+///Mesh ‚Ìî•ñ
+//////////////////////////////
 struct StaticVertex
 {
     float position[3];
@@ -39,6 +42,9 @@ static const D3D12_INPUT_ELEMENT_DESC kStaticVertexLayout[] =
     },
 };
 
+//////////////////////////////
+///Sprite ‚Ìî•ñ
+//////////////////////////////
 struct SpriteVertex
 {
     float position[2];
@@ -58,6 +64,9 @@ static const D3D12_INPUT_ELEMENT_DESC kSpriteVertexLayout[] = {
     },
 };
 
+//////////////////////////////
+///Line ‚Ìî•ñ
+//////////////////////////////
 struct DebugLineVertex
 {
     float position[3];
@@ -75,6 +84,9 @@ static constexpr D3D12_INPUT_ELEMENT_DESC kDebugLineLayout[] = {
     },
 };
 
+//////////////////////////////
+///SkMesh ‚Ìî•ñ
+//////////////////////////////
 struct SkinnedVertex
 {
     float position[3];

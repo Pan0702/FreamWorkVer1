@@ -31,7 +31,7 @@ Mesh* MeshManager::Load(const std::string& path)
     std::ifstream ifs(path,std::ios::binary);
     if (!ifs)
     {
-        MessageBox(nullptr, L"Failed to open file", L"Error", MB_OK);
+        MessageBox(nullptr, L"Failed to read mesh file", L"Error", MB_OK);
         return nullptr;
     }
     
@@ -131,7 +131,7 @@ Mesh* MeshManager::Load(const std::string& path)
     }
     mesh->SetMaterialDescs(descs);
     
-    //@Change SubMeshEntry -> SubMesh
+    //Change SubMeshEntry -> SubMesh
     std::vector<SubMesh> sub_decs(header.submesh_count);
     for (uint32_t i = 0; i < header.submesh_count; ++i)
     {

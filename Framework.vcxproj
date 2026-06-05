@@ -41,6 +41,7 @@
     <ClInclude Include="Src\Engine\attach_context.h" />
     <ClInclude Include="Src\Engine\camera.h" />
     <ClInclude Include="Src\Engine\component.h" />
+    <ClInclude Include="Src\Engine\Components\skeletal_mesh.h" />
     <ClInclude Include="Src\Engine\Components\sprite_component.h" />
     <ClInclude Include="Src\Engine\Components\static_mesh_component.h" />
     <ClInclude Include="Src\Engine\Components\transform_component.h" />
@@ -77,14 +78,18 @@
     <ClInclude Include="Src\Renderer\sprite_draw_command.h" />
     <ClInclude Include="Src\Renderer\sprite_renderer.h" />
     <ClInclude Include="Src\Renderer\ui_renderer.h" />
-    <ClInclude Include="Src\Resource\animation_clip.h" />
+    <ClInclude Include="Src\Resource\animation.h" />
+    <ClInclude Include="Src\Resource\animator_manager.h" />
     <ClInclude Include="Src\Resource\material.h" />
     <ClInclude Include="Src\Resource\material_slot.h" />
     <ClInclude Include="Src\Resource\mesh.h" />
+    <ClInclude Include="Src\Resource\mesh_data.h" />
     <ClInclude Include="Src\Resource\mesh_file.h" />
     <ClInclude Include="Src\Resource\mesh_format_common.h" />
     <ClInclude Include="Src\Resource\mesh_manager.h" />
-    <ClInclude Include="Src\Resource\skelton.h" />
+    <ClInclude Include="Src\Resource\skeltal_mesh.h" />
+    <ClInclude Include="Src\Resource\skeltal_mesh_manager.h" />
+    <ClInclude Include="Src\Resource\skeleton.h" />
     <ClInclude Include="Src\Resource\skmesh_file.h" />
     <ClInclude Include="Src\Resource\texture2D.h" />
     <ClInclude Include="Src\Resource\texture_loder.h" />
@@ -92,16 +97,20 @@
     <ClInclude Include="Src\Resource\vertex_types.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Src\Engine\Components\skeletal_mesh.cpp" />
     <ClCompile Include="Src\Engine\game_instance.cpp" />
     <ClCompile Include="Src\Engine\level_factory.cpp" />
     <ClCompile Include="Src\Engine\level_manager.cpp" />
     <ClCompile Include="Src\Engine\render_system.cpp" />
     <ClCompile Include="Src\Game\GameMain.cpp" />
     <ClCompile Include="Src\Game\test_level.cpp" />
-    <ClCompile Include="Src\Resource\animation_clip.cpp" />
+    <ClCompile Include="Src\Resource\animation.cpp" />
+    <ClCompile Include="Src\Resource\animator_manager.cpp" />
     <ClCompile Include="Src\Resource\material_slot.cpp" />
     <ClCompile Include="Src\Resource\mesh_manager.cpp" />
-    <ClCompile Include="Src\Resource\skelton.cpp" />
+    <ClCompile Include="Src\Resource\skeltal_mesh.cpp" />
+    <ClCompile Include="Src\Resource\skeltal_mesh_manager.cpp" />
+    <ClCompile Include="Src\Resource\skeleton.cpp" />
     <ClCompile Include="Src\Resource\texture_manager.cpp" />
     <None Include="Shaders\sprite.ps.hlsl" />
     <None Include="Shaders\sprite.vs.hlsl" />

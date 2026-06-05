@@ -238,8 +238,8 @@ namespace
         header.index_count = static_cast<std::uint32_t>(indices.size());
         header.vertex_stride = sizeof(StaticVertex);
         header.index_stride = sizeof(std::uint32_t);
-        header.material_count = materials.size();
-        header.submesh_count = sub_meshes.size();
+        header.material_count = static_cast<std::uint32_t>(materials.size());
+        header.submesh_count = static_cast<std::uint32_t>(sub_meshes.size());
         
         const std::filesystem::path output_path(out_path);
         const std::filesystem::path parent = output_path.parent_path();
@@ -490,7 +490,7 @@ namespace
             return false;
         }
 
-        SkeletonMeshFileHeader header = {};
+        SkMeshFileHeader header = {};
         std::memcpy(header.magic, kSkMeshMagic, 4);
         header.version = kSkMeshVersion;
         header.vertex_count = static_cast<std::uint32_t>(vertices.size());
@@ -581,6 +581,156 @@ namespace
         return true;
     }
 
+    // ===== アニメーション (.anim) =====
+
+    // FBX のアニメ名はスペースや '|'（"Armature|walk" 等）を含むため、
+    // ファイル名に使う前に英数字・'-'・'_' 以外を '_' へ無害化する。
+    std::string SanitizeName(const std::string& s)
+    {
+        std::string out;
+        out.reserve(s.size());
+        for (char c : s)
+        {
+            const bool ok = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
+                            (c >= '0' && c <= '9') || c == '-' || c == '_';
+            out.push_back(ok ? c : '_');
+        }
+        return out;
+    }
+
+    // アニメ1クリップを .anim として書き出す。レイアウトは skmesh_file.h のコメント準拠
+    // （チャンネルヘッダの直後にそのチャンネルの可変長データを続けるインターリーブ形式）。
+    bool WriteAnim(const std::string& out_path, const aiAnimation& anim)
+    {
+        SkAnimFileHeader header = {};
+        std::memcpy(header.magic, kSkAnimMagic, 4);
+        header.version = kSkAnimVersion;
+        // mTicksPerSecond は 0 で来ることがある（FBX 既定値欠落）。assimp 慣例に倣い 25 で代替。
+        const double tps = (anim.mTicksPerSecond != 0.0) ? anim.mTicksPerSecond : 25.0;
+        header.ticks_per_second = static_cast<float>(tps);
+        header.duration = static_cast<float>(anim.mDuration);   // ticks 単位
+        header.channel_count = anim.mNumChannels;
+
+        const std::filesystem::path output_path(out_path);
+        const std::filesystem::path parent = output_path.parent_path();
+        if (!parent.empty())
+        {
+            std::error_code ec;
+            std::filesystem::create_directories(parent, ec);
+            if (ec)
+            {
+                std::printf("cannot create output directory: %s\n", parent.string().c_str());
+                return false;
+            }
+        }
+
+        std::ofstream ofs(out_path, std::ios::binary);
+        if (!ofs)
+        {
+            std::printf("cannot open output: %s\n", out_path.c_str());
+            return false;
+        }
+
+        ofs.write(reinterpret_cast<const char*>(&header), sizeof(header));
+
+        for (unsigned int c = 0; c < anim.mNumChannels; ++c)
+        {
+            const aiNodeAnim* ch = anim.mChannels[c];
+            const std::string node_name = ch->mNodeName.C_Str();
+
+            SkAnimChannel ce = {};
+            ce.node_name_length = static_cast<uint32_t>(node_name.size());
+            ce.pos_key_count    = ch->mNumPositionKeys;
+            ce.rot_key_count    = ch->mNumRotationKeys;
+            ce.scale_key_count  = ch->mNumScalingKeys;
+            ofs.write(reinterpret_cast<const char*>(&ce), sizeof(ce));
+
+            // ノード名（解決はロード時に Skeleton の name->index で行う）
+            if (!node_name.empty())
+            {
+                ofs.write(node_name.data(), static_cast<std::streamsize>(node_name.size()));
+            }
+
+            // 位置キー（ticks 時刻 + Vec3）。座標系は .skmesh と同じく未変換で素通し。
+            for (unsigned int k = 0; k < ch->mNumPositionKeys; ++k)
+            {
+                const aiVectorKey& src = ch->mPositionKeys[k];
+                PositionKey key = {};
+                key.time  = static_cast<float>(src.mTime);
+                key.value = Vec3(src.mValue.x, src.mValue.y, src.mValue.z);
+                ofs.write(reinterpret_cast<const char*>(&key), sizeof(key));
+            }
+            // 回転キー（ticks 時刻 + Quat）。
+            // 注意: assimp の aiQuaternion は (w,x,y,z) 順、プロジェクトの Quat(XMFLOAT4) は (x,y,z,w) 順。
+            for (unsigned int k = 0; k < ch->mNumRotationKeys; ++k)
+            {
+                const aiQuatKey& src = ch->mRotationKeys[k];
+                RotationKey key = {};
+                key.time  = static_cast<float>(src.mTime);
+                key.value = Quat(src.mValue.x, src.mValue.y, src.mValue.z, src.mValue.w);
+                ofs.write(reinterpret_cast<const char*>(&key), sizeof(key));
+            }
+            // スケールキー（ticks 時刻 + Vec3）。
+            for (unsigned int k = 0; k < ch->mNumScalingKeys; ++k)
+            {
+                const aiVectorKey& src = ch->mScalingKeys[k];
+                ScaleKey key = {};
+                key.time  = static_cast<float>(src.mTime);
+                key.value = Vec3(src.mValue.x, src.mValue.y, src.mValue.z);
+                ofs.write(reinterpret_cast<const char*>(&key), sizeof(key));
+            }
+        }
+
+        if (!ofs)
+        {
+            std::printf("write failed: %s\n", out_path.c_str());
+            return false;
+        }
+        std::printf("anim '%s': channels=%u duration=%.3f tps=%.1f -> %s\n",
+                    anim.mName.C_Str(), anim.mNumChannels,
+                    header.duration, header.ticks_per_second, out_path.c_str());
+        return true;
+    }
+
+    // scene 内の全アニメを .anim として書き出す。出力名は .skmesh のベース名から導出。
+    //   アニメ1個 : <base>.anim
+    //   複数      : <base>_<sanitized名 or 連番>.anim
+    // メッシュとは独立に扱い、ここでの失敗はメッシュ変換の成否には影響させない。
+    bool WriteAnimations(const char* skmesh_out_path, const aiScene& scene)
+    {
+        if (scene.mNumAnimations == 0)
+        {
+            std::printf("no animation in scene\n");
+            return true;
+        }
+
+        std::filesystem::path base(skmesh_out_path);
+        base.replace_extension();   // ".skmesh" を除去（ディレクトリは保持）
+        const std::string stem = base.string();
+
+        bool all_ok = true;
+        for (unsigned int a = 0; a < scene.mNumAnimations; ++a)
+        {
+            const aiAnimation* anim = scene.mAnimations[a];
+            if (anim == nullptr) continue;
+
+            std::string out = stem;
+            if (scene.mNumAnimations > 1)
+            {
+                std::string name = SanitizeName(anim->mName.C_Str());
+                if (name.empty()) name = std::to_string(a);
+                out += "_" + name;
+            }
+            out += ".anim";
+
+            if (!WriteAnim(out, *anim))
+            {
+                all_ok = false;
+            }
+        }
+        return all_ok;
+    }
+
     bool ConvertSkMesh(const char* in_path, const char* out_path, const std::string& tex_folder)
     {
         Assimp::Importer importer;
@@ -666,7 +816,18 @@ namespace
             return false;
         }
 
-        return WriteSkMesh(out_path, vertices, indices, materials, sub_meshes, nodes, skin_counter);
+        if (!WriteSkMesh(out_path, vertices, indices, materials, sub_meshes, nodes, skin_counter))
+        {
+            return false;
+        }
+
+        // アニメは別ファイル(.anim)へ。メッシュは既に書けているので、
+        // アニメ書き出しに失敗しても警告に留め、メッシュ変換は成功扱いとする。
+        if (!WriteAnimations(out_path, *scene))
+        {
+            std::printf("warn: some animations failed to write\n");
+        }
+        return true;
     }
 
     // ===== ここまでスケルタルメッシュ =====
