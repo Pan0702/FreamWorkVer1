@@ -7,6 +7,8 @@ class Animation;
 class AnimatorManager
 {
 public:
+    AnimatorManager();
+    ~AnimatorManager();
     void Shutdown();
     Animation* Load(const std::string& path);
     

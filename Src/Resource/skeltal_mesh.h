@@ -12,9 +12,11 @@
 struct SkeletonNode;
 class Skeleton;
 
-class SkeltalMesh
+class SkeletalMesh
 {
 public:
+    SkeletalMesh() ;
+    ~SkeletalMesh();
     bool Create(ID3D12Device* device,
         
     VertexData vertex_data, IndexData index_data, std::span<const D3D12_INPUT_ELEMENT_DESC>);
@@ -36,5 +38,5 @@ private:
     std::vector<MeshMaterialDesc> material_descs_;
     std::vector<SubMesh> sub_meshes_;
     uint32_t index_count_ = 0;
-    std::unique_ptr<Skeleton> Skelton_;
+    std::unique_ptr<Skeleton> Skeleton_;
 };

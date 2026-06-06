@@ -34,11 +34,16 @@ bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQue
     {
         return false;
     }
+    skinned_mesh_renderer_ = std::make_unique<SkinnedMeshRenderer>();
+    if (!skinned_mesh_renderer_->Initialize(device))
+    {
+        return false;
+    }
 
     return imgui_manager_.Initialize(hwnd, device, command_queue, static_cast<int>(frame_count));
 }
 
-void SceneRenderer::Render(RendererData& renderer_data, Scene* scene, Camera* camera)
+void SceneRenderer::Render(const RendererData& renderer_data, Scene* scene, Camera* camera)
 {
     imgui_manager_.BeginFrame();
     ImGui::ShowDemoWindow();
@@ -87,6 +92,11 @@ void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* ca
     ui_renderer_->Collect();
     ui_renderer_->Sort();
     ui_renderer_->Submit(context);
+    
+    skinned_mesh_renderer_->Collect();
+    skinned_mesh_renderer_->Sort();
+    skinned_mesh_renderer_->Submit(context);
+
 
     imgui_manager_.EndFrame(context.command_list);
     EndRenderTarget(renderer_data);
@@ -105,27 +115,32 @@ void SceneRenderer::Shutdown()
     imgui_manager_.Shutdown();
 }
 
-MeshRenderer* SceneRenderer::GetMeshRenderer()
+MeshRenderer* SceneRenderer::GetMeshRenderer() const
 {
     return mesh_renderer_.get();
 }
 
-SpriteRenderer* SceneRenderer::GetSpriteRenderer()
+SpriteRenderer* SceneRenderer::GetSpriteRenderer() const
 {
     return sprite_renderer_.get();
 }
 
-UIRenderer* SceneRenderer::GetUIRenderer()
+UIRenderer* SceneRenderer::GetUIRenderer() const
 {
     return ui_renderer_.get();
 }
 
-DebugLineRenderer* SceneRenderer::GetDebugLineRenderer()
+SkinnedMeshRenderer* SceneRenderer::GetSkinnedMeshRenderer() const
+{
+    return skinned_mesh_renderer_.get();
+}
+
+DebugLineRenderer* SceneRenderer::GetDebugLineRenderer() const
 {
     return debug_renderer_.get();
 }
 
-void SceneRenderer::BeginRenderTarget(RendererData& renderer_data)
+void SceneRenderer::BeginRenderTarget(const RendererData& renderer_data)
 {
     auto command_list = renderer_data.command_list->GetCommandList();
     D3D12_RESOURCE_BARRIER barrier = {};
@@ -160,7 +175,7 @@ void SceneRenderer::BeginRenderTarget(RendererData& renderer_data)
     command_list->RSSetScissorRects(1, &rect);
 }
 
-void SceneRenderer::EndRenderTarget(RendererData& renderer_data)
+void SceneRenderer::EndRenderTarget(const RendererData& renderer_data)
 {
     auto command_list = renderer_data.command_list->GetCommandList();
     D3D12_RESOURCE_BARRIER barrier = {};

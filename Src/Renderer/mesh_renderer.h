@@ -20,7 +20,7 @@ public:
     void Unregister(StaticMeshComponent* component);
     void Collect();
     void Sort();
-    void Submit(RenderContext& context);
+    void Submit(RenderContext& context) const;
 
 private:
     std::vector<StaticMeshComponent*> registered_;

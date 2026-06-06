@@ -6,18 +6,21 @@
 #include "skmesh_file.h"
 #include "vertex_types.h"
 
-void SkeltalMeshManager::Initialize(ID3D12Device* device)
+SkeletalMeshManager::SkeletalMeshManager() = default;
+SkeletalMeshManager::~SkeletalMeshManager() = default;
+
+void SkeletalMeshManager::Initialize(ID3D12Device* device)
 {
     device_ = device;
 }
 
-void SkeltalMeshManager::Shutdown()
+void SkeletalMeshManager::Shutdown()
 {
     cache_.clear();
     device_ = nullptr;
 }
 
-SkeltalMesh* SkeltalMeshManager::Load(const std::string& path)
+SkeletalMesh* SkeletalMeshManager::Load(const std::string& path)
 {
     if (device_ == nullptr)
     {
@@ -137,7 +140,7 @@ SkeltalMesh* SkeltalMeshManager::Load(const std::string& path)
     id.total_size = header.index_count * sizeof(uint32_t);
     id.format = DXGI_FORMAT_R32_UINT;
 
-    auto sk_mesh = std::make_unique<SkeltalMesh>();
+    auto sk_mesh = std::make_unique<SkeletalMesh>();
     if (!sk_mesh->Create(device_, vd, id, kSkinnedVertexLayout))
     {
         return nullptr;
@@ -164,7 +167,7 @@ SkeltalMesh* SkeltalMeshManager::Load(const std::string& path)
     }
     sk_mesh->SetSubMeshes(sub_decs);
 
-    SkeltalMesh* result = sk_mesh.get();
+    SkeletalMesh* result = sk_mesh.get();
     cache_[path] = std::move(sk_mesh);
     return result;
 }

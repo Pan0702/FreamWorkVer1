@@ -2,8 +2,12 @@
 
 #include "skeleton.h"
 
-bool SkeltalMesh::Create(ID3D12Device* device, VertexData vertex_data, IndexData index_data,
-                         std::span<const D3D12_INPUT_ELEMENT_DESC> layout)
+SkeletalMesh::SkeletalMesh() = default;
+
+SkeletalMesh::~SkeletalMesh() = default;
+
+bool SkeletalMesh::Create(ID3D12Device* device, VertexData vertex_data, IndexData index_data,
+                          std::span<const D3D12_INPUT_ELEMENT_DESC> layout)
 {
     vertex_buffer_ = std::make_unique<VertexBuffer>();
     if (!vertex_buffer_->Initialize(device, vertex_data.data, vertex_data.total_size, vertex_data.stride))
@@ -21,52 +25,52 @@ bool SkeltalMesh::Create(ID3D12Device* device, VertexData vertex_data, IndexData
     return true;
 }
 
-D3D12_VERTEX_BUFFER_VIEW SkeltalMesh::GetVertexBufferView()
+D3D12_VERTEX_BUFFER_VIEW SkeletalMesh::GetVertexBufferView()
 {
     return vertex_buffer_->GetVertexBufferView();
 }
 
-D3D12_INDEX_BUFFER_VIEW SkeltalMesh::GetIndexBufferView()
+D3D12_INDEX_BUFFER_VIEW SkeletalMesh::GetIndexBufferView()
 {
     return index_buffer_->GetIndexBufferView();
 }
 
-uint32_t SkeltalMesh::GetIndexCount()
+uint32_t SkeletalMesh::GetIndexCount()
 {
     return index_count_;
 }
 
-const std::vector<D3D12_INPUT_ELEMENT_DESC>& SkeltalMesh::GetInputLayout()
+const std::vector<D3D12_INPUT_ELEMENT_DESC>& SkeletalMesh::GetInputLayout()
 {
     return input_layout_;  
 }
 
-void SkeltalMesh::SetMaterialDescs(std::span<const MeshMaterialDesc> material_descs)
+void SkeletalMesh::SetMaterialDescs(std::span<const MeshMaterialDesc> material_descs)
 {
     material_descs_.assign(material_descs.begin(), material_descs.end());
 }
 
-void SkeltalMesh::SetSubMeshes(std::span<const SubMesh> sub_meshes)
+void SkeletalMesh::SetSubMeshes(std::span<const SubMesh> sub_meshes)
 {
     sub_meshes_.assign(sub_meshes.begin(), sub_meshes.end());
 }
 
-void SkeltalMesh::SetSkeleton(std::unique_ptr<Skeleton> sk)
+void SkeletalMesh::SetSkeleton(std::unique_ptr<Skeleton> sk)
 {
-    Skelton_ = std::move(sk);
+    Skeleton_ = std::move(sk);
 }
 
-Skeleton* SkeltalMesh::GetSkeleton()
+Skeleton* SkeletalMesh::GetSkeleton()
 {
-    return Skelton_.get();
+    return Skeleton_.get();
 }
 
-const std::vector<MeshMaterialDesc>& SkeltalMesh::GetMaterialDecs()
+const std::vector<MeshMaterialDesc>& SkeletalMesh::GetMaterialDecs()
 {
     return material_descs_; 
 }
 
-const std::vector<SubMesh>& SkeltalMesh::GetSubMeshes()
+const std::vector<SubMesh>& SkeletalMesh::GetSubMeshes()
 {
     return sub_meshes_;
 }

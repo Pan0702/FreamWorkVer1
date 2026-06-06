@@ -15,4 +15,5 @@ public:
 private:
     std::unique_ptr<MaterialSlot> material_slot_;
     std::unique_ptr<MaterialSlot> material_slot_2_;
+    std::unique_ptr<MaterialSlot> skeletal_material_slot_;
 };

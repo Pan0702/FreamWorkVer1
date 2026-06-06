@@ -9,7 +9,9 @@
 #include "GameMain.h"
 #include "../Debug/debug.h"
 #include "../Debug/ImGui/imgui.h"
-
+#include "../Resource/skeltal_mesh_manager.h"
+#include "../Resource/skeltal_mesh.h"
+#include "../Engine/Components/skeletal_mesh.h"
 TestLevel::TestLevel() = default;
 
 TestLevel::~TestLevel() = default;
@@ -35,6 +37,17 @@ void TestLevel::OnEnter()
     a2->AddComponent<StaticMeshComponent>(mesh, material_slot_2_.get());
     t2->position = Vec3(3, 0, 0);
     LevelBase::OnEnter();
+    SkeletalMesh* sk = SkeletalMeshManager::Get().Load("Assets/Mesh/remy.skmesh");
+    if (sk)   // Manager 未初期化や読み込み失敗なら nullptr
+    {
+        skeletal_material_slot_ =
+    std::make_unique<MaterialSlot>(sk->GetMaterialDecs());
+        Actor* c = SpawnActor();
+        auto* ct = c->AddComponent<TransformComponent>();
+        c->AddComponent<SkeletalMeshComponent>(sk, skeletal_material_slot_.get());
+        ct->position = Vec3(0, 0, 0);
+        ct->scale = Vec3(0.01f, 0.01f, 0.01f);   //★Mixamoはcm単位＝約180単位の巨人。0.01で縮小
+        }
 }
 
 void TestLevel::Tick(float dt)

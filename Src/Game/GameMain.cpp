@@ -5,6 +5,8 @@
 #include "../Resource/texture_manager.h"
 #include "../Debug/debug.h"
 #include "../Resource/mesh_manager.h"
+#include "../Resource/skeltal_mesh_manager.h"
+#include "../Resource/animator_manager.h"
 GameMain* game_main = nullptr;
 namespace
 {
@@ -102,6 +104,8 @@ void GameMain::Shutdown()
     Debug::Get().Shutdown();
     TextureManager::Get().Shutdown();
     MeshManager::Get().Shutdown();
+    SkeletalMeshManager::Get().Shutdown();
+    AnimatorManager::Get().Shutdown();
     if (render_system_ != nullptr)
     {
         render_system_->Shutdown();

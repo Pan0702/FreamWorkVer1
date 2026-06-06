@@ -3,6 +3,10 @@
 #include "skmesh_file.h"
 #include "animation.h"
 
+AnimatorManager::AnimatorManager() = default;
+
+AnimatorManager::~AnimatorManager() = default;
+
 void AnimatorManager::Shutdown()
 {
     cache_.clear();

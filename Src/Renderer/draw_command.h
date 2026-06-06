@@ -4,7 +4,7 @@
 class MaterialSlot;
 class Material;
 class Mesh;
-
+class SkeletalMesh;
 struct DrawCommand
 {
     Mesh* mesh = nullptr;
@@ -12,4 +12,13 @@ struct DrawCommand
     Mat world = Identity();
     float depth = 0.0f;
     uint64_t sort_key = 0;
+};
+
+struct SkinnedDrawCommand
+{
+    SkeletalMesh* mesh = nullptr;
+    MaterialSlot* material_slot = nullptr;
+    Mat world = Identity();
+    float depth = 0.0f;
+    uint64_t sort_key = 0;   
 };

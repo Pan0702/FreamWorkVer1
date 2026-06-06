@@ -12,6 +12,7 @@ bool GameInstance::Initialize()
     attach_context.mesh_renderer = scene_renderer->GetMeshRenderer();
     attach_context.sprite_renderer = scene_renderer->GetSpriteRenderer();
     attach_context.ui_renderer = scene_renderer->GetUIRenderer();
+    attach_context.skinned_mesh_renderer = scene_renderer->GetSkinnedMeshRenderer();
     world_.SetAttachContext(attach_context);
     level_manager_.Initialize(&world_);
     level_manager_.OpenLevel("Test");

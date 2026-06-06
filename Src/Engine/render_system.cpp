@@ -12,6 +12,7 @@
 #include "../Renderer/scene_renderer.h"
 #include "../Debug/debug.h"
 #include "../Resource/mesh_manager.h"
+#include "../Resource/skeltal_mesh_manager.h"
 
 RenderSystem::RenderSystem() = default;
 RenderSystem::~RenderSystem() = default;
@@ -80,6 +81,7 @@ bool RenderSystem::Initialize(Window* window)
                                      command_queue_.get(), command_list_.get());
     
     MeshManager::Get().Initialize(graphics_device_->GetDevice());
+    SkeletalMeshManager::Get().Initialize(graphics_device_->GetDevice());
 
     cb_allocator_ = std::make_unique<ConstantBufferAllocator>();
     constexpr uint32_t kConstantBufferAllocatorSize = 1024 * 1024;

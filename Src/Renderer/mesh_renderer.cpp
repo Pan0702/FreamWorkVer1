@@ -13,31 +13,7 @@
 #include "render_context.h"
 #include "render_object.h"
 #include "../Resource/material_slot.h"
-namespace 
-{
-    //CB = constant buffer
-    struct MeshObjectCB
-    {
-        Mat wvp;
-        Mat world;
-    };
-    struct LightCB
-    {
-        Vec4 light_dir;
-        Vec4 light_color;
-        Vec4 ambient;
-        Vec4 camera_pos;
-    };
-    
-    struct MaterialCB
-    {
-        Vec4 base_color;
-        int has_texture;
-        float specular_intensity;
-        float specular_power;
-        int has_normal_map;;
-    };
-}
+#include "cb_file.h"
 bool MeshRenderer::Initialize(const ID3D12Device* device)
 {
     (void)device;
@@ -115,10 +91,10 @@ void MeshRenderer::Sort()
                       });
 }
 
-void MeshRenderer::Submit(RenderContext& context)
+void MeshRenderer::Submit(RenderContext& context) const
 {
     ConstantBufferAllocation light_alloc = {};
-    LightCB light_cb = {};
+    CB::LightCB light_cb = {};
     light_cb.light_dir = Vec4(context.light_dir.x, context.light_dir.y, context.light_dir.z, 0.0f);
     light_cb.light_color = Vec4(context.light_color.x, context.light_color.y, context.light_color.z, 0.0f);
     light_cb.ambient = Vec4(context.ambient.x, context.ambient.y, context.ambient.z, 0.0f);
@@ -132,7 +108,7 @@ void MeshRenderer::Submit(RenderContext& context)
     for (const DrawCommand& command : draw_commands_)
     {
         // モデル共通
-        MeshObjectCB obj = {};
+        CB::MeshObjectCB obj = {};
         obj.world = Transpose(command.world);
         obj.wvp = Transpose(command.world * context.view * context.projection);
         ConstantBufferAllocation alloc = {};
@@ -167,7 +143,7 @@ void MeshRenderer::Submit(RenderContext& context)
             }
 
             // b2(material): この sub のマテリアルの色
-            MaterialCB mat_cb = {};
+            CB::MaterialCB mat_cb = {};
             mat_cb.base_color = mat->GetBaseColor();
             mat_cb.has_texture = (mat->GetDiffuse() != nullptr) ? 1 : 0;
             mat_cb.specular_intensity = mat->GetSpecularIntensity();
