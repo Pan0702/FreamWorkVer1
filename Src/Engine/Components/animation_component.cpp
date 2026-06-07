@@ -122,20 +122,31 @@ void AnimationComponent::Tick(float dt)
     const auto& nodes = skeleton_->GetNodes();
     global_poses_.resize(nodes.size());
     
-    auto advance = [&](const Animation* c, float& t)
+    // 現在クリップ: loop_ を尊重（非ループは末尾でクランプして停止）
+    if (playing_ && clip_ && clip_->GetTicksPerSecond() > 0.0f)
     {
-        if (c && c->GetTicksPerSecond() > 0.0f)
+        time_ += dt * clip_->GetTicksPerSecond() * play_speed_;
+        const float dur = clip_->GetDuration();
+        if (dur > 0.0f)
         {
-            t += dt * c->GetTicksPerSecond() * play_speed_;
-            float dur = c->GetDuration();
-            if (dur > 0.0f) t = std::fmod(t, dur);
+            if (loop_)
+            {
+                time_ = std::fmod(time_, dur);
+            }
+            else if (time_ >= dur)
+            {
+                time_ = dur;        // 末尾でクランプ
+                playing_ = false;   // 再生終了
+            }
         }
-    };
+    }
 
-    if (playing_)
+    // 前クリップ（フェードアウト中）はループ扱いで時刻だけ進める
+    if (fading_ && prev_clip_ && prev_clip_->GetTicksPerSecond() > 0.0f)
     {
-        advance(clip_, time_);
-        if (fading_) advance(prev_clip_, prev_time_);
+        prev_time_ += dt * prev_clip_->GetTicksPerSecond() * play_speed_;
+        const float pdur = prev_clip_->GetDuration();
+        if (pdur > 0.0f) prev_time_ = std::fmod(prev_time_, pdur);
     }
 
     // フェード進行（weight: 0=前, 1=現在）
@@ -172,10 +183,6 @@ void AnimationComponent::Tick(float dt)
             pose = BlendPose(prev_pose, pose, w); 
         }
         Mat local = ToLocalMat(pose);
-        if (i < node_channels_.size() && node_channels_[i])
-        {
-            local = ComposeLocal(*node_channels_[i], time_, nodes[i]);
-        }
 
         if (nodes[i].parent_index < 0)
         {
@@ -227,7 +234,7 @@ void AnimationComponent::Play(const std::string& name)
     loop_ = clip_->IsLooping();
 }
 
-void AnimationComponent::CorossFade(const std::string& name, float fade_time)
+void AnimationComponent::CrossFade(const std::string& name, float fade_time)
 {
     if (fade_time <= 0.0f || !clip_)
     {
@@ -289,21 +296,6 @@ void AnimationComponent::RebuildChannels()
         auto it = channels.find(nodes[i].name);
         node_channels_[i] = it != channels.end() ? it->second : nullptr;
     }
-}
-
-Mat AnimationComponent::ComposeLocal(const NodeAnimation& anim, float time, const SkeletonNode& node)
-{
-    Vec3 bt(0, 0, 0);
-    Vec3 bs(1, 1, 1);
-    Quat brot(QuatIdentity());
-
-    Decompose(node.inverse_bind_pose, bs, brot, bt);
-
-    Vec3 p = SampleVec3(anim.position_keys, time, bt);
-    Quat r = SampleQuat(anim.rotation_keys, time, brot);
-    Vec3 s = SampleVec3(anim.scale_keys, time, bs);
-
-    return Scale(s) * ToMat(r) * Translate(p);
 }
 
 const std::vector<Mat>& AnimationComponent::GetBonePalette() const

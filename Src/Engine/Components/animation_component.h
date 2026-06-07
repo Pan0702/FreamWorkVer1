@@ -18,7 +18,7 @@ public:
     void Tick(float dt) override;
     void AddAnimation(const std::string& name, Animation* clip, bool loop);
     void Play(const std::string& name);
-    void CorossFade(const std::string& name, float fade_time);
+    void CrossFade(const std::string& name, float fade_time);
     void Stop();
     float GetCurrentFrame() const;
     void SetPlaySpeed(float speed);
@@ -26,7 +26,6 @@ public:
     bool IsPlaying() const;
     
 private:
-    Mat ComposeLocal(const NodeAnimation& anim, float time, const SkeletonNode& node);
     void RebuildChannels();
     
     Skeleton* skeleton_ = nullptr;
