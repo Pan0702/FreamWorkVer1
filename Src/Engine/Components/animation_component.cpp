@@ -1,7 +1,5 @@
 ﻿#include "animation_component.h"
 
-#include <map>
-
 #include "skeletal_mesh.h"
 #include "../actor.h"
 #include "../../Resource/animation.h"
