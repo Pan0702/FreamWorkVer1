@@ -1,6 +1,6 @@
 #include "skeleton.h"
 
-void Skeleton::SetNodes(const std::vector<SkeletonNode>& nodes, uint32 skin_count)
+void Skeleton::SetNodes(std::vector<SkeletonNode> nodes, uint32 skin_count)
 {
     nodes_ = std::move(nodes);
     skin_count_ = skin_count;

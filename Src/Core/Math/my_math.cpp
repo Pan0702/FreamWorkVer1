@@ -114,3 +114,16 @@ Vec3 Rotate(const Quat& q, const Vec3& v)
 {
     return Vec3(XMVector3Rotate(v, q));
 }
+
+bool Decompose(const Mat& m, Vec3& s, Quat& r, Vec3& t)
+{
+    XMVECTOR scale, rot, trans;
+    if (!XMMatrixDecompose(&scale, &rot, &trans, m))
+    {
+        return false;
+    }
+    XMStoreFloat3(&s, scale);
+    XMStoreFloat4(&r, rot);    
+    XMStoreFloat3(&t, trans);
+    return true;
+}

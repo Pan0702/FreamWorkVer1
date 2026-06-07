@@ -11,12 +11,8 @@ public:
     ~AnimatorManager();
     void Shutdown();
     Animation* Load(const std::string& path);
-    
-    static AnimatorManager& Get()
-    {
-        static AnimatorManager instance;
-        return instance;
-    }
+    Animation* GetAnimation(const std::string& name);
+    static AnimatorManager& Get();
 private:
     std::unordered_map<std::string,std::unique_ptr<Animation>> cache_;
 };

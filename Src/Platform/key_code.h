@@ -7,7 +7,7 @@ enum class KeyState : uint8_t
     kReleased // ¡ƒtƒŒ[ƒ€‚É—£‚³‚ê‚½
 };
 
-namespace Key
+namespace InputKey
 {
     constexpr uint8_t kEsc = 0x01;
     constexpr uint8_t kNum1 = 0x02;

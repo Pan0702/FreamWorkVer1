@@ -7,17 +7,17 @@
 struct SkeletonNode
 {
     std::string name;
-    uint32 parent_index = -1;
+    int parent_index = -1;
     Mat local_bind_transform;
     
-    uint32 skin_index = -1;
+    int skin_index = -1;
     Mat inverse_bind_pose;
 };
 
 class Skeleton
 {
 public:
-    void SetNodes(const std::vector<SkeletonNode>& nodes, uint32 skin_count);
+    void SetNodes(std::vector<SkeletonNode> nodes, uint32 skin_count);
     uint32 GetSkinCount() const ;
     int32 GetNodeIndex(const std::string& name) const;
     const std::vector<SkeletonNode>& GetNodes() const;

@@ -16,6 +16,7 @@
 #include "../Graphics/constant_buffer_allocator.h"
 #include "../Resource/material_slot.h"
 #include "../Resource/texture2D.h"
+#include "../Engine/Components/animation_component.h"
 
 bool SkinnedMeshRenderer::Initialize(ID3D12Device* device)
 {
@@ -94,7 +95,7 @@ void SkinnedMeshRenderer::Collect()
             continue;
         }
         Mat world = Identity();
-        std::vector<Mat>* bone_palette = nullptr;
+        const std::vector<Mat>* bone_palette = nullptr;
         if (Actor* owner = component->GetOwner())
         {
             if (auto* t = owner->GetComponent<TransformComponent>())
@@ -169,6 +170,15 @@ void SkinnedMeshRenderer::Submit(RenderContext& context)
         for (int i = 0; i < kMaxBones; ++i)
         {
             bone.bones[i] = Identity();
+        }
+        if (command.bone_palette != nullptr)
+        {
+            const int bone_count = static_cast<int>(std::min(command.bone_palette->size(),
+                                                             static_cast<size_t>(kMaxBones)));
+            for (int i = 0; i < bone_count; ++i)
+            {
+                bone.bones[i] = Transpose((*command.bone_palette)[static_cast<size_t>(i)]);
+            }
         }
         ConstantBufferAllocation bone_alloc = {};
         if (!cb_allocator->Allocate(sizeof(bone), &bone_alloc))

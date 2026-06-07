@@ -3,6 +3,10 @@
 #include "skmesh_file.h"
 #include "animation.h"
 
+namespace 
+{
+    AnimatorManager instance;
+}
 AnimatorManager::AnimatorManager() = default;
 
 AnimatorManager::~AnimatorManager() = default;
@@ -107,4 +111,19 @@ Animation* AnimatorManager::Load(const std::string& path)
     Animation* result = clip.get();
     cache_[path] = std::move(clip);
     return result;
+}
+
+Animation* AnimatorManager::GetAnimation(const std::string& name)
+{
+    auto it = cache_.find(name);
+    if (it != cache_.end())
+    {
+        return it->second.get();
+    }
+    return nullptr;
+}
+
+AnimatorManager& AnimatorManager::Get()
+{
+    return instance;
 }

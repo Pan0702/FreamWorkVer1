@@ -48,6 +48,10 @@ bool Input::CheckKey(uint8_t keycode, KeyState key) const
 
 bool Input::CheckMouseButton(uint8_t button, KeyState key) const
 {
+    if (button >= 5)
+    {
+        return false;
+    }
     const bool now = mouse_buttons_[button];
     const bool prev = mouse_buttons_previous_[button];
     switch (key)

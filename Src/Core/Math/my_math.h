@@ -30,6 +30,7 @@ Quat Slerp(const Quat& a, const Quat& b, float t);
 Mat ToMat(const Quat& q);
 Quat ToQuat(const Mat& m);
 Vec3 Rotate(const Quat& q,const Vec3& v);
+bool Decompose(const Mat& m, Vec3& s, Quat& r, Vec3& t);
 
 constexpr float kPI = std::numbers::pi_v<float>;
 constexpr float k2PI = 2.0f * kPI;
