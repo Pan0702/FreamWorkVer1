@@ -1,9 +1,12 @@
 ﻿#pragma once
+#include <string>
 #include <vector>
 
 #include "../../Core/Math/my_math.h"
 #include "../component.h"
 
+struct SkeletonNode;
+struct NodeAnimation;
 class Skeleton;
 class Animation;
 
@@ -16,6 +19,8 @@ public:
     const std::vector<Mat>& GetBonePalette();
     
 private:
+    NodeAnimation* FindChannel(Animation* anim,const std::string& name);
+    Mat ComposeLocal(NodeAnimation anim, float time,SkeletonNode);
     Skeleton* skeleton_ = nullptr;
     Animation* clip_ = nullptr;\
     float time_ = 0.0f;

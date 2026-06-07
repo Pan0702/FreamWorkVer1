@@ -33,7 +33,35 @@ void AnimationComponent::Tick(float dt)
             time_ = std::fmod(time_, clip_->GetDuration());
         }
     }
-
+    for (size_t i = 0; i < nodes.size(); i++)
+    {
+        Mat local = nodes[i].local_bind_transform;
+        if( NodeAnimation* node = FindChannel(clip_, nodes[i].name))
+        {
+            local = ComposeLocal(*node,time_,nodes[i]); 
+        }
+        
+        if (nodes[i].parent_index < 0)
+        {
+            global_poses_[i] = local;
+        }
+        else
+        {
+            global_poses_[i] = local * global_poses_[nodes[i].parent_index];
+        }
+    }
+    bone_matrices_.assign(skeleton_->GetSkinCount(), Identity());
+    for (size_t i = 0; i < bone_matrices_.size(); ++i)
+    {
+        if (nodes[i].skin_index >= 0)
+        {
+            bone_matrices_[nodes[i].skin_index] = 
+                nodes[i].inverse_bind_pose * global_poses_[i];
+        }
+    }
+    {
+        
+    }
     Component::Tick(dt);
 }
 
@@ -43,4 +71,14 @@ void AnimationComponent::Play(Animation* clip)
 
 const std::vector<Mat>& AnimationComponent::GetBonePalette()
 {
+}
+
+NodeAnimation* AnimationComponent::FindChannel(Animation* anim, const std::string& name)
+{
+    
+}
+
+Mat AnimationComponent::ComposeLocal()
+{
+    
 }
