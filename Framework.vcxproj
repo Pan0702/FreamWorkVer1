@@ -41,6 +41,7 @@
     <ClInclude Include="Src\Engine\attach_context.h" />
     <ClInclude Include="Src\Engine\camera.h" />
     <ClInclude Include="Src\Engine\component.h" />
+    <ClInclude Include="Src\Engine\Components\animation_component.h" />
     <ClInclude Include="Src\Engine\Components\skeletal_mesh.h" />
     <ClInclude Include="Src\Engine\Components\sprite_component.h" />
     <ClInclude Include="Src\Engine\Components\static_mesh_component.h" />
@@ -100,6 +101,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\skinned.vs.hlsl" />
+    <ClCompile Include="Src\Engine\Components\animation_component.cpp" />
     <ClCompile Include="Src\Engine\Components\skeletal_mesh.cpp" />
     <ClCompile Include="Src\Engine\game_instance.cpp" />
     <ClCompile Include="Src\Engine\level_factory.cpp" />

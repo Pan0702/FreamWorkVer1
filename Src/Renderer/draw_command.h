@@ -19,6 +19,7 @@ struct SkinnedDrawCommand
     SkeletalMesh* mesh = nullptr;
     MaterialSlot* material_slot = nullptr;
     Mat world = Identity();
+    const std::vector<Mat>* bone_palette;
     float depth = 0.0f;
     uint64_t sort_key = 0;   
 };

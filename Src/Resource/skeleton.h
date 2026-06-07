@@ -7,7 +7,7 @@
 struct SkeletonNode
 {
     std::string name;
-    uint32 parent_index;
+    uint32 parent_index = -1;
     Mat local_bind_transform;
     
     uint32 skin_index = -1;

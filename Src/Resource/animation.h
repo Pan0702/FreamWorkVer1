@@ -22,6 +22,9 @@ class Animation
 public:
     void SetData(float duration, float ticks_per_second,
                  std::vector<NodeAnimation> node);
+    float GetDuration() const;
+    float GetTicksPerSecond() const;
+    const std::vector<NodeAnimation>& GetNodeAnimations() const;
 private:
     float duration_ = 0.0f;
     float ticks_per_second_ = 0.0f;

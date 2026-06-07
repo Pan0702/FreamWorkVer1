@@ -94,19 +94,24 @@ void SkinnedMeshRenderer::Collect()
             continue;
         }
         Mat world = Identity();
+        std::vector<Mat>* bone_palette = nullptr;
         if (Actor* owner = component->GetOwner())
         {
             if (auto* t = owner->GetComponent<TransformComponent>())
             {
                 world = t->Matrix();
             }
-            
-            SkinnedDrawCommand command = {};
-            command.mesh = component->GetSkeltalMesh();
-            command.material_slot = component->GetMaterialSlot();
-            command.world = world;
-            draw_commands_.push_back(command);
+            if (auto* s = owner->GetComponent<AnimationComponent>())
+            {
+                bone_palette = &s->GetBonePalette();
+            }
         }
+        SkinnedDrawCommand command = {};
+        command.mesh = component->GetSkeltalMesh();
+        command.material_slot = component->GetMaterialSlot();
+        command.world = world;
+        command.bone_palette = bone_palette;
+        draw_commands_.push_back(command);
     }
 }
 
