@@ -10,6 +10,13 @@
 
 namespace
 {
+    struct LocalPose
+    {
+        Vec3 t;
+        Quat r;
+        Vec3 s;
+    };
+
     Vec3 SampleVec3(const std::vector<Key<Vec3>>& vec, float t, const Vec3 fb)
     {
         if (vec.empty())
@@ -59,6 +66,35 @@ namespace
         }
         return vec.back().value;
     }
+
+    LocalPose SampleNode(const NodeAnimation* ch, float time, const SkeletonNode& node)
+    {
+        Vec3 bt(0, 0, 0), bs(1, 1, 1);
+        Quat br = QuatIdentity();
+        Decompose(node.local_bind_transform, bs, br, bt);
+
+        if (!ch) return {.t = bt, .r = br, .s = bs}; // チャンネル無し＝丸ごと bind
+
+        LocalPose lp;
+        lp.t = SampleVec3(ch->position_keys, time, bt);
+        lp.r = SampleQuat(ch->rotation_keys, time, br);
+        lp.s = SampleVec3(ch->scale_keys, time, bs);
+        return lp;
+    }
+
+    LocalPose BlendPose(const LocalPose& a, const LocalPose& b, float t)
+    {
+        LocalPose lp;
+        lp.t = Lerp(a.t, b.t, t);
+        lp.r = Slerp(a.r, b.r, t);
+        lp.s = Lerp(a.s, b.s, t);
+        return lp;
+    }
+
+    Mat ToLocalMat(const LocalPose& lp)
+    {
+        return Scale(lp.s) * ToMat(lp.r) * Translate(lp.t);
+    }
 }
 
 void AnimationComponent::OnAttach(const AttachContext& context)
@@ -85,32 +121,57 @@ void AnimationComponent::Tick(float dt)
     }
     const auto& nodes = skeleton_->GetNodes();
     global_poses_.resize(nodes.size());
-
-    if (playing_ && clip_ && clip_->GetTicksPerSecond() > 0.0f)
+    
+    auto advance = [&](const Animation* c, float& t)
     {
-        time_ += dt * clip_->GetTicksPerSecond() * play_speed_;
-        const float dur = clip_->GetDuration();
-        if (dur > 0.0f)
+        if (c && c->GetTicksPerSecond() > 0.0f)
         {
-            if (loop_)
-            {
-                time_ = std::fmod(time_, clip_->GetDuration());
-            }else if (time_ >= dur)
-            {
-                time_ = dur;
-                playing_ = false;
-            }
+            t += dt * c->GetTicksPerSecond() * play_speed_;
+            float dur = c->GetDuration();
+            if (dur > 0.0f) t = std::fmod(t, dur);
+        }
+    };
+
+    if (playing_)
+    {
+        advance(clip_, time_);
+        if (fading_) advance(prev_clip_, prev_time_);
+    }
+
+    // フェード進行（weight: 0=前, 1=現在）
+    float w = 1.0f;
+    if (fading_ && fade_duration_ > 0.0f)
+    {
+        fade_elapsed_ += dt;
+        w = fade_elapsed_ / fade_duration_;
+        if (w >= 1.0f)
+        {
+            // フェード完了 
+            w = 1.0f;
+            fading_ = false;
+            prev_clip_ = nullptr;
+            prev_channels_.clear();
         }
     }
-    
+
     if (channels_dirty_)
     {
         RebuildChannels();
     }
-    
+
     for (size_t i = 0; i < nodes.size(); i++)
     {
-        Mat local = nodes[i].local_bind_transform;
+        const NodeAnimation* cur_ch = (i < node_channels_.size()) ? node_channels_[i] : nullptr;
+        LocalPose pose = SampleNode(cur_ch, time_, nodes[i]);
+
+        if (fading_)
+        {
+            // 前アニメも評価してブレンド
+            const NodeAnimation* prev_ch = (i < prev_channels_.size()) ? prev_channels_[i] : nullptr;
+            LocalPose prev_pose = SampleNode(prev_ch, prev_time_, nodes[i]);
+            pose = BlendPose(prev_pose, pose, w); 
+        }
+        Mat local = ToLocalMat(pose);
         if (i < node_channels_.size() && node_channels_[i])
         {
             local = ComposeLocal(*node_channels_[i], time_, nodes[i]);
@@ -147,8 +208,9 @@ void AnimationComponent::Tick(float dt)
     Component::Tick(dt);
 }
 
-void AnimationComponent::AddAnimation(const std::string& name, Animation* clip)
+void AnimationComponent::AddAnimation(const std::string& name, Animation* clip,bool loop)
 {
+    clip->SetLooping(loop);
     if (animation_deta_.contains(name))
     {
         return;
@@ -156,13 +218,35 @@ void AnimationComponent::AddAnimation(const std::string& name, Animation* clip)
     animation_deta_[name] = clip;
 }
 
-void AnimationComponent::Play(const std::string& name,bool loop)
+void AnimationComponent::Play(const std::string& name)
 {
     clip_ = animation_deta_.at(name);
     time_ = 0.0f;
     channels_dirty_ = true;
     playing_ = true;
-    loop_ = loop;
+    loop_ = clip_->IsLooping();
+}
+
+void AnimationComponent::CorossFade(const std::string& name, float fade_time)
+{
+    if (fade_time <= 0.0f || !clip_)
+    {
+        Play(name);
+        return;
+    }
+    prev_clip_ = clip_;
+    prev_time_ = time_;
+    prev_channels_ = std::move(node_channels_);
+
+    clip_ = animation_deta_.at(name);
+    time_ = 0.0f;
+    channels_dirty_ = true;
+
+    fade_duration_ = fade_time;
+    fade_elapsed_ = 0.0f;
+    playing_ = true;
+    fading_ = true;
+    loop_ = clip_->IsLooping();
 }
 
 
@@ -184,7 +268,6 @@ void AnimationComponent::SetPlaySpeed(float speed)
 }
 
 
-
 void AnimationComponent::RebuildChannels()
 {
     node_channels_.clear();
@@ -198,9 +281,9 @@ void AnimationComponent::RebuildChannels()
     {
         channels[node.name] = &node;
     }
-    
+
     const auto& nodes = skeleton_->GetNodes();
-    node_channels_.resize(nodes.size(),nullptr);
+    node_channels_.resize(nodes.size(), nullptr);
     for (size_t i = 0; i < nodes.size(); ++i)
     {
         auto it = channels.find(nodes[i].name);
@@ -210,12 +293,12 @@ void AnimationComponent::RebuildChannels()
 
 Mat AnimationComponent::ComposeLocal(const NodeAnimation& anim, float time, const SkeletonNode& node)
 {
-    Vec3 bt(0,0,0);
-    Vec3 bs(1,1,1);
+    Vec3 bt(0, 0, 0);
+    Vec3 bs(1, 1, 1);
     Quat brot(QuatIdentity());
-    
+
     Decompose(node.inverse_bind_pose, bs, brot, bt);
-    
+
     Vec3 p = SampleVec3(anim.position_keys, time, bt);
     Quat r = SampleQuat(anim.rotation_keys, time, brot);
     Vec3 s = SampleVec3(anim.scale_keys, time, bs);

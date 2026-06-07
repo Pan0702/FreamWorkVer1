@@ -22,11 +22,14 @@ class Animation
 public:
     void SetData(float duration, float ticks_per_second,
                  std::vector<NodeAnimation> node);
+    void SetLooping(bool loop);
     float GetDuration() const;
     float GetTicksPerSecond() const;
+    bool IsLooping() const;
     const std::vector<NodeAnimation>& GetNodeAnimations() const;
 private:
     float duration_ = 0.0f;
     float ticks_per_second_ = 0.0f;
     std::vector<NodeAnimation> node_animations_;
+    bool loop_ = true;
 };

@@ -16,8 +16,9 @@ class AnimationComponent : public Component
 public:
     void OnAttach(const AttachContext& context) override;
     void Tick(float dt) override;
-    void AddAnimation(const std::string& name, Animation* clip);
-    void Play(const std::string& name, bool loop);
+    void AddAnimation(const std::string& name, Animation* clip, bool loop);
+    void Play(const std::string& name);
+    void CorossFade(const std::string& name, float fade_time);
     void Stop();
     float GetCurrentFrame() const;
     void SetPlaySpeed(float speed);
@@ -30,14 +31,20 @@ private:
     
     Skeleton* skeleton_ = nullptr;
     Animation* clip_ = nullptr;
+    Animation* prev_clip_ = nullptr;
     float time_ = 0.0f;
+    float prev_time_ = 0.0f;
+    float fade_duration_ = 0.0f;
+    float fade_elapsed_ = 0.0f;
+    float play_speed_ = 1.0f;
     std::vector<Mat> global_poses_;
     std::vector<Mat> bone_matrices_;
     std::vector<const NodeAnimation*> node_channels_;
+    std::vector<const NodeAnimation*> prev_channels_;;
     bool channels_dirty_ = true;
     bool loop_ = true;
     bool playing_ = false;
-    float play_speed_ = 1.0f;
+    bool fading_ = false;
     std::unordered_map<std::string, Animation*> animation_deta_;
 };
 

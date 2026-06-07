@@ -52,8 +52,8 @@ void TestLevel::OnEnter()
         
         auto* sk_mesh_comp = c->AddComponent<AnimationComponent>();
         const std::string gangnam = "gangnam";
-        sk_mesh_comp->AddAnimation(gangnam,AnimatorManager::Get().Load("Assets/Mesh/gangnam.anim"));
-       sk_mesh_comp->Play(gangnam, true);
+        sk_mesh_comp->AddAnimation(gangnam,AnimatorManager::Get().Load("Assets/Mesh/gangnam.anim"),true);
+       sk_mesh_comp->Play(gangnam);
     }
     
     LevelBase::OnEnter();

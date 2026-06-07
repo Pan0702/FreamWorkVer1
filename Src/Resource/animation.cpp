@@ -7,6 +7,11 @@ void Animation::SetData(float duration, float ticks_per_second,  std::vector<Nod
     node_animations_ = std::move(node);
 }
 
+void Animation::SetLooping(bool loop)
+{
+    loop_ = loop;
+}
+
 float Animation::GetDuration() const
 {
     return duration_;
@@ -15,6 +20,11 @@ float Animation::GetDuration() const
 float Animation::GetTicksPerSecond() const
 {
     return ticks_per_second_;
+}
+
+bool Animation::IsLooping() const
+{
+    return loop_;
 }
 
 const std::vector<NodeAnimation>& Animation::GetNodeAnimations() const
