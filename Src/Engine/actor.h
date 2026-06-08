@@ -7,25 +7,37 @@
 #include "attach_context.h"
 #include "component.h"
 
-
 struct AttachContext;
 
+/**
+ * @brief Actorのデータと処理をまとめる型。
+ */
 class Actor
 {
 public:
     Actor() = default;
     virtual ~Actor();
 
+    // 生成直後の初期処理。派生クラスで必要な初期化を行う。
     virtual void Begin()
     {
     }
 
+    /**
+     * @brief OnSpawnを行う関数。
+     * @param world 引数。
+     */
     void OnSpawn(World* world);
+    /**
+     * @brief Worldを取得する関数。
+     * @return 戻り値。
+     */
     World* GetWorld() const;
 
     Actor(const Actor&) = delete;
     Actor& operator=(const Actor&) = delete;
 
+    // T: 追加する Component 派生型。args: コンストラクタ引数。戻り値: 追加したコンポーネント。
     template <class T, class... Args>
     T* AddComponent(Args&&... args)
     {
@@ -42,6 +54,7 @@ public:
         return result;
     }
 
+    // T: 探す Component 派生型。戻り値: 最初に見つかったコンポーネント。なければ nullptr。
     template <class T>
     T* GetComponent() const
     {
@@ -57,10 +70,21 @@ public:
         return nullptr;
     }
 
+    /**
+     * @brief Tickを行う関数。
+     * @param dt 引数。
+     */
     void Tick(float dt);
 
 private:
+    /**
+     * @brief Attachを行う関数。
+     * @param context 共有コンテキスト。
+     */
     void Attach(const AttachContext& context);
+    /**
+     * @brief Detachを行う関数。
+     */
     void Detach();
 
     World* world_ = nullptr;

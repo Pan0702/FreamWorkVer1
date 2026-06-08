@@ -2,7 +2,9 @@
 #include "../Core/Math/my_math.h"
 
 class Texture2D;
-
+/**
+ * @brief SpriteDrawCommandのデータと処理をまとめる型。
+ */
 struct SpriteDrawCommand
 {
     Texture2D* texture = nullptr;

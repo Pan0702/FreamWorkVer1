@@ -1,7 +1,9 @@
 #pragma once
 #include "../Core/Math/my_math.h"      
-#include "mesh_format_common.h"       
-
+#include "mesh_format_common.h"
+/**
+ * @brief SkMeshFileHeaderのデータと処理をまとめる型。
+ */
 struct SkMeshFileHeader
 {
     char magic[4];
@@ -16,7 +18,9 @@ struct SkMeshFileHeader
     uint32 skin_count;      // skin_index>=0 のノード数 = ボーンパレット長
     uint32 reserved[2];     // 予備領域
 };
-
+/**
+ * @brief NodeEntryのデータと処理をまとめる型。
+ */
 struct NodeEntry
 {
     int32 parent_index;          // ルートは -1。配列は親が必ず子より前（topo 順）
@@ -38,7 +42,9 @@ struct SkAnimFileHeader
     float ticks_per_second;
     uint32 channel_count;
 };
-
+/**
+ * @brief SkAnimChannelのデータと処理をまとめる型。
+ */
 struct SkAnimChannel
 {
     uint32 node_name_length;    // 続くノード名文字列のバイト長（char 数）
@@ -51,19 +57,25 @@ struct SkAnimChannel
     //   RotationKey rotation_keys[rot_key_count]
     //   ScaleKey    scale_keys[scale_key_count]
 };
-
+/**
+ * @brief PositionKeyのデータと処理をまとめる型。
+ */
 struct PositionKey
 {
     float time;   
     Vec3  value;  
 };
-
+/**
+ * @brief ScaleKeyのデータと処理をまとめる型。
+ */
 struct ScaleKey
 {
     float time;
     Vec3  value;
 };
-
+/**
+ * @brief RotationKeyのデータと処理をまとめる型。
+ */
 struct RotationKey
 {
     float time;

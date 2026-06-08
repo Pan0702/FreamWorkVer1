@@ -6,20 +6,38 @@ class SpriteRenderer;
 class Texture2D;
 class UIRenderer;
 
+/**
+ * @brief SpriteSpaceのデータと処理をまとめる型。
+ */
 enum class SpriteSpace
 {
     kWorld,
     kScreen,
 };
 
+/**
+ * @brief SpriteComponentのデータと処理をまとめる型。
+ */
 class SpriteComponent : public Component
 {
 public:
     SpriteComponent() = default;
+    /**
+     * @brief SpriteComponentを初期化するコンストラクタ。
+     * @param texture 描画に使うテクスチャ。
+     * @param space 引数。
+     */
     SpriteComponent(Texture2D* texture, SpriteSpace space);
     ~SpriteComponent() override;
 
+    /**
+     * @brief OnAttachを行う関数。
+     * @param context 共有コンテキスト。
+     */
     void OnAttach(const AttachContext& context) override;
+    /**
+     * @brief OnDetachを行う関数。
+     */
     void OnDetach() override;
 
     Texture2D* texture = nullptr;

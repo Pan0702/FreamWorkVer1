@@ -1,11 +1,17 @@
 #pragma once
 
-
 #include "../Core/common.h"
 
+/**
+ * @brief PipelineStateのデータと処理をまとめる型。
+ */
 class PipelineState
 {
 public:
+    /**
+     * @brief PipelineStateを取得する関数。
+     * @return 戻り値。
+     */
     ID3D12PipelineState* GetPipelineState() const;
 
 private:
@@ -13,20 +19,79 @@ private:
     friend class PipelineStateBuilder;
 };
 
+/**
+ * @brief PipelineStateBuilderのデータと処理をまとめる型。
+ */
 class PipelineStateBuilder
 {
 public:
+    /**
+     * @brief RootSignatureを設定する関数。
+     * @param root_signature 引数。
+     * @return 戻り値。
+     */
     PipelineStateBuilder& SetRootSignature(ID3D12RootSignature* root_signature);
+    /**
+     * @brief VertexShaderを設定する関数。
+     * @param bytecode 引数。
+     * @return 戻り値。
+     */
     PipelineStateBuilder& SetVertexShader(const D3D12_SHADER_BYTECODE& bytecode);
+    /**
+     * @brief PixelShaderを設定する関数。
+     * @param bytecode 引数。
+     * @return 戻り値。
+     */
     PipelineStateBuilder& SetPixelShader(const D3D12_SHADER_BYTECODE& bytecode);
+    /**
+     * @brief InputLayoutを設定する関数。
+     * @param input_layout 頂点入力レイアウト。
+     * @return 戻り値。
+     */
     PipelineStateBuilder& SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& input_layout);
+    /**
+     * @brief レンダーターゲットビューのフォーマットを設定する関数。
+     * @param format 出力する書式文字列。
+     * @return 戻り値。
+     */
     PipelineStateBuilder& SetRtvFormat(DXGI_FORMAT format);
+    /**
+     * @brief 深度ステンシルビューのフォーマットを設定する関数。
+     * @param format 出力する書式文字列。
+     * @return 戻り値。
+     */
     PipelineStateBuilder& SetDsvFormat(DXGI_FORMAT format);
+    /**
+     * @brief DepthEnabledを設定する関数。
+     * @param enabled 引数。
+     * @return 戻り値。
+     */
     PipelineStateBuilder& SetDepthEnabled(bool enabled);
+    /**
+     * @brief AlphaBlendEnabledを設定する関数。
+     * @param enabled 引数。
+     * @return 戻り値。
+     */
     PipelineStateBuilder& SetAlphaBlendEnabled(bool enabled);
+    /**
+     * @brief PrimitiveTopologyTypeを設定する関数。
+     * @param type 引数。
+     * @return 戻り値。
+     */
     PipelineStateBuilder& SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE type);
+    /**
+     * @brief DepthWriteEnabledを設定する関数。
+     * @param enabled 引数。
+     * @return 戻り値。
+     */
     PipelineStateBuilder& SetDepthWriteEnabled(bool enabled);
-    bool Build(ID3D12Device* device, PipelineState*out_pipeline_state) const;
+    /**
+     * @brief Buildを行う関数。
+     * @param device DirectX 12 デバイス。
+     * @param out_pipeline_state 引数。
+     * @return 条件を満たす場合は true。
+     */
+    bool Build(ID3D12Device* device, PipelineState* out_pipeline_state) const;
 
 private:
     ID3D12RootSignature* root_signature_ = nullptr;

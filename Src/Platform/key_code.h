@@ -1,12 +1,16 @@
 #include <cstdint>
 
+/**
+ * @brief KeyStateのデータと処理をまとめる型。
+ */
 enum class KeyState : uint8_t
 {
-    kDown, // 押されている
-    kPressed, // 今フレームに押された
-    kReleased // 今フレームに離された
+    kDown,     // 押されている。
+    kPressed,  // 今フレームに押された。
+    kReleased  // 今フレームに離された。
 };
 
+// 入力で使うキー番号。内部で Windows の仮想キーコードへ変換される。
 namespace InputKey
 {
     constexpr uint8_t kEsc = 0x01;

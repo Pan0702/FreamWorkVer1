@@ -5,6 +5,9 @@ class MeshRenderer;
 class SpriteRenderer;
 class UIRenderer;
 
+/**
+ * @brief AttachContextのデータと処理をまとめる型。
+ */
 struct AttachContext
 {
     MeshRenderer* mesh_renderer = nullptr;

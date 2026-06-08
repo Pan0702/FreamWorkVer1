@@ -5,7 +5,9 @@
 #include <cstdint>
 #include "../Core/Math/vec4.h"
 
-// サブメッシュ1個分（インデックス範囲 + 使用マテリアルスロット）
+/**
+ * @brief SubMeshEntryのデータと処理をまとめる型。
+ */
 struct SubMeshEntry
 {
     uint32_t index_start;
@@ -13,8 +15,9 @@ struct SubMeshEntry
     uint32_t material_slot;
 };
 
-// マテリアル1個分。base_color のあとに diffuse_texture_length 文字分の
-// ワイド文字列が（別領域に）続く。
+/**
+ * @brief MaterialEntryのデータと処理をまとめる型。
+ */
 struct MaterialEntry
 {
     Vec4 base_color;

@@ -7,6 +7,9 @@ class MaterialSlot;
 class Material;
 class Mesh;
 class SkeletalMesh;
+/**
+ * @brief DrawCommandのデータと処理をまとめる型。
+ */
 struct DrawCommand
 {
     Mesh* mesh = nullptr;
@@ -15,7 +18,9 @@ struct DrawCommand
     float depth = 0.0f;
     uint64_t sort_key = 0;
 };
-
+/**
+ * @brief SkinnedDrawCommandのデータと処理をまとめる型。
+ */
 struct SkinnedDrawCommand
 {
     SkeletalMesh* mesh = nullptr;

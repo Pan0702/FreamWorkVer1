@@ -29,8 +29,10 @@
 #pragma comment(lib,"dxguid.lib")
 #pragma comment(lib,"d3dcompiler.lib")
 
+// COM オブジェクトを自動解放するための共有別名。
 template<typename T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
 
+// アプリケーション起動時の標準ウィンドウサイズ。
 inline constexpr uint32_t kWindowWidth = 1280;
 inline constexpr uint32_t kWindwoHeight = 720;

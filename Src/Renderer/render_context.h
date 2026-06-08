@@ -4,7 +4,9 @@
 
 class ConstantBufferAllocator;
 class DescriptorHeap;
-
+/**
+ * @brief RenderContextのデータと処理をまとめる型。
+ */
 struct RenderContext
 {
     ID3D12GraphicsCommandList* command_list = nullptr;

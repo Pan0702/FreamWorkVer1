@@ -1,7 +1,9 @@
 #pragma once
 #include <cstdint>
 #include "mesh_format_common.h"  // SubMeshEntry / MaterialEntry（.skmesh と共有）
-
+/**
+ * @brief MeshFileHeaderのデータと処理をまとめる型。
+ */
 struct MeshFileHeader
 {
     char magic[4];
