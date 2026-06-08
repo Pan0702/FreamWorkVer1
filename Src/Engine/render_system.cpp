@@ -141,6 +141,9 @@ void RenderSystem::Render(World* world, Camera* camera) const
 
     QueryPerformanceCounter(&t1);
     command_queue_->WaitIdle();
+    QueryPerformanceCounter(&t2);
+    last_present_ms_ = static_cast<float>((t1.QuadPart - t0.QuadPart) * 1000.0 / freq.QuadPart);
+    last_gpu_wait_ms_ = static_cast<float>((t2.QuadPart - t1.QuadPart) * 1000.0 / freq.QuadPart);
 }
 
 void RenderSystem::Shutdown()

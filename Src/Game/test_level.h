@@ -2,6 +2,7 @@
 #include <memory>
 #include "../Engine/level_base.h"
 #include "../Resource/material.h"
+#include "../Resource/material_slot.h"  // Add this include for complete definition
 
 class MaterialSlot;
 

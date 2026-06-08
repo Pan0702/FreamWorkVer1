@@ -69,9 +69,19 @@ void Window::Show() const
 bool Window::ProcessMessages() const
 {
     MSG msg = {};
+    last_message_count_ = 0;
+    last_key_message_count_ = 0;
     // メッセージがなくてもメインループを止めないようにPeekMessageを使う
     while (PeekMessage(&msg, nullptr, 0, 0, PM_REMOVE))
     {
+        ++last_message_count_;
+        if (msg.message == WM_KEYDOWN || msg.message == WM_KEYUP ||
+            msg.message == WM_SYSKEYDOWN || msg.message == WM_SYSKEYUP ||
+            msg.message == WM_CHAR)
+        {
+            ++last_key_message_count_;
+        }
+
         // WM_QUITを受信したら、アプリケーションのメインループを終了する
         if (msg.message == WM_QUIT)
             return false;
@@ -100,6 +110,16 @@ uint32_t Window::GetHeight() const
 WindowSize Window::GetSize() const
 {
     return size_;
+}
+
+uint32_t Window::GetLastMessageCount() const
+{
+    return last_message_count_;
+}
+
+uint32_t Window::GetLastKeyMessageCount() const
+{
+    return last_key_message_count_;
 }
 
 void Window::DispFPS(const wchar_t* title)

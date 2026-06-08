@@ -36,6 +36,8 @@ public:
     DebugLineRenderer* GetDebugLineRenderer() const;
     DepthStencil* GetDepthStencil() const;
     ID3D12Device* GetDevice() const;
+    float GetLastPresentMs() const { return last_present_ms_; }
+    float GetLastGpuWaitMs() const { return last_gpu_wait_ms_; }
     
 private:
     std::unique_ptr<GraphicsDevice> graphics_device_;
@@ -48,4 +50,6 @@ private:
     std::unique_ptr<SceneRenderer> scene_renderer_;
     
     Window* window_ = nullptr;
+    mutable float last_present_ms_ = 0.0f;
+    mutable float last_gpu_wait_ms_ = 0.0f;
 };

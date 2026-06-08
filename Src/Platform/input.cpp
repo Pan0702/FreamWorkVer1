@@ -1,8 +1,13 @@
-﻿#include "input.h"
+#include "input.h"
 
 void Input::Initialize(HWND hwnd)
 {
     hwnd_ = hwnd;
+    constexpr int key_max_num = 256;
+    for (int i = 0; i < key_max_num; ++i)
+    {
+        key_to_vk_[i] = MapVirtualKey(i, MAPVK_VSC_TO_VK);
+    }
 }
 
 void Input::Update()
@@ -10,11 +15,19 @@ void Input::Update()
     memcpy(previous_keys_, current_keys_, sizeof(current_keys_));
     memcpy(mouse_buttons_previous_, mouse_buttons_, sizeof(mouse_buttons_));
 
-    constexpr int key_max_num = 256;
-    for (int i = 0; i < key_max_num; ++i)
+    BYTE keyboard_state[256] = {};
+    if (GetKeyboardState(keyboard_state))
     {
-        int vk = MapVirtualKey(i, MAPVK_VSC_TO_VK);
-        current_keys_[i] = (vk != 0) && ((GetAsyncKeyState(vk) & 0x8000) != 0);
+        constexpr int key_max_num = 256;
+        for (int i = 0; i < key_max_num; ++i)
+        {
+            const UINT vk = key_to_vk_[i];
+            current_keys_[i] = (vk != 0) && ((keyboard_state[vk] & 0x80) != 0);
+        }
+    }
+    else
+    {
+        memset(current_keys_, 0, sizeof(current_keys_));
     }
     int prev_x = mouse_x_;
     int prev_y = mouse_y_;

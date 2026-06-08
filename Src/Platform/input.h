@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "key_code.h"
 #include "Window.h"
 
@@ -21,5 +21,6 @@ private:
     int mouse_delta_x_ = 0,mouse_delta_y_ = 0;
     bool mouse_buttons_[5] = {};
     bool mouse_buttons_previous_[5] = {};
+    UINT key_to_vk_[256] = {};
     HWND hwnd_ = nullptr;
 };

@@ -5,6 +5,7 @@
 #include "../Renderer/ui_renderer.h"
 #include "../Renderer/debug_line_renderer.h"
 #include <cmath>
+#include <cstdio>
 
 #include "../Game/GameMain.h"
 
@@ -44,6 +45,14 @@ void Debug::Log(const char* format, ...)
 
     OutputDebugStringA(buffer);
     OutputDebugStringA("\n");
+
+    FILE* file = nullptr;
+    if (fopen_s(&file, "Framework.log", "a") == 0 && file != nullptr)
+    {
+        fputs(buffer, file);
+        fputc('\n', file);
+        fclose(file);
+    }
 }
 
 void Debug::Print(const char* format, ...)
@@ -142,7 +151,7 @@ void Debug::DrawCircle(const Vec2& center, float radius, const Vec4& color)
         const float a1 = k2PI * static_cast<float>(i + 1) / static_cast<float>(kSegments);
         const Vec2 p0(center.x + std::cos(a0) * radius, center.y + std::sin(a0) * radius);
         const Vec2 p1(center.x + std::cos(a1) * radius, center.y + std::sin(a1) * radius);
-        DrawLine(p0, p1, color); // 変換は DrawLine に任せる（二重変換しない）
+        DrawLine(p0, p1, color); // DrawLine handles screen-space conversion.
     }
 }
 
