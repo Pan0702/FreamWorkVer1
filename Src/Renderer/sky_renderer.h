@@ -12,8 +12,8 @@ class SkyRenderer
 {
 public:
     bool Initialize(ID3D12Device* device);
-    void SetTexture();
-    void Render(RenderContext& context);
+    void SetTexture(Texture2D* texture);
+    void Render(const RenderContext& context) const;
 private:
     std::unique_ptr<Mesh> sky_mesh_;
     std::unique_ptr<RootSignature> root_signature_;

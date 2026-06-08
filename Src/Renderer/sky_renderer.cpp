@@ -59,11 +59,12 @@ bool SkyRenderer::Initialize(ID3D12Device* device)
     return true;
 }
 
-void SkyRenderer::SetTexture()
+void SkyRenderer::SetTexture(Texture2D* texture)
 {
+    sky_texture_ = texture;
 }
 
-void SkyRenderer::Render(RenderContext& context)
+void SkyRenderer::Render(const RenderContext& context) const
 {
     if (!sky_mesh_ || !sky_texture_)
     {
