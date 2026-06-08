@@ -1,16 +1,21 @@
 ﻿#include "sky_renderer.h"
 
+#include "render_context.h"
 #include "../Graphics/pipeline_state.h"
 #include "../Graphics/root_signature.h"
 #include "../Graphics/shader.h"
 #include "../Resource/vertex_types.h"
-
+#include "../Core/Math/my_math.h"
+#include "../Graphics/descriptor_heap.h"
+#include "../Resource/mesh.h"
+#include "../Graphics/constant_buffer_allocator.h"
+#include "../Resource/texture2D.h"
 namespace 
 {
     
 }
 
-bool sky_renderer::Initialize(ID3D12Device* device)
+bool SkyRenderer::Initialize(ID3D12Device* device)
 {
     root_signature_ = std::make_unique<RootSignature>();
     pipeline_state_ = std::make_unique<PipelineState>();
@@ -51,12 +56,42 @@ bool sky_renderer::Initialize(ID3D12Device* device)
         return false;
     }
 
+    return true;
 }
 
-void sky_renderer::SetTexture()
+void SkyRenderer::SetTexture()
 {
 }
 
-void sky_renderer::Render()
+void SkyRenderer::Render(RenderContext& context)
 {
+    if (!sky_mesh_ || !sky_texture_)
+    {
+        return;
+    }
+    
+    constexpr float kRadius = 500.0f;
+    Mat world = Scale(Vec3(kRadius,kRadius,kRadius));
+    Mat wvp = Transpose(world * context.view * context.projection);
+    auto command_list = context.command_list;
+    command_list->SetGraphicsRootSignature( root_signature_->GetRootSignature());
+    command_list->SetPipelineState(pipeline_state_->GetPipelineState());
+    ID3D12DescriptorHeap* heaps[] = {context.srv_heap->GetHeap()};
+    command_list->SetDescriptorHeaps(1, heaps);
+    command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    //b0
+    ConstantBufferAllocation cb = {};
+    if (context.cb_allocator->Allocate(sizeof(wvp),&cb))
+    {
+        memcpy(cb.cpu, &wvp, sizeof(wvp));
+        command_list->SetGraphicsRootConstantBufferView(0, cb.gpu);
+    }
+    command_list->SetGraphicsRootDescriptorTable(1,context.srv_heap->GetGpuHandle(sky_texture_->GetSrvIndex()));
+    
+    //球を描画
+    auto vbv = sky_mesh_->GetVertexBufferView();
+    command_list->IASetVertexBuffers(0, 1, &vbv);
+    auto ibv = sky_mesh_->GetIndexBufferView();
+    command_list->IASetIndexBuffer(&ibv);
+    command_list->DrawIndexedInstanced(sky_mesh_->GetIndexCount(), 1, 0, 0, 0);
 }

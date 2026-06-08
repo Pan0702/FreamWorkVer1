@@ -2,17 +2,18 @@
 #include <memory>
 #include "../Core/common.h"
 
+struct RenderContext;
 class Texture2D;
 class PipelineState;
 class RootSignature;
 class Mesh;
 
-class sky_renderer
+class SkyRenderer
 {
 public:
     bool Initialize(ID3D12Device* device);
     void SetTexture();
-    void Render();
+    void Render(RenderContext& context);
 private:
     std::unique_ptr<Mesh> sky_mesh_;
     std::unique_ptr<RootSignature> root_signature_;
