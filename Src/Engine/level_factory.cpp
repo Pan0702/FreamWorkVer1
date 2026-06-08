@@ -4,7 +4,7 @@
 
 void LevelFactory::Initialize()
 {
-    //ãƒ¬ãƒ™ãƒ«ã®ç™»éŒ²
+    //ƒŒƒxƒ‹‚Ì“o˜^
     //exsamole
     //level_factory_.Register("Title", []
     //{

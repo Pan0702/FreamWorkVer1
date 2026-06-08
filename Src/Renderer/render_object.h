@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "../Core/Math/my_math.h"
 class Material;
 class Mesh;

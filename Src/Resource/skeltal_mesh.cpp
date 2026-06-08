@@ -1,4 +1,4 @@
-﻿#include "skeltal_mesh.h"
+#include "skeltal_mesh.h"
 
 #include "skeleton.h"
 

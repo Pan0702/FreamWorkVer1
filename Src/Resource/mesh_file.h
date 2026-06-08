@@ -1,6 +1,6 @@
-ï»¿#pragma once
+#pragma once
 #include <cstdint>
-#include "mesh_format_common.h"  // SubMeshEntry / MaterialEntryï¼ˆ.skmesh ã¨å…±æœ‰ï¼‰
+#include "mesh_format_common.h"  // SubMeshEntry / MaterialEntryi.skmesh ‚Æ‹¤—Lj
 
 struct MeshFileHeader
 {
@@ -12,7 +12,7 @@ struct MeshFileHeader
     uint32_t index_stride;
     uint32_t submesh_count;
     uint32_t material_count;
-    uint32_t reserved[2];//äºˆå‚™é ˜åŸŸ
+    uint32_t reserved[2];//—\”õ—Ìˆæ
 };
 
 static constexpr char kMeshMagic[4] = {'M', 'E', 'S', 'H'};

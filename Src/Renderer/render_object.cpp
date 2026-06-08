@@ -1,4 +1,4 @@
-﻿#include "render_object.h"
+#include "render_object.h"
 
 void RenderObject::SetMesh(Mesh* mesh)
 {

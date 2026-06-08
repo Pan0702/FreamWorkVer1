@@ -1,4 +1,4 @@
-﻿#include "texture_loder.h"
+#include "texture_loder.h"
 #include <filesystem>
 #include "../Core/common.h"
 #include  <wincodec.h>
@@ -7,19 +7,17 @@
 
 bool TextureLoader::LoadFromFile(const wchar_t* filename, LoadedImage& image)
 {
-    //IWIC �� I �� Interface�AWIC �� Windows Imaging Component�B 
     ComPtr<IWICImagingFactory> factory;
     ComPtr<IWICBitmapDecoder> decoder;
     ComPtr<IWICBitmapFrameDecode> frame;
     ComPtr<IWICFormatConverter> converter;
 
-    //Com���C�u�����̏������iex�͊g���ł��ĈӖ�)
     HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
     if (FAILED(hr))
     {
         return false;
     }
-    //Com�I�u�W�F�N�g�̃C���X�^���X�����֐��B
+
     hr = CoCreateInstance(CLSID_WICImagingFactory, nullptr, CLSCTX_INPROC_SERVER, IID_PPV_ARGS(&factory));
     if (FAILED(hr))
     {
@@ -58,10 +56,10 @@ bool TextureLoader::LoadFromFile(const wchar_t* filename, LoadedImage& image)
     }
     image.width = width;
     image.height = height;
-    
+
     uint32_t row_pitch = width * 4;
     uint32_t size = row_pitch * height;
     image.pixels = std::vector<uint8_t>(size);
-    hr = converter->CopyPixels(nullptr, row_pitch, size,image.pixels.data());
+    hr = converter->CopyPixels(nullptr, row_pitch, size, image.pixels.data());
     return true;
 }

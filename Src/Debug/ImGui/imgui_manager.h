@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "imgui.h"
 #include "../../Platform/Window.h"
 

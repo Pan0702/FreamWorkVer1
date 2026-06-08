@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include <vector>
 #include "../Core/common.h"
 #include "draw_command.h"
@@ -26,6 +26,6 @@ public:
 private:
     std::vector<SkeletalMeshComponent*> meshes_;
     std::vector<SkinnedDrawCommand> draw_commands_;
-    std::unique_ptr<RootSignature> root_signature_;   // â† è¿½åŠ 
-    std::unique_ptr<PipelineState> pipeline_state_;   // â† è¿½åŠ 
+    std::unique_ptr<RootSignature> root_signature_;   // © ’Ç‰Á
+    std::unique_ptr<PipelineState> pipeline_state_;   // © ’Ç‰Á
 };

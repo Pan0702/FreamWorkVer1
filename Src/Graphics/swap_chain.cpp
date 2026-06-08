@@ -1,4 +1,4 @@
-﻿#include "swap_chain.h"
+#include "swap_chain.h"
 
 bool SwapChain::Initialize(IDXGIFactory6* factory, ID3D12Device* device, ID3D12CommandQueue* queue, HWND hwnd,
                            uint32_t width, uint32_t height)

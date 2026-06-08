@@ -1,4 +1,4 @@
-﻿#include "shader.h"
+#include "shader.h"
 #include <cassert>
 
 bool Shader::LoadFromFile(const wchar_t* filename, const char* entry_point, const char* target)

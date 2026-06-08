@@ -1,4 +1,4 @@
-﻿#include "constant_buffer.h"
+#include "constant_buffer.h"
 
 bool ConstantBuffer::Initialize(ID3D12Device* device, uint32_t size)
 {

@@ -1,4 +1,4 @@
-﻿#include "skeltal_mesh_manager.h"
+#include "skeltal_mesh_manager.h"
 #include <fstream>
 
 #include "skeleton.h"

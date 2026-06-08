@@ -1,4 +1,4 @@
-﻿#include "root_signature.h"
+#include "root_signature.h"
 #include "../Core/common.h"
 
 ID3D12RootSignature* RootSignature::GetRootSignature() const

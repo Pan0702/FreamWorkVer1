@@ -1,4 +1,4 @@
-﻿#include "material_slot.h"
+#include "material_slot.h"
 
 MaterialSlot::MaterialSlot(const std::vector<MeshMaterialDesc>& materials)
 {

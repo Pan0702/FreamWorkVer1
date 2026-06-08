@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "../Core/Math/my_math.h"
 #include "../Engine/component.h"
 class Texture2D;

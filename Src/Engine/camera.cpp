@@ -1,4 +1,4 @@
-﻿#include "camera.h"
+#include "camera.h"
 
 void Camera::Initialize(float fov, float aspect, float near_z, float far_z)
 {

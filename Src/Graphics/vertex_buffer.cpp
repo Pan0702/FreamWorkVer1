@@ -1,4 +1,4 @@
-﻿#include "vertex_buffer.h"
+#include "vertex_buffer.h"
 
 bool VertexBuffer::Initialize(ID3D12Device* device, const void* vertex_data, uint32_t total_size, uint32_t stride)
 {

@@ -1,4 +1,4 @@
-﻿#include "index_buffer.h"
+#include "index_buffer.h"
 
 bool IndexBuffer::Initialize(ID3D12Device* device, const void* index_data, uint32_t total_size, DXGI_FORMAT format)
 {

@@ -1,4 +1,4 @@
-﻿#include "depth_stencil.h"
+#include "depth_stencil.h"
 #include "../Platform/window.h"
 
 bool DepthStencil::Initialize(ID3D12Device* device, uint32_t width, uint32_t height)

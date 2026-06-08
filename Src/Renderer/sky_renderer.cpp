@@ -1,4 +1,4 @@
-ï»¿#include "sky_renderer.h"
+#include "sky_renderer.h"
 
 #include "render_context.h"
 #include "../Graphics/pipeline_state.h"
@@ -118,7 +118,7 @@ void SkyRenderer::Render(const RenderContext& context) const
         return;
     }
 
-    constexpr float kRadius = 50.0f;   // near(0.1) < R < far(100) ã«åŽã‚ã‚‹
+    constexpr float kRadius = 50.0f;   // near(0.1) < R < far(100) ‚ÉŽû‚ß‚é
     Mat world = Scale(Vec3(kRadius, kRadius, kRadius)) * Translate(context.camera_pos);
     Mat wvp = Transpose(world * context.view * context.projection);
     auto command_list = context.command_list;
@@ -136,7 +136,7 @@ void SkyRenderer::Render(const RenderContext& context) const
     }
     command_list->SetGraphicsRootDescriptorTable(1, context.srv_heap->GetGpuHandle(sky_texture_->GetSrvIndex()));
 
-    //çƒã‚’æç”»
+    //‹…‚ð•`‰æ
     auto vbv = sky_mesh_->GetVertexBufferView();
     command_list->IASetVertexBuffers(0, 1, &vbv);
     auto ibv = sky_mesh_->GetIndexBufferView();

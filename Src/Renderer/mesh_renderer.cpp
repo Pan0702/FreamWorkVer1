@@ -107,7 +107,7 @@ void MeshRenderer::Submit(RenderContext& context) const
     context.command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST); 
     for (const DrawCommand& command : draw_commands_)
     {
-        // ãƒ¢ãƒ‡ãƒ«å…±é€š
+        // ƒ‚ƒfƒ‹‹¤’Ê
         CB::MeshObjectCB obj = {};
         obj.world = Transpose(command.world);
         obj.wvp = Transpose(command.world * context.view * context.projection);
@@ -118,13 +118,13 @@ void MeshRenderer::Submit(RenderContext& context) const
         }
         memcpy(alloc.cpu, &obj, sizeof(obj));
 
-        // é ‚ç‚¹/ã‚¤ãƒ³ãƒ‡ãƒƒã‚¯ã‚¹ãƒãƒƒãƒ•ã‚¡ã®ãƒã‚¤ãƒ³ãƒ‰ã¯1å›ž(å…¨ã‚µãƒ–ãƒ¡ãƒƒã‚·ãƒ¥å…±é€š)
+        // ’¸“_/ƒCƒ“ƒfƒbƒNƒXƒoƒbƒtƒ@‚ÌƒoƒCƒ“ƒh‚Í1‰ñ(‘SƒTƒuƒƒbƒVƒ…‹¤’Ê)
         D3D12_VERTEX_BUFFER_VIEW vbv = command.mesh->GetVertexBufferView();
         context.command_list->IASetVertexBuffers(0, 1, &vbv);
         D3D12_INDEX_BUFFER_VIEW ibv = command.mesh->GetIndexBufferView();
         context.command_list->IASetIndexBuffer(&ibv);
 
-        //  ã‚µãƒ–ãƒ¡ãƒƒã‚·ãƒ¥ã”ã¨(ãƒžãƒ†ãƒªã‚¢ãƒ«ãŒå¤‰ã‚ã‚‹) 
+        //  ƒTƒuƒƒbƒVƒ…‚²‚Æ(ƒ}ƒeƒŠƒAƒ‹‚ª•Ï‚í‚é) 
         for (const SubMesh& sub : command.mesh->GetSubMeshes())
         {
             Material* mat = command.material_slot->GetMaterial(sub.material_slot);
@@ -135,14 +135,14 @@ void MeshRenderer::Submit(RenderContext& context) const
 
             mat->Apply(context.command_list, context.srv_heap);
 
-            // b0(wvp/world): Apply ã§ãƒ«ãƒ¼ãƒˆã‚·ã‚°ãƒãƒãƒ£ãŒå¤‰ã‚ã‚‹ã®ã§æ¯Žå›žã‚»ãƒƒãƒˆ
+            // b0(wvp/world): Apply ‚Åƒ‹[ƒgƒVƒOƒlƒ`ƒƒ‚ª•Ï‚í‚é‚Ì‚Å–ˆ‰ñƒZƒbƒg
             context.command_list->SetGraphicsRootConstantBufferView(0, alloc.gpu);
             if (has_light)
             {
                 context.command_list->SetGraphicsRootConstantBufferView(2, light_alloc.gpu);
             }
 
-            // b2(material): ã“ã® sub ã®ãƒžãƒ†ãƒªã‚¢ãƒ«ã®è‰²
+            // b2(material): ‚±‚Ì sub ‚Ìƒ}ƒeƒŠƒAƒ‹‚ÌF
             CB::MaterialCB mat_cb = {};
             mat_cb.base_color = mat->GetBaseColor();
             mat_cb.has_texture = (mat->GetDiffuse() != nullptr) ? 1 : 0;
@@ -157,7 +157,7 @@ void MeshRenderer::Submit(RenderContext& context) const
                 context.command_list->SetGraphicsRootConstantBufferView(3, mat_alloc.gpu);
             }
 
-            // ã“ã® sub ã®ç¯„å›²ã ã‘æã
+            // ‚±‚Ì sub ‚Ì”ÍˆÍ‚¾‚¯•`‚­
             context.command_list->DrawIndexedInstanced(sub.index_count, 1, sub.index_start, 0, 0);
         }
     }

@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "../Core/common.h"
 #include "../Core/Math/my_math.h"
 struct VertexData

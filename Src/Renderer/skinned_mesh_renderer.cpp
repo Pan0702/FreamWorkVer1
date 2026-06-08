@@ -1,4 +1,4 @@
-﻿#include "skinned_mesh_renderer.h"
+#include "skinned_mesh_renderer.h"
 
 #include <algorithm>
 

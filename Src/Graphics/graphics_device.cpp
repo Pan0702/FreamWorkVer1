@@ -1,4 +1,4 @@
-ï»¿#include "graphics_device.h"
+#include "graphics_device.h"
 
 bool GraphicsDevice::Initialize(bool enable_debug_layer)
 {
@@ -101,7 +101,7 @@ bool GraphicsDevice::CreateDevice()
     {
         return false;
     }
-    //ID3D12Device5ã‚’ä½¿ã†ã“ã¨ã«ãªã£ãŸã‚‰ã‚„ã‚‹ã€‚ã‚Œã„ã¨ã‚Œã¨ã‹
+    //ID3D12Device5‚ðŽg‚¤‚±‚Æ‚É‚È‚Á‚½‚ç‚â‚éB‚ê‚¢‚Æ‚ê‚Æ‚©
     // HRESULT hr1 = device_->QueryInterface(IID_PPV_ARGS(&device_));
     // if (FAILED(hr1))
     // {

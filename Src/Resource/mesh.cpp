@@ -1,4 +1,4 @@
-﻿#include "mesh.h"
+#include "mesh.h"
 
 #include "vertex_types.h"
 #include "../Graphics/vertex_buffer.h"

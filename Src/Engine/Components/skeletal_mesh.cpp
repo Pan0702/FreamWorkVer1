@@ -1,4 +1,4 @@
-﻿#include "skeletal_mesh.h"
+#include "skeletal_mesh.h"
 #include "../attach_context.h"
 #include "../../Renderer/skinned_mesh_renderer.h"
 #include "../../Resource/material_slot.h"

@@ -1,4 +1,4 @@
-﻿#include "level_manager.h"
+#include "level_manager.h"
 
 #include "level_factory.h"
 

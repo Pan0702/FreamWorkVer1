@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "descriptor_heap.h"
 #include "../Core/common.h"
 

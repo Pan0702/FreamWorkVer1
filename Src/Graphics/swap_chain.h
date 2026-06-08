@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "../Core/common.h"
 #include "../Platform/Window.h"
 #include  "descriptor_heap.h"
