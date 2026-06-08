@@ -17,7 +17,7 @@ cbuffer SkyCB : register(b0)
 PSInput VSMain(VSInput input)
 {
     PSInput output;
-    output.position = mul(wvp, float4(input.position, 1.0f));
+    output.position = mul(float4(input.position, 1.0f), wvp);
     output.dir = input.position;
     return output;   
 }

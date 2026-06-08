@@ -118,7 +118,7 @@ void SkyRenderer::Render(const RenderContext& context) const
         return;
     }
 
-    constexpr float kRadius = 500.0f;
+    constexpr float kRadius = 50.0f;   // near(0.1) < R < far(100) に収める
     Mat world = Scale(Vec3(kRadius, kRadius, kRadius)) * Translate(context.camera_pos);
     Mat wvp = Transpose(world * context.view * context.projection);
     auto command_list = context.command_list;

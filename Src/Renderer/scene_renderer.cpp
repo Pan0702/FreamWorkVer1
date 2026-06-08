@@ -25,7 +25,7 @@ bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQue
         return false;
     }
     
-    // SkySphere‚ÌƒeƒNƒXƒ`ƒƒ‚ðƒZƒbƒg
+    // SkySphereã®ãƒ†ã‚¯ã‚¹ãƒãƒ£ã‚’ã‚»ãƒƒãƒˆ
     constexpr std::wstring_view sky_texture_path = L"Assets/Texture/SkyImage.png";
     sky_renderer_->SetTexture(TextureManager::Get().Load(sky_texture_path.data()));
     sprite_renderer_ = std::make_unique<SpriteRenderer>();
@@ -89,11 +89,12 @@ void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* ca
     context.ambient = Vec3(0.15f,0.15f,0.15f);
     context.camera_pos = camera->pos_;
 
+    sky_renderer_->Render(context);
+
     mesh_renderer_->Collect();
     mesh_renderer_->Sort();
     mesh_renderer_->Submit(context);
-    sky_renderer_->Render(context);
-    
+
     debug_renderer_->Submit(context);
 
     sprite_renderer_->Collect();

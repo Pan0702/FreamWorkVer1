@@ -7,7 +7,7 @@ struct PSInput
     float3 dir : TEXCOORD0;
 };
 
-static const float PI = 3.24259265;
+static const float PI = 3.14159265;
 
 float4 PSMain(PSInput input) : SV_TARGET
 {
