@@ -1,5 +1,4 @@
 #pragma once
-#pragma execution_character_set("shift_jis")
 #include <functional>
 
 #include "../Core/common.h"

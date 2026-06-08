@@ -121,7 +121,7 @@ private:
     Texture2D* normal_ = nullptr;
     Texture2D* specular_ = nullptr;
     Texture2D* height_ = nullptr;
-    float specular_power_ = 1.0f;
-    float specular_intensity_ = 1.0f;   
+    float specular_power_ = 0.0f;
+    float specular_intensity_ = 0.0f;   
     Vec4 base_color_;
 };

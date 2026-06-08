@@ -1,4 +1,4 @@
-#pragma execution_character_set("shift_jis")
+
 #include <tchar.h>
 
 #include "Window.h"
