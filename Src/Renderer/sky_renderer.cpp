@@ -24,18 +24,18 @@ namespace
                 float xn = std::cos(phi) * std::sin(theta);
                 float yn = std::sin(phi) * std::sin(theta);
                 float zn = std::cos(theta);
-                verts.push_back({ xn, yn, zn });
+                verts.push_back({xn, yn, zn});
             }
         }
-        for (int y = 0; y <= slices; ++y)
+        for (int y = 0; y < slices; ++y)
         {
-            for (int x = 0; x <= stacs; ++x)
+            for (int x = 0; x < stacs; ++x)
             {
-                uint32 i0 = y*(slices+1)+x;
-                uint32 i1 = i0+1;
-                uint32 i2 = i0+(slices+1); 
-                uint32 i3 = i2+1;
-                indices.insert(indices.end(), { i0,i2,i1,i1,i2,i3 });
+                uint32 i0 = y * (slices + 1) + x;
+                uint32 i1 = i0 + 1;
+                uint32 i2 = i0 + (slices + 1);
+                uint32 i3 = i2 + 1;
+                indices.insert(indices.end(), {i0, i2, i1, i1, i2, i3});
             }
         }
     }
