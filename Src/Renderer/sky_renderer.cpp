@@ -116,7 +116,7 @@ void SkyRenderer::Render(const RenderContext& context) const
     }
 
     constexpr float kRadius = 500.0f;
-    Mat world = Scale(Vec3(kRadius, kRadius, kRadius));
+    Mat world = Scale(Vec3(kRadius, kRadius, kRadius)) * Translate(context.camera_pos);
     Mat wvp = Transpose(world * context.view * context.projection);
     auto command_list = context.command_list;
     command_list->SetGraphicsRootSignature(root_signature_->GetRootSignature());
