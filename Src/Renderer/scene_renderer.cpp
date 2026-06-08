@@ -8,7 +8,6 @@
 #include "../Graphics/swap_chain.h"
 #include "../Platform/window.h"
 #include "render_context.h"
-#include "scene.h"
 #include "../Resource/texture_manager.h"
 
 bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQueue* command_queue, uint32_t frame_count)
@@ -53,26 +52,11 @@ bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQue
     return imgui_manager_.Initialize(hwnd, device, command_queue, static_cast<int>(frame_count));
 }
 
-void SceneRenderer::Render(const RendererData& renderer_data, Scene* scene, Camera* camera)
-{
-    imgui_manager_.BeginFrame();
-    ImGui::ShowDemoWindow();
-    BeginRenderTarget(renderer_data);
-
-    auto command_list = renderer_data.command_list->GetCommandList();
-    command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    scene->Sort();
-    mesh_renderer_->Render(command_list, scene->GetRenderObjects(), camera, renderer_data.srv_heap);
-
-    imgui_manager_.EndFrame(command_list);
-    EndRenderTarget(renderer_data);
-}
-
 void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* camera)
 {
     (void)world;
     imgui_manager_.BeginFrame();
-    ImGui::ShowDemoWindow();
+   // ImGui::ShowDemoWindow();
     BeginRenderTarget(renderer_data);
 
     RenderContext context = {};

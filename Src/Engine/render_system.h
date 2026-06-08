@@ -24,7 +24,7 @@ public:
     RenderSystem();
     ~RenderSystem();
     bool Initialize(Window* window);
-    void Render(World* world, Camera* camera);
+    void Render(World* world, Camera* camera) const;
     void Shutdown();
     void WaitForGPU() const;
 

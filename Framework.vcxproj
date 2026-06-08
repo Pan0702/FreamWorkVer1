@@ -75,7 +75,6 @@
     <ClInclude Include="Src\Renderer\draw_command.h" />
     <ClInclude Include="Src\Renderer\render_object.h" />
     <ClInclude Include="Src\Renderer\render_context.h" />
-    <ClInclude Include="Src\Renderer\scene.h" />
     <ClInclude Include="Src\Renderer\scene_renderer.h" />
     <ClInclude Include="Src\Renderer\skinned_mesh_renderer.h" />
     <ClInclude Include="Src\Renderer\sky_renderer.h" />
@@ -148,7 +147,6 @@
     <ClCompile Include="Src\Renderer\debug_line_renderer.cpp" />
     <ClCompile Include="Src\Renderer\mesh_renderer.cpp" />
     <ClCompile Include="Src\Renderer\render_object.cpp" />
-    <ClCompile Include="Src\Renderer\scene.cpp" />
     <ClCompile Include="Src\Renderer\scene_renderer.cpp" />
     <ClCompile Include="Src\Renderer\sprite_renderer.cpp" />
     <ClCompile Include="Src\Renderer\ui_renderer.cpp" />

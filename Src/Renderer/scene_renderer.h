@@ -14,7 +14,6 @@ class CommandQueue;
 class ConstantBufferAllocator;
 class DepthStencil;
 class DescriptorHeap;
-class Scene;
 class SwapChain;
 class Window;
 class World;
@@ -34,8 +33,7 @@ class SceneRenderer
 {
 public:
     bool Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQueue* command_queue, uint32_t frame_count);
-    void Render(const RendererData& renderer_data, Scene* scene, Camera* camera);
-    void Render(RendererData& renderer_data, World* world, Camera* camera);
+ void Render(RendererData& renderer_data, World* world, Camera* camera);
     void Shutdown();
     MeshRenderer* GetMeshRenderer() const;
     SpriteRenderer* GetSpriteRenderer() const;

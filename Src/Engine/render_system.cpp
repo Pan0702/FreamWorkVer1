@@ -103,7 +103,7 @@ bool RenderSystem::Initialize(Window* window)
                             scene_renderer_->GetDebugLineRenderer());
     return true;
 }
-void RenderSystem::Render(World* world, Camera* camera)
+void RenderSystem::Render(World* world, Camera* camera) const
 {
     if (!command_list_->Reset())
     {
@@ -130,7 +130,16 @@ void RenderSystem::Render(World* world, Camera* camera)
 
     ID3D12CommandList* command_lists[] = {command_list};
     command_queue_->GetCommandQueue()->ExecuteCommandLists(1, command_lists);
+    LARGE_INTEGER freq = {};
+    LARGE_INTEGER t0 = {};
+    LARGE_INTEGER t1 = {};
+    LARGE_INTEGER t2 = {};
+    QueryPerformanceFrequency(&freq);
+
+    QueryPerformanceCounter(&t0);
     swap_chain_->Present();
+
+    QueryPerformanceCounter(&t1);
     command_queue_->WaitIdle();
 }
 

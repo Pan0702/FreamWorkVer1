@@ -82,7 +82,7 @@ bool SwapChain::CreateRenderTargetViews(ID3D12Device* device)
 
 void SwapChain::Present()
 {
-    swap_chain_->Present(1, 0);
+    swap_chain_->Present(0, 0);
 }
 
 ID3D12Resource* SwapChain::GetCurrentBackBuffer() const
