@@ -1,19 +1,33 @@
+/**
+ * @brief 頂点シェーダーに入力される頂点データをまとめる構造体。
+ */
 struct VSInput
 {
-    float3 position : POSITION;
+    float3 position : POSITION; // 位置。
 };
 
+/**
+ * @brief ピクセルシェーダーに渡す補間済みデータをまとめる構造体。
+ */
 struct PSInput
 {
-    float4 position : SV_POSITION;
-    float3 dir : TEXCOORD0;
+    float4 position : SV_POSITION; // 位置。
+    float3 dir : TEXCOORD0; // 空テクスチャを参照する方向。
 };
 
+/**
+ * @brief 空メッシュの変換行列を保持する定数バッファ。
+ */
 cbuffer SkyCB : register(b0)
 {
-    float4x4 wvp;
+    float4x4 wvp; // ワールド行列、ビュー行列、投影行列を掛けた行列。
 };
 
+/**
+ * @brief 頂点データを変換し、ピクセルシェーダーへ渡す値を作成する関数。
+ * @param input シェーダーに入力されるデータ。
+ * @return ピクセルシェーダーへ渡す変換済みデータ。
+ */
 PSInput VSMain(VSInput input)
 {
     PSInput output;

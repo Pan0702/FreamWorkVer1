@@ -1,34 +1,51 @@
+/**
+ * @brief ピクセルシェーダーに渡す補間済みデータをまとめる構造体。
+ */
 struct PSInput
 {
-    float4 position : SV_POSITION;
-    float2 uv : TEXCOORD;
-    float3 normal : NORMAL;
-    float3 world_pos : TEXCOORD1;
-    float3 tangent   : TANGENT;
-    float3 bitangent : BINORMAL;
+    float4 position : SV_POSITION; // 位置。
+    float2 uv : TEXCOORD; // テクスチャ座標。
+    float3 normal : NORMAL; // 法線ベクトル。
+    float3 world_pos : TEXCOORD1; // ワールド空間の位置。
+    float3 tangent   : TANGENT; // 接線ベクトル。
+    float3 bitangent : BINORMAL; // 従接線ベクトル。
 };
 
+// メッシュの色を取得するテクスチャ。
 Texture2D g_texture : register(t0);
+// 法線方向を補正する法線マップ。
 Texture2D g_normal_map : register(t1);
+// メッシュテクスチャのサンプラ。
 SamplerState g_sampler : register(s0);
 
+/**
+ * @brief ライトとカメラ位置を保持する定数バッファ。
+ */
 cbuffer LightCB : register(b1)
 {
-    float4 light_dir;
-    float4 light_color;
-    float4 ambient;
-    float4 cam_pos;
+    float4 light_dir; // ライトの向き。
+    float4 light_color; // ライトの色。
+    float4 ambient; // 環境光の色。
+    float4 cam_pos; // カメラのワールド位置。
 }
 
+/**
+ * @brief マテリアル色とテクスチャ使用情報を保持する定数バッファ。
+ */
 cbuffer MaterialCB : register(b2)
 {
-    float4 base_color;
-    int has_texture;
-    float specular_intensity;
-    float specular_power;
-    int has_normal_map;
+    float4 base_color; // マテリアルの基本色。
+    int has_texture; // テクスチャを持つかどうか。
+    float specular_intensity; // 鏡面反射の強度。
+    float specular_power; // 鏡面反射の鋭さ。
+    int has_normal_map; // 法線マップを持つかどうか。
 }
 
+/**
+ * @brief 入力された補間済みデータから最終カラーを計算する関数。
+ * @param input シェーダーに入力されるデータ。
+ * @return 出力するピクセルカラー。
+ */
 float4 PSMain(PSInput input) : SV_TARGET
 {
     float3 N = normalize(input.normal);

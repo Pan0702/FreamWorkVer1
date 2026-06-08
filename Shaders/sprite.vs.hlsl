@@ -1,25 +1,39 @@
+/**
+ * @brief 頂点シェーダーに入力される頂点データをまとめる構造体。
+ */
 struct VSInput
 {
-    float2 position : POSITION;
-    float2 uv : TEXCOORD;
+    float2 position : POSITION; // 位置。
+    float2 uv : TEXCOORD; // テクスチャ座標。
 };
 
+/**
+ * @brief ピクセルシェーダーに渡す補間済みデータをまとめる構造体。
+ */
 struct PSInput
 {
-    float4 position : SV_POSITION;
-    float2 uv : TEXCOORD;
+    float4 position : SV_POSITION; // 位置。
+    float2 uv : TEXCOORD; // テクスチャ座標。
 };
 
+/**
+ * @brief 画面空間スプライトの表示情報を保持する定数バッファ。
+ */
 cbuffer SpriteCB : register(b0)
 {
-    float2 sprite_pos;
-    float2 sprite_size;
-    float4 color;
-    float2 screen_size;
-    float rotation;
-    float use_texture;
+    float2 sprite_pos; // 画面上の表示位置。
+    float2 sprite_size; // スプライトの表示サイズ。
+    float4 color; // 色。
+    float2 screen_size; // 画面サイズ。
+    float rotation; // 回転角度。
+    float use_texture; // テクスチャを使うかどうかの値。
 }
 
+/**
+ * @brief 頂点データを変換し、ピクセルシェーダーへ渡す値を作成する関数。
+ * @param input シェーダーに入力されるデータ。
+ * @return ピクセルシェーダーへ渡す変換済みデータ。
+ */
 PSInput VSMain(VSInput input)
 {
     float2 local = input.position * sprite_size;
