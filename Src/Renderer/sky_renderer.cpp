@@ -41,6 +41,9 @@ namespace
     }
 }
 
+SkyRenderer::SkyRenderer() = default;
+SkyRenderer::~SkyRenderer() = default;
+
 bool SkyRenderer::Initialize(ID3D12Device* device)
 {
     root_signature_ = std::make_unique<RootSignature>();

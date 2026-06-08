@@ -11,6 +11,8 @@ class Mesh;
 class SkyRenderer
 {
 public:
+    SkyRenderer();
+    ~SkyRenderer();
     bool Initialize(ID3D12Device* device);
     void SetTexture(Texture2D* texture);
     void Render(const RenderContext& context) const;

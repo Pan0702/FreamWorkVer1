@@ -24,6 +24,8 @@ bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQue
     {
         return false;
     }
+    
+    // SkySphereのテクスチャをセット
     constexpr std::wstring_view sky_texture_path = L"Assets/Texture/SkyImage.png";
     sky_renderer_->SetTexture(TextureManager::Get().Load(sky_texture_path.data()));
     sprite_renderer_ = std::make_unique<SpriteRenderer>();

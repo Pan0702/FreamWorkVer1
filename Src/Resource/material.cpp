@@ -36,7 +36,7 @@ Material::Material(const MeshMaterialDesc& desc)
     {
         if (!desc.diffuse_texture_path.empty())
         {
-            printf("Failed to load texture %s\n", desc.diffuse_texture_path.c_str());
+            printf("Failed to load texture %ls\n", desc.diffuse_texture_path.c_str());
         }
         SetDiffuse(nullptr);
     }
