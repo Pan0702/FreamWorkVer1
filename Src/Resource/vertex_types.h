@@ -51,7 +51,7 @@ struct SpriteVertex
     float uv[2];
 };
 
-static const D3D12_INPUT_ELEMENT_DESC kSpriteVertexLayout[] = {
+static constexpr D3D12_INPUT_ELEMENT_DESC kSpriteVertexLayout[] = {
     {
         "POSITION", 0, DXGI_FORMAT_R32G32_FLOAT, 0,
         offsetof(SpriteVertex, position),
@@ -135,3 +135,13 @@ static constexpr D3D12_INPUT_ELEMENT_DESC kSkinnedVertexLayout[] = {
         D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA
     }
 };
+
+//////////////////////////////
+///SkySphereÇÃèÓïÒ
+//////////////////////////////
+static constexpr D3D12_INPUT_ELEMENT_DESC kSkyLayout[] = {
+    { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
+      D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+};
+
+struct SkyVertex { float position[3]; };
