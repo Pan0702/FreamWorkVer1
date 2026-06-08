@@ -3,6 +3,7 @@
 #include "../Debug/ImGui/imgui_manager.h"
 #include "mesh_renderer.h"
 #include "skinned_mesh_renderer.h"
+#include "sky_renderer.h"
 #include "sprite_renderer.h"
 #include "ui_renderer.h"
 
@@ -51,5 +52,6 @@ private:
     std::unique_ptr<UIRenderer> ui_renderer_;
     std::unique_ptr<SkinnedMeshRenderer> skinned_mesh_renderer_;
     std::unique_ptr<DebugLineRenderer> debug_renderer_;
+    std::unique_ptr<SkyRenderer> sky_renderer_;
     ImGuiManager imgui_manager_;
 };

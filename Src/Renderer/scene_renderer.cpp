@@ -9,6 +9,7 @@
 #include "../Platform/window.h"
 #include "render_context.h"
 #include "scene.h"
+#include "../Resource/texture_manager.h"
 
 bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQueue* command_queue, uint32_t frame_count)
 {
@@ -18,6 +19,13 @@ bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQue
         return false;
     }
 
+    sky_renderer_ = std::make_unique<SkyRenderer>();
+    if (!sky_renderer_->Initialize(device))
+    {
+        return false;
+    }
+    constexpr std::wstring_view sky_texture_path = L"Assets/Texture/SkyImage.png";
+    sky_renderer_->SetTexture(TextureManager::Get().Load(sky_texture_path.data()));
     sprite_renderer_ = std::make_unique<SpriteRenderer>();
     if (!sprite_renderer_->Initialize(device))
     {
@@ -82,6 +90,7 @@ void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* ca
     mesh_renderer_->Collect();
     mesh_renderer_->Sort();
     mesh_renderer_->Submit(context);
+    sky_renderer_->Render(context);
     
     debug_renderer_->Submit(context);
 
