@@ -20,6 +20,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Src\Core\common.h" />
+    <ClInclude Include="Src\Core\Math\intersect.h" />
     <ClInclude Include="Src\Core\Math\mat.h" />
     <ClInclude Include="Src\Core\Math\my_math.h" />
     <ClInclude Include="Src\Core\Math\quat.h" />
@@ -40,9 +41,14 @@
     <ClInclude Include="Src\Engine\actor.h" />
     <ClInclude Include="Src\Engine\attach_context.h" />
     <ClInclude Include="Src\Engine\camera.h" />
+    <ClInclude Include="Src\Engine\collision_world.h" />
     <ClInclude Include="Src\Engine\component.h" />
     <ClInclude Include="Src\Engine\Components\animation_component.h" />
+    <ClInclude Include="Src\Engine\Components\box_collider_component.h" />
+    <ClInclude Include="Src\Engine\Components\collider_component.h" />
+    <ClInclude Include="Src\Engine\Components\mesh_collider_component.h" />
     <ClInclude Include="Src\Engine\Components\skeletal_mesh.h" />
+    <ClInclude Include="Src\Engine\Components\sphere_collider_componet.h" />
     <ClInclude Include="Src\Engine\Components\sprite_component.h" />
     <ClInclude Include="Src\Engine\Components\static_mesh_component.h" />
     <ClInclude Include="Src\Engine\Components\transform_component.h" />
@@ -103,8 +109,14 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Shaders\skinned.vs.hlsl" />
+    <ClCompile Include="Src\Core\Math\intersect.cpp" />
+    <ClCompile Include="Src\Engine\collision_world.cpp" />
     <ClCompile Include="Src\Engine\Components\animation_component.cpp" />
+    <ClCompile Include="Src\Engine\Components\box_collider_component.cpp" />
+    <ClCompile Include="Src\Engine\Components\collider_component.cpp" />
+    <ClCompile Include="Src\Engine\Components\mesh_collider_component.cpp" />
     <ClCompile Include="Src\Engine\Components\skeletal_mesh.cpp" />
+    <ClCompile Include="Src\Engine\Components\sphere_collider_componet.cpp" />
     <ClCompile Include="Src\Engine\game_instance.cpp" />
     <ClCompile Include="Src\Engine\level_factory.cpp" />
     <ClCompile Include="Src\Engine\level_manager.cpp" />

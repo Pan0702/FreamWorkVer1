@@ -30,4 +30,8 @@ private:
     std::unique_ptr<MaterialSlot> material_slot_;
     std::unique_ptr<MaterialSlot> material_slot_2_;
     std::unique_ptr<MaterialSlot> skeletal_material_slot_;
+    class TransformComponent* collider_test_transform_a_ = nullptr; //ŒÅ’è‘¤‚Ì‹…
+    class TransformComponent* collider_test_transform_b_ = nullptr; //“®‚©‚·‘¤‚Ì‹…
+    float collider_test_radius_a_ = 1.0f;
+    float collider_test_radius_b_ = 1.0f;
 };

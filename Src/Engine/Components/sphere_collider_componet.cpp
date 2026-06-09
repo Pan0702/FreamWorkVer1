@@ -15,11 +15,13 @@ ColliderShape SphereColliderComponent::GetColliderShape() const
     return ColliderShape::kSphere;
 }
 
-void SphereColliderComponent::GetColliderShapeData(Sphere& data)
+Sphere SphereColliderComponent::GetColliderShapeData() const
 {
     Vec3 center, scale;
     TryGetColliderTransform(&center, &scale);
-    const float radius = local_radius_ * (std::max)(scale.x,scale.y,scale.z);
+    const float radius = local_radius_ * (std::max)((std::max)(scale.x,scale.y),scale.z);
+    Sphere data;
     data.center = center;
     data.radius = radius;
+    return data;
 }

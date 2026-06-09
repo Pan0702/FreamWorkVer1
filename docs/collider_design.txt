@@ -1,0 +1,307 @@
+================================================================================
+ 当たり判定 / Collider 設計書（自前・物理エンジン無し）
+ 対象プロジェクト: FreamWorkVer1 (C++ / DirectX 12)
+ ゴール: Actor に Collider を付け、Collider 同士の重なり(Overlap)を
+         「重なり始め(Begin)」「重なり終わり(End)」としてゲーム側へ通知する。
+         ※「接触して止まる」「地面に立つ」は今回のゴールに含めない(押し戻し/
+           接地が必要なため。将来ステップ)。今回は Trigger/Overlap 検出まで。
+ 方針: 物理エンジン(Jolt 等)は導入しない。自前で小さく刻む。
+       ある程度できたら物理エンジン導入を将来検討する。
+       実装ファイルは本人が書く（このドキュメントは規約・指針）。
+================================================================================
+
+--------------------------------------------------------------------------------
+0. 全体像
+--------------------------------------------------------------------------------
+[Actor]
+  -> TransformComponent (position/rotation/scale, Matrix())  ※既存
+  -> ColliderComponent (基底, Transform に追従)
+       ├ SphereColliderComponent
+       ├ BoxColliderComponent   (AABB から開始, OBB は将来)
+       └ MeshColliderComponent  (器だけ用意。実装は Sphere/Box が通った後)
+  -> ColliderComponent が OnAttach/OnDetach で CollisionWorld へ自動 登録/解除
+
+[CollisionWorld]  ← 新設。検出を回す専用クラス
+  -> 毎フレーム DetectOverlaps():
+     (1) 登録 Collider を総当たり(broadphase は将来)で突き合わせ、
+         今フレームの「重なっているペア集合 cur_pairs」を作る ※通知はまだしない
+     (2) prev_pairs と比較して差分を出す:
+           cur にあり prev に無い   -> Begin
+           prev にあり cur に無い   -> End
+     (3) ループを抜けてから Begin/End をまとめて通知(再入性対策。後述)
+     (4) prev_pairs = cur_pairs
+
+[ゲーム側]
+  -> collider->SetOnBeginOverlap([](ColliderComponent* self, ColliderComponent* other){...})
+  -> collider->SetOnEndOverlap  ([](ColliderComponent* self, ColliderComponent* other){...})
+
+既存(触らない)経路:
+  描画系 (MeshRenderer / StaticMeshComponent 等) は一切触らない。
+  Collider は描画と独立。デバッグ可視化のみ Debug::DrawXxx を借りる。
+
+================================================================================
+ 確定した主要な設計判断（サマリ）
+================================================================================
+1.  物理エンジンは導入しない。自前。形状ごとにコンポーネントを分ける(UE5流)。
+2.  Shape 表現 = 形状ごとに別コンポーネント。
+    ColliderComponent(基底) <- Sphere / Box / Mesh ColliderComponent。
+    GetComponent<SphereColliderComponent>() で型で拾える利点を取る。
+3.  ヒット通知 = コールバック(std::function)。**Begin と End の2イベント**。
+    毎フレーム連打しない。前フレームのペア集合との差分で発火する(最重要)。
+    コールバック引数は (self, other) の2つを渡す。
+4.  まず Overlap 検出のみ。押し戻し(MTV)/接地/重力は今回作らない(将来)。
+    => ゴールも「キャラが世界と接触」ではなく「Overlap の Begin/End 検出」まで。
+5.  検出を回す場所 = 専用 CollisionWorld を新設。World 本体は肥大させない。
+    将来の空間分割(最適化)も CollisionWorld に閉じ込める。
+6.  最初に実装する形状は Sphere と AABB(軸並行Box) の2種。
+    MeshCollider は器を用意するが Intersect 実装は後(未実装中は常に false +
+    OnAttach で一度だけ警告)。OBB/Capsule は将来。
+7.  Collider サイズは **ローカル値 × abs(Transform.scale) = ワールドサイズ**。
+    見た目(scale したメッシュ)と当たり判定をズラさないため。負スケールは abs。
+8.  同一 Actor(owner) の Collider 同士は当てない。総当たりで GetOwner() 一致を
+    skip する最小版(フィルタ機構は持たない)。
+9.  TransformComponent が無い Collider は判定対象外。**OnAttach 時に一度だけ**
+    警告を出して判定無効化する(毎フレーム log を吐かない)。原点扱いにはしない
+    (事故を隠さない)。
+10. 当たり判定は描画と独立。座標系は既存(row-vector, 左手)に合わせる。
+
+================================================================================
+ 1. クラス構成
+================================================================================
+
+--- ColliderComponent (基底, Component 派生) -------------------------------------
+責務:
+  - Transform に追従する(owner の TransformComponent から world 中心 と scale を得る)。
+  - 自分の形状種別を返す(判定ディスパッチ用タグ)。
+  - Begin/End コールバックを保持し、検出層から呼ばれる窓口になる。
+  - OnAttach 時に CollisionWorld へ登録、OnDetach 時に解除。
+
+想定インターフェイス(本人が実装):
+  enum class ColliderShape { kSphere, kBox, kMesh };   // 命名規約(k 接頭)に合わせる
+  virtual ColliderShape GetShape() const = 0;          // 派生で返す
+
+  using OverlapCallback = std::function<void(ColliderComponent* self,
+                                             ColliderComponent* other)>;
+  void SetOnBeginOverlap(OverlapCallback cb);
+  void SetOnEndOverlap  (OverlapCallback cb);
+
+  void OnAttach(const AttachContext&) override;        // CollisionWorld へ登録
+  void OnDetach() override;                            // CollisionWorld から解除
+
+  // 共通ヘルパ: owner の TransformComponent を引いて
+  //   - world 中心座標(基本は Transform.position)
+  //   - world scale(abs を取ってサイズ計算に使う)
+  // を返す。TransformComponent が無ければ false を返し、呼び出し側は判定skip。
+  //
+  // Transform 欠落の扱い(レビュー反映): OnAttach 時に owner の
+  //   TransformComponent 有無を一度だけ確認し、無ければ警告ログ + has_transform_
+  //   = false にして以降この Collider を判定対象外にする。DetectOverlaps の
+  //   ループ中は has_transform_ を見て skip するだけ(毎フレーム log は出さない)。
+
+メモ:
+  - GetShape() の enum タグで CollisionWorld 側が二重ディスパッチする
+    (dynamic_cast 連打を避ける)。型が要るときだけ static_cast で降ろす。
+  - Begin/End の実際の発火は CollisionWorld が行う(下記)。Collider 自身は
+    「呼ばれる窓口(コールバック保持)」に徹する。
+  - 形状ローカルオフセット(center)は将来。今は中心 = Transform.position。
+
+--- SphereColliderComponent -----------------------------------------------------
+  - local_radius (float): ローカル半径。
+  - world 半径 = local_radius * max(abs(scale.x), abs(scale.y), abs(scale.z))。
+    非一様 scale 時は **max 軸を採用**(球が一番安全側に膨らむ。割り切り)。
+    ★負スケール対策: 必ず abs を取る(負だと半径が負になり判定が壊れる)。
+  - GetShape() => kSphere
+
+--- BoxColliderComponent --------------------------------------------------------
+  - local_half_extent (Vec3): ローカル各軸の半幅。
+  - world half_extent = local_half_extent * abs(Transform.scale)(成分ごと)。
+    ★負スケール対策: 成分ごとに abs を取る(負だと half_extent が負になり
+    min/max が反転して判定が壊れる)。
+  - まず **AABB** として扱う(回転は無視 = 軸並行)。
+    => world 中心 ± world half_extent で min/max を作る。
+  - GetShape() => kBox
+  ★制限(ユーザー可視・重要):
+    AABB は Transform.rotation を一切反映しない。回転したメッシュに対して
+    当たり判定の箱は回らず軸並行のまま残る。回転キャラに Box を付けると
+    見た目と判定が大きくズレる。回転が要る対象は当面 Sphere を使うこと。
+    OBB(回転Box)対応は将来ステップ。Debug 可視化で必ず箱を描いて目視確認する。
+
+--- MeshColliderComponent (器を用意。Intersect 実装は後) -------------------------
+  - 三角形群 vs 形状の判定。地面/壁など「動かない複雑形状」用途を想定。
+  - GetShape() => kMesh
+  - 注意: Box/Sphere より一段重く複雑(全三角形と判定 -> 実用には BVH 等の
+    broadphase が要る。Mesh 同士の判定は実用上やらない)。
+  - 今回は **クラスの器は用意するが Intersect 実装は後回し**。Sphere/Box の
+    経路が完全に通ってから着手する。
+  ★未実装中の振る舞い(宙ぶらりんを残さないための明示・レビュー反映):
+    - Mesh が絡む組合せ(Mesh-Sphere / Mesh-Box / Mesh-Mesh)は、Intersect が
+      常に **false を返す**(= 当たらない扱い)。黙って何も起きないのではなく
+      「未実装ゆえ当たらない」と定義する。
+    - MeshColliderComponent の OnAttach 時に **一度だけ** 警告ログを出す
+      ("MeshCollider intersect is not implemented yet; treated as no-hit")。
+      これで「登録したのに反応しない」原因が実装者にすぐ分かる。
+    - Mesh 同士(Mesh-Mesh)は将来も実用対象外(常に false のまま)。
+
+--- CollisionWorld (新設。Engine 層) --------------------------------------------
+責務:
+  - ColliderComponent* のリストを保持(Register/Unregister)。
+  - DetectOverlaps() を毎フレーム実行し、Begin/End を発火する。
+  - broadphase(空間分割)は将来。まず総当たりで正しさを優先。
+
+Pair の定義(順序正規化):
+  using Pair = std::pair<ColliderComponent*, ColliderComponent*>;
+  // 正規化: std::less<ColliderComponent*>{}(a, b) ? Pair{a,b} : Pair{b,a}
+  //   生ポインタの大小比較(a<b)は無関係オブジェクト間だと未規定挙動なので、
+  //   必ず std::less<ColliderComponent*> を通す(set のキー比較も同様)。
+  // {a,b} と {b,a} を同一視するため、insert/find 前に必ず正規化する。
+
+保持データ:
+  std::vector<ColliderComponent*> colliders_;        // 登録中
+  std::set<Pair> prev_pairs_;                        // 前フレームの重なりペア集合
+  // 遅延処理用キュー(再入性対策, 下記):
+  std::vector<ColliderComponent*> pending_add_;
+  std::vector<ColliderComponent*> pending_remove_;
+  bool dispatching_ = false;                          // 通知中フラグ
+
+想定インターフェイス:
+  void Register(ColliderComponent*);    // 重複登録は assert+skip。dispatching_ 中は pending_add_ へ
+  void Unregister(ColliderComponent*);  // dispatching_ 中は pending_remove_ へ
+  void DetectOverlaps();                // 毎フレーム呼ばれる
+
+Register の注意(レビュー反映):
+  - 既に colliders_ に居る同じポインタの二重登録は assert で気づけるようにし、
+    重複は skip(挿入しない)。学習用フレームワークでは事故を見えるようにする。
+  - dispatching_ 中の Register は pending_add_ へ。ただし pending_add_ 内/colliders_
+    内の重複もチェックする。
+
+DetectOverlaps() の手順(★ここが今回の肝):
+  前提: この時点で colliders_ は安定(前フレーム末で pending_* 反映済み)。
+  (1) cur_pairs を空で用意。
+  (2) 二重ループで全ペア(i<j)を総当たり:
+        - a=colliders_[i], b=colliders_[j]
+        - a->GetOwner() == b->GetOwner() なら skip(同一 owner 除外)
+        - どちらかが has_transform_ == false なら skip(OnAttach で警告済み、毎フレーム無言)
+        - Intersect(a,b)(GetShape の組合せで分岐)が true なら
+            cur_pairs.insert(正規化Pair(a,b))
+      ※このループ中は **絶対に通知を呼ばない**。集めるだけ。
+  (3) 差分を計算:
+        begins = cur_pairs - prev_pairs_   (cur にあって prev に無い)
+        ends   = prev_pairs_ - cur_pairs   (prev にあって cur に無い)
+  (4) dispatching_ = true にしてから通知:
+        for p in begins: p.first の OnBegin(p.first,p.second) と
+                         p.second の OnBegin(p.second,p.first)
+        for p in ends  : p.first の OnEnd  (p.first,p.second) と
+                         p.second の OnEnd  (p.second,p.first)
+      ※通知中にコールバックが Register/Unregister を呼んでも、
+        colliders_ は直接触らず pending_* に積む(下記)。
+      dispatching_ = false に戻す。
+  (5) pending_* の反映(★順序が重要。ここで破棄ポインタを掃除してから持ち越す):
+      a) prev_pairs_ = std::move(cur_pairs);  // まず今フレームを次フレームの prev に
+      b) for c in pending_remove_:
+           - colliders_ から c を削除
+           - prev_pairs_ から c を含むペアを全削除   ★これを忘れると破棄ポインタ持ち越し
+         pending_remove_ を空に。
+      c) for c in pending_add_: colliders_ へ追加(重複チェック)。pending_add_ を空に。
+      ※(a)→(b) の順なので、cur_pairs に残っていた破棄 Collider のペアも
+        prev_pairs_ から確実に消える。次フレームへ無効ポインタを持ち越さない。
+
+再入性/寿命の要点(レビュー反映):
+  - 総当たりループ中に通知しない(収集してから通知)ので、ループ中に
+    colliders_ が変化して vector が壊れる事故を防ぐ。
+  - 通知中の Register/Unregister は遅延キュー(pending_*)に積み、通知後に反映。
+  - 破棄/Detach による Collider 消滅では **End を通知しない**(割り切り)。
+    理由: 破棄済み Collider* を other として渡すとゲーム側が触りクラッシュする。
+          「離れた(まだ両方生きてる)End」と「片方消えた」は意味が違う。後者は
+          黙って prev_pairs_ から除去する。Unregister/Detach 時に該当ペアを
+          prev_pairs_ から消すことで、次フレームの End 候補からも外れる。
+    => 「Detach 時に Begin と対になる End が来ない」ことは仕様。ゲーム側は
+       Begin で握った相手ポインタを保持し続けない(毎フレーム引き直す)設計にする。
+
+判定ディスパッチ(二重ディスパッチ):
+  GetShape() の組合せで分岐(順不同を吸収):
+    Sphere-Sphere -> 中心間距離 vs 半径和
+    Box-Box       -> AABB vs AABB(各軸 min/max の重なり)
+    Box-Sphere    -> AABB 上の最近接点を球中心から求めて距離判定
+    Mesh-Sphere   -> 未実装: 常に false(将来。OnAttach で警告済み)
+    Mesh-Box      -> 未実装: 常に false(将来)
+    Mesh-Mesh     -> 実用対象外: 常に false
+  各 Intersect は bool を返す純粋関数。未実装の組合せは黙って false ではなく
+  「未実装ゆえ false」と上記で定義済み(MeshCollider の OnAttach 警告とセット)。
+
+================================================================================
+ 2. 層構造 / 既存コードへの繋ぎ込み
+================================================================================
+層の置き場(レビュー反映):
+  - Core(Math) に置くのは **純粋数学だけ**: Aabb / Sphere などの値型と
+    Intersect(Aabb,Aabb) / Intersect(Sphere,Sphere) / Intersect(Aabb,Sphere) の
+    bool 関数。ColliderComponent や CollisionWorld を Core に漏らさない。
+  - ColliderComponent / CollisionWorld は Engine 層。Core の純粋関数を呼ぶ。
+
+CollisionWorld の所有と寿命(レビュー反映):
+  - World が CollisionWorld を 1 つ所有(Collider の寿命 = Actor = World 単位)。
+  - World は CollisionWorld を値 or unique_ptr で持つ。**World はコピー/ムーブ禁止**
+    (= Actor* や CollisionWorld* を外部が握るため、ムーブで実体が動くと
+      ポインタが宙に浮く)。World に delete されたコピー/ムーブを明示する。
+  - AttachContext に入れる CollisionWorld* は「World が生きている間だけ有効」。
+    Collider は OnDetach までに必ず Unregister する(自分より先に World は死なない
+    前提: Level 切替で World を作り直す際は Actor->Detach が先に走る)。
+
+登録経路:
+  - 案A(採用): AttachContext に CollisionWorld* を載せる
+    (RenderSystem 由来の Renderer と同じ流儀)。
+    ColliderComponent::OnAttach(ctx) で ctx.collision_world->Register(this)、
+    OnDetach() で Unregister(this)。既存の「依存は AttachContext で配る」に一致。
+
+Tick 順序:
+  - World::Tick の中で、各 Actor の Tick(= Transform 更新)が終わった **後** に
+    collision_world.DetectOverlaps() を 1 回呼ぶ。末尾で回すのが安全。
+
+================================================================================
+ 3. 実装ステップ(小さく刻む)
+================================================================================
+① Core(Math) に Aabb/Sphere 値型 + Intersect 3 種(bool)の純粋関数。単体で検算可。
+② ColliderComponent(基底) + Sphere/Box/Mesh ColliderComponent の器。
+   GetShape()/local_radius/local_half_extent/Begin・End コールバック/
+   Transform 追従ヘルパ(中心・abs(scale) 取得、欠落で has_transform_=false +
+   OnAttach 一度だけ警告)まで。Mesh は GetShape()=kMesh だけ(Intersect は⑦)。
+   検出はまだ無し。
+③ CollisionWorld 新設。Register/Unregister + colliders_ 保持。
+   DetectOverlaps を Sphere-Sphere だけで実装し、prev_pairs_ 差分で Begin/End。
+   再入性対策(収集->後通知, pending_* 遅延)も最初から入れる(後付けは事故る)。
+   => 検証: 2 球を近づけると Begin が 1 回、離すと End が 1 回(連打しない)。
+④ Box-Box, Box-Sphere の Intersect を足して形状の組合せを埋める。
+⑤ World へ組込み(AttachContext に collision_world、Tick 末尾で DetectOverlaps)。
+   World のコピー/ムーブ禁止を明示。
+⑥ test_level で 2 Actor に Collider、SetOnBeginOverlap/EndOverlap でログ+Debug 描画。
+   Debug::DrawSphere3D / Box でコライダを可視化(回転Box のズレもここで目視)。
+⑦ MeshCollider の Intersect 実装(地面/壁用途)。必要になってから。
+⑧(将来) 押し戻し(MTV), 接地+簡易重力, broadphase(BVH/グリッド), OBB/Capsule, フィルタ。
+
+検証で「通る」もの / まだ「通らない」もの(正直に):
+  ステップ③で検証できるのは Sphere-Sphere の検出 と Begin/End 差分通知だけ。
+  以下は別途、意図して検証が必要:
+    - 登録/解除(OnAttach/OnDetach での Register/Unregister)。二重登録が
+      assert/skip されるか。
+    - Actor 破棄/Level 切替時に **End は出さない**(割り切り)が、prev_pairs_ から
+      破棄ペアが除去され、次フレームに無効ポインタを持ち越さないか(クラッシュ無し)。
+    - 通知中(dispatching_)に Register/Unregister しても colliders_ が壊れず
+      pending_* 経由で正しく反映されるか。
+    - Tick 順序(Transform 更新後に判定されているか)。
+    - TransformComponent 欠落時に skip され、ログが OnAttach 一度きりか。
+    - 同一 owner 除外。
+    - abs(scale) を掛けたサイズが見た目と一致し、負スケールでも壊れないか。
+  ↑「8割検証」とは言わない。経路が通ったら上記を個別に潰す。
+
+================================================================================
+ 4. 今回やらない(将来)
+================================================================================
+- 押し戻し(MTV)/位置補正。Solid 同士でぶつかって止まる挙動。
+- 接地判定 + 簡易重力。「地面に立つ」はここで初めて作れる。
+- MeshCollider の Intersect 実装(クラスの器は今回用意済み、判定は後。BVH 等が要る。
+  未実装中は Mesh が絡む組合せは常に false + OnAttach 一度だけ警告)。
+- broadphase(空間分割: BVH / グリッド / 四分木八分木 等)。まず総当たり。
+- OBB(回転Box) / Capsule。回転対応はここで入る。
+- コリジョンレイヤ/チャンネル/IgnoreList(同一owner除外以上のフィルタ)。
+- 連続衝突判定(CCD)。高速移動のすり抜け対策。
+- 物理エンジン(Jolt 等)の導入。ある程度自前で進んでから再検討。
+================================================================================

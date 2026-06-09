@@ -9,7 +9,7 @@
 
 void CollisionWorld::Collect()
 {
-    std::set<Pair> cur_pairs; //今のフレーム重なってるペア
+    std::set<HitPair> cur_pairs; //今のフレーム重なってるペア
     for (int i = 0; i < colliders_.size(); ++i)
     {
         for (int j = i + 1; j < colliders_.size(); ++j)
@@ -30,28 +30,28 @@ void CollisionWorld::Collect()
 
             if (TestCollision(coll1, coll2))
             {
-                cur_pairs.insert(MakePair(coll1, coll2));
+                cur_pairs.insert(HitPair(coll1, coll2));
             }
         }
     }
     dispatching_ = true;
-    for (const Pair& p : cur_pairs)
+    for (const HitPair& p : cur_pairs)
     {
         // prev に無い
         if (prev_pairs_.find(p) == prev_pairs_.end())
         {
-            p.first->InvokeBeginOverlap(p.second);
-            p.second->InvokeBeginOverlap(p.first);
+            p.collider1->InvokeBeginOverlap(p.collider1);
+            p.collider2->InvokeBeginOverlap(p.collider1);
         }
     }
 
-    for (const Pair& p : prev_pairs_)
+    for (const HitPair& p : prev_pairs_)
     {
         // cur に無い
         if (cur_pairs.find(p) == cur_pairs.end())
         {
-            p.first->InvokeEndOverlap(p.second);
-            p.second->InvokeEndOverlap(p.first);
+            p.collider1->InvokeEndOverlap(p.collider2);
+            p.collider2->InvokeEndOverlap(p.collider1);
         }
     }
     prev_pairs_ = cur_pairs;
@@ -62,9 +62,9 @@ void CollisionWorld::Collect()
     for (ColliderComponent* coll : pending_remove_)
     {
         std::erase(colliders_, coll);
-        std::erase_if(prev_pairs_, [coll](const Pair& p)
+        std::erase_if(prev_pairs_, [coll](const HitPair& p)
         {
-            return p.first == coll || p.second == coll;
+            return p.collider1 == coll || p.collider2 == coll;
         });
     }
     pending_remove_.clear();
@@ -107,6 +107,17 @@ bool CollisionWorld::TestCollision(ColliderComponent* coll1, ColliderComponent* 
         c1->GetColliderShapeData(sphere1);
         c2->GetColliderShapeData(sphere2);
         return Intersect(sphere1, sphere2);
+    }
+    
+    switch (coll1->GetColliderShape())
+    {
+        case ColliderShape::kBox:
+        auto coll1 
+        break;
+        case ColliderShape::kSphere:
+        break;
+        case ColliderShape::kMesh:
+        break;
     }
     return false;
 }

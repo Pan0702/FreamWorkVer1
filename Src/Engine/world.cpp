@@ -18,6 +18,7 @@ void World::UnregisterActor(Actor* actor)
 void World::SetAttachContext(const AttachContext& context)
 {
     attach_context_ = context;
+    attach_context_.collision_world = &collision_world_;
 }
 
 AttachContext World::GetAttachContext() const
@@ -31,4 +32,5 @@ void World::Tick(float dt)
     {
         actor->Tick(dt);
     }
+    collision_world_.Collect();
 }

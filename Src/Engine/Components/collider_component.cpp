@@ -16,23 +16,33 @@ void ColliderComponent::SetOnEndOverlap(OverlapCallback callback)
 
 void ColliderComponent::OnAttach(const AttachContext& context)
 {
+    collision_world_ = context.collision_world;
     Component::OnAttach(context);
     Actor* actor = GetOwner();
     if (!actor || !actor->GetComponent<TransformComponent>())
     {
         has_transform_ = false;
         DEBUG_LOG("ColliderComponent requires TransformComponent");
+    }else
+    {
+        has_transform_ = true;
     }
-    context.collision_world->Register(this);
+    if (collision_world_)
+    {
+        collision_world_->Register(this);
+    }
 }
 
 void ColliderComponent::OnDetach()
 {
     Component::OnDetach();
-    Unregister();
+    if (collision_world_)
+    {
+        collision_world_->Unregister(this);
+    }
 }
 
-bool ColliderComponent::TryGetColliderTransform(Vec3* center, Vec3* abs_scale)
+bool ColliderComponent::TryGetColliderTransform(Vec3* center, Vec3* abs_scale) const
 {
     Actor* actor = GetOwner();
     if (!actor)

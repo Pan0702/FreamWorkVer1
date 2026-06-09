@@ -2,7 +2,7 @@
 #include <vector>
 
 #include "attach_context.h"
-
+#include "collision_world.h"
 class Actor;
 
 /**
@@ -40,4 +40,5 @@ public:
 private:
     std::vector<Actor*> actors_;
     AttachContext attach_context_ = {};
+    CollisionWorld collision_world_;
 };

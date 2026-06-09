@@ -9,7 +9,7 @@ public:
     void SetRadius(float radius);
     float GetRadius() const;
     ColliderShape GetColliderShape() const override;
-    void GetColliderShapeData(Sphere& data);
+    Sphere GetColliderShapeData() const;
 private:
     float local_radius_ = 0.0f;
 };

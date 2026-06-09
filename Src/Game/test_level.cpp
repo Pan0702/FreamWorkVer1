@@ -14,6 +14,7 @@
 #include "../Resource/skeltal_mesh.h"
 #include "../Engine/Components/skeletal_mesh.h"
 #include "../Resource/animator_manager.h"
+#include "../Engine/Components/sphere_collider_componet.h"
 
 TestLevel::TestLevel() = default;
 TestLevel::~TestLevel() = default;
@@ -40,7 +41,7 @@ void TestLevel::OnEnter()
     t2->position = Vec3(3, 0, 0);
     
     SkeletalMesh* sk = SkeletalMeshManager::Get().Load("Assets/Mesh/remy.skmesh");
-    if (sk) // Manager ����������ǂݍ��ݎ��s�Ȃ� nullptr
+    if (sk) // Manager ����������ǂݍ��ݎ��s�Ȃ� nullptr
     {
         skeletal_material_slot_ =
             std::make_unique<MaterialSlot>(sk->GetMaterialDecs());
@@ -48,14 +49,48 @@ void TestLevel::OnEnter()
         auto* ct = c->AddComponent<TransformComponent>();
         c->AddComponent<SkeletalMeshComponent>(sk, skeletal_material_slot_.get());
         ct->rotation = Vec3(0, 180 * kDegToRad, 0);
-        ct->scale = Vec3(0.01f, 0.01f, 0.01f); //Mixamo��cm�P�ʁ���180�P�ʂ̋��l�B0.01�ŏk��
+        ct->scale = Vec3(0.01f, 0.01f, 0.01f); //Mixamo��cm�P�ʁ���180�P�ʂ̋��l�B0.01�ŏk��
         
         auto* sk_mesh_comp = c->AddComponent<AnimationComponent>();
         const std::string gangnam = "gangnam";
         sk_mesh_comp->AddAnimation(gangnam,AnimatorManager::Get().Load("Assets/Mesh/gangnam.anim"),true);
        sk_mesh_comp->Play(gangnam);
     }
-    
+
+    // --- Collider 検証用の2球（確認できたら消してよい） ---
+    // 球A: 固定。原点から少し離して置く
+    {
+        Actor* sa = SpawnActor();
+        collider_test_transform_a_ = sa->AddComponent<TransformComponent>();
+        collider_test_transform_a_->position = Vec3(-3, 2, 0);
+        auto* col = sa->AddComponent<SphereColliderComponent>();
+        col->SetRadius(collider_test_radius_a_);
+        col->SetOnBeginOverlap([](const ColliderComponent*, const ColliderComponent*)
+        {
+            DEBUG_LOG("[Collider] A BeginOverlap");
+        });
+        col->SetOnEndOverlap([](const ColliderComponent*, const ColliderComponent*)
+        {
+            DEBUG_LOG("[Collider] A EndOverlap");
+        });
+    }
+    // 球B: J/L キーで左右に動かして A に近づける
+    {
+        Actor* sb = SpawnActor();
+        collider_test_transform_b_ = sb->AddComponent<TransformComponent>();
+        collider_test_transform_b_->position = Vec3(3, 2, 0);
+        auto* col = sb->AddComponent<SphereColliderComponent>();
+        col->SetRadius(collider_test_radius_b_);
+        col->SetOnBeginOverlap([](const ColliderComponent*, const ColliderComponent*)
+        {
+            DEBUG_LOG("[Collider] B BeginOverlap");
+        });
+        col->SetOnEndOverlap([](const ColliderComponent*, const ColliderComponent*)
+        {
+            DEBUG_LOG("[Collider] B EndOverlap");
+        });
+    }
+
     LevelBase::OnEnter();
 }
 
@@ -82,5 +117,31 @@ void TestLevel::Tick(float dt)
     game_main->GetCamera().pos_ = cameraPos;
     game_main->GetCamera().look_ = target;
     Debug::Get().DrawSphere3D(target, 1.0f, Vec4(1, 0, 0, 1));
+
+    // --- Collider 検証用: 球B を J/L キーで左右に動かす ---
+    if (collider_test_transform_b_)
+    {
+        constexpr float kMoveSpeed = 3.0f;
+        if (game_main->GetInput().CheckKey(InputKey::kJ, KeyState::kDown))
+        {
+            collider_test_transform_b_->position.x -= kMoveSpeed * dt;
+        }
+        if (game_main->GetInput().CheckKey(InputKey::kL, KeyState::kDown))
+        {
+            collider_test_transform_b_->position.x += kMoveSpeed * dt;
+        }
+    }
+    // 2球を可視化（重なりを目で確認する）
+    if (collider_test_transform_a_)
+    {
+        Debug::Get().DrawSphere3D(collider_test_transform_a_->position,
+                                  collider_test_radius_a_, Vec4(0, 1, 0, 1));
+    }
+    if (collider_test_transform_b_)
+    {
+        Debug::Get().DrawSphere3D(collider_test_transform_b_->position,
+                                  collider_test_radius_b_, Vec4(0, 0, 1, 1));
+    }
+
     LevelBase::Tick(dt);
 }
