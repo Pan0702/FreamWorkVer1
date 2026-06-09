@@ -1,9 +1,16 @@
 ﻿#pragma once
 #include "collider_component.h"
-
+#include <vector>
 class MeshColliderComponent : public ColliderComponent
 {
 public:
     ColliderShape GetColliderShape() const override;
     void OnAttach(const AttachContext& context) override;
+    void SetTriangles(std::vector<Vec3> vertices,std::vector<uint32> indices);
+    const std::vector<Vec3>& GetVertices() const;
+    const std::vector<uint32>& GetIndices() const;
+    Mat GetWorldMatrix() const;
+private:
+    std::vector<Vec3> vertices_;
+    std::vector<uint32> indices_;
 };

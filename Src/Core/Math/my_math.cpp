@@ -127,3 +127,9 @@ bool Decompose(const Mat& m, Vec3& s, Quat& r, Vec3& t)
     XMStoreFloat3(&t, trans);
     return true;
 }
+
+float PlaneLength(const Vec4& plane, const Vec3& point)
+{
+    float l = plane.x * point.x + plane.y * point.y + plane.z * point.z + plane.w;
+    return l;
+}

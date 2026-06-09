@@ -4,7 +4,9 @@
 #include <cassert>
 
 #include "../Core/Math/intersect.h"
+#include "Components/box_collider_component.h"
 #include "Components/collider_component.h"
+#include "Components/mesh_collider_component.h"
 #include "Components/sphere_collider_componet.h"
 
 void CollisionWorld::Collect()
@@ -30,7 +32,7 @@ void CollisionWorld::Collect()
 
             if (TestCollision(coll1, coll2))
             {
-                cur_pairs.insert(HitPair(coll1, coll2));
+                cur_pairs.emplace(HitPair(coll1, coll2));
             }
         }
     }
@@ -40,7 +42,7 @@ void CollisionWorld::Collect()
         // prev に無い
         if (prev_pairs_.find(p) == prev_pairs_.end())
         {
-            p.collider1->InvokeBeginOverlap(p.collider1);
+            p.collider1->InvokeBeginOverlap(p.collider2);
             p.collider2->InvokeBeginOverlap(p.collider1);
         }
     }
@@ -103,21 +105,71 @@ bool CollisionWorld::TestCollision(ColliderComponent* coll1, ColliderComponent* 
     {
         auto* c1 = static_cast<SphereColliderComponent*>(coll1);
         auto* c2 = static_cast<SphereColliderComponent*>(coll2);
-        Sphere sphere1, sphere2;
-        c1->GetColliderShapeData(sphere1);
-        c2->GetColliderShapeData(sphere2);
+        Sphere sphere1 = c1->GetColliderShapeData();
+        Sphere sphere2 = c2->GetColliderShapeData();
         return Intersect(sphere1, sphere2);
     }
-    
-    switch (coll1->GetColliderShape())
+
+    if (coll1->GetColliderShape() == ColliderShape::kBox
+        && coll2->GetColliderShape() == ColliderShape::kBox)
     {
-        case ColliderShape::kBox:
-        auto coll1 
-        break;
-        case ColliderShape::kSphere:
-        break;
-        case ColliderShape::kMesh:
-        break;
+        auto* c1 = static_cast<BoxColliderComponent*>(coll1);
+        auto* c2 = static_cast<BoxColliderComponent*>(coll2);
+        Box box1 = c1->GetColliderBoxData();
+        Box box2 = c2->GetColliderBoxData();
+        return Intersect(box1, box2);
+    }
+    
+    if (coll1->GetColliderShape() == ColliderShape::kSphere
+        && coll2->GetColliderShape() == ColliderShape::kBox)
+    {
+        auto* c1 = static_cast<SphereColliderComponent*>(coll1);
+        auto* c2 = static_cast<BoxColliderComponent*>(coll2);
+        Sphere sphere = c1->GetColliderShapeData();
+        Box box = c2->GetColliderBoxData();
+        return Intersect(sphere, box);
+    }
+    if (coll1->GetColliderShape() == ColliderShape::kBox
+        && coll2->GetColliderShape() == ColliderShape::kSphere)
+    {
+        auto* c1 = static_cast<BoxColliderComponent*>(coll1);
+        auto* c2 = static_cast<SphereColliderComponent*>(coll2);
+        Box box = c1->GetColliderBoxData();
+        Sphere sphere = c2->GetColliderShapeData();
+        return Intersect(sphere, box);
+    }
+    
+    if (coll1->GetColliderShape() == ColliderShape::kMesh
+    && coll2->GetColliderShape() == ColliderShape::kSphere)
+    {
+        auto* m  = static_cast<MeshColliderComponent*>(coll1);
+        auto* sp = static_cast<SphereColliderComponent*>(coll2);
+        return IntersectMeshSphere(m, sp->GetColliderShapeData());
+    }
+    if (coll1->GetColliderShape() == ColliderShape::kSphere
+        && coll2->GetColliderShape() == ColliderShape::kMesh)
+    {
+        auto* sp = static_cast<SphereColliderComponent*>(coll1);
+        auto* m  = static_cast<MeshColliderComponent*>(coll2);
+        return IntersectMeshSphere(m, sp->GetColliderShapeData());
+    }
+    return false;
+}
+
+static bool IntersectMeshSphere(const MeshColliderComponent* mesh,const Sphere& sphere)
+{
+    const std::vector<Vec3>& vertices = mesh->GetVertices();
+    const std::vector<uint32>& indices = mesh->GetIndices();
+    const Mat world = mesh->GetWorldMatrix();
+    for (size_t i = 0; i + 2 < indices.size(); i += 3)
+    {
+        const Vec3 a = TransformPoint(world, vertices[indices[i]]);
+        const Vec3 b = TransformPoint(world, vertices[indices[i + 1]]);
+        const Vec3 c = TransformPoint(world, vertices[indices[i + 2]]);
+        if (Intersect(sphere,a,b,c))
+        {
+            return true;
+        }
     }
     return false;
 }

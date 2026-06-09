@@ -11,6 +11,11 @@ class Actor;
 class World
 {
 public:
+    World() = default;
+    World(const World&) = delete;
+    World& operator=(const World&) = delete;
+    World(World&&) = delete;
+    World& operator=(World&&) = delete;
     /**
      * @brief RegisterActor‚ğs‚¤ŠÖ”B
      * @param actor ˆø”B

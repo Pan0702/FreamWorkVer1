@@ -1,5 +1,8 @@
 ﻿#include "box_collider_component.h"
 
+#include "../actor.h"
+#include "../../Core/Math/intersect.h"
+
 void BoxColliderComponent::SetHalfSize(const Vec3& size)
 {
     half_size = size;
@@ -13,4 +16,19 @@ const Vec3& BoxColliderComponent::GetHalfSize() const
 ColliderShape BoxColliderComponent::GetColliderShape() const
 {
     return ColliderShape::kBox;
+}
+
+Box BoxColliderComponent::GetColliderBoxData() const
+{
+    Vec3 center, scale;
+    TryGetColliderTransform(&center, &scale);   // scale は中で abs 済み
+    const Vec3 world_half{
+        half_size.x * scale.x,
+        half_size.y * scale.y,
+        half_size.z * scale.z,
+    };
+    Box box;
+    box.min = center - world_half;
+    box.max = center + world_half;
+    return box;
 }
