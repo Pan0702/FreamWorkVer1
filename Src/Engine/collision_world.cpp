@@ -45,7 +45,7 @@ void CollisionWorld::Collect()
             p.collider1->InvokeBeginOverlap(p.collider2);
             p.collider2->InvokeBeginOverlap(p.collider1);
         }
-    }
+   }
 
     for (const HitPair& p : prev_pairs_)
     {
@@ -153,6 +153,20 @@ bool CollisionWorld::TestCollision(ColliderComponent* coll1, ColliderComponent* 
         auto* m  = static_cast<MeshColliderComponent*>(coll2);
         return IntersectMeshSphere(m, sp->GetColliderShapeData());
     }
+    if (coll1->GetColliderShape() == ColliderShape::kMesh
+        && coll2->GetColliderShape() == ColliderShape::kBox)
+    {
+        auto* m1 = static_cast<MeshColliderComponent*>(coll1);
+        auto* m2 = static_cast<BoxColliderComponent*>(coll2);
+        return IntersectMeshBox(m1, m2->GetColliderBoxData());
+    }
+    if (coll1->GetColliderShape() == ColliderShape::kBox
+    && coll2->GetColliderShape() == ColliderShape::kMesh)
+    {
+        auto* m1 = static_cast<BoxColliderComponent*>(coll1);
+        auto* m2 = static_cast<MeshColliderComponent*>(coll2);
+        return IntersectMeshBox(m2, m1->GetColliderBoxData());
+    }
     return false;
 }
 
@@ -173,3 +187,22 @@ static bool IntersectMeshSphere(const MeshColliderComponent* mesh,const Sphere& 
     }
     return false;
 }
+
+static bool IntersectMeshBox(const MeshColliderComponent* mesh, const Box& box)
+{
+    const std::vector<Vec3>& vertices = mesh->GetVertices();
+    const std::vector<uint32>& indices = mesh->GetIndices();
+    const Mat world = mesh->GetWorldMatrix();
+    for (size_t i = 0; i + 2 < indices.size(); i += 3)
+    {
+        const Vec3 a = TransformPoint(world, vertices[indices[i]]);
+        const Vec3 b = TransformPoint(world, vertices[indices[i + 1]]);
+        const Vec3 c = TransformPoint(world, vertices[indices[i + 2]]);
+        if (Intersect(box,a,b,c))
+        {
+            return true;
+        }
+    }
+    return false;
+}
+

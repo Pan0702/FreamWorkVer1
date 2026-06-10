@@ -3,7 +3,6 @@
 
 #include "attach_context.h"
 #include "collision_world.h"
-class Actor;
 
 /**
  * @brief Worldのデータと処理をまとめる型。

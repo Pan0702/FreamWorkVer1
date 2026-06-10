@@ -4,7 +4,9 @@
 #include <vector>
 
 #include "Components/collider_component.h"
+#include "Components/mesh_collider_component.h"
 
+struct Box;
 class MeshColliderComponent;
 struct Sphere;
 
@@ -53,3 +55,4 @@ private:
 };
 
 static bool IntersectMeshSphere(const MeshColliderComponent* mesh,const Sphere& sphere);
+static bool IntersectMeshBox(const MeshColliderComponent* mesh,const Box& box);

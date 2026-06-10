@@ -103,7 +103,7 @@ bool Intersect(const Box& box, const Vec3& a, const Vec3& b, const Vec3& c)
 
     for (auto axe : axes)
     {
-        if (!HitCheckAxis( a, b, c, axe,box_half_size))
+        if (!HitCheckAxis( ta, tb, tc, axe,box_half_size))
         {
             return false;
         }

@@ -20,6 +20,27 @@ public:
     std::function<void(const ColliderComponent* self, const ColliderComponent* other)>;
     void SetOnBeginOverlap(OverlapCallback callback);
     void SetOnEndOverlap(OverlapCallback callback);
+
+    template <class T>
+    void SetOnBeginOverlap(T* obj, void (T::*fn)(const ColliderComponent*,const ColliderComponent*))
+    {
+        on_begin_ = [obj, fn](const ColliderComponent* s, const
+                              ColliderComponent* o)
+        {
+            (obj->*fn)(s, o);
+        };
+    }
+
+    template <class T>
+    void SetOnEndOverlap(T* obj, void (T::*fn)(const ColliderComponent*, const ColliderComponent*))
+    {
+        on_end_ = [obj, fn](const ColliderComponent* s, const
+                            ColliderComponent* o)
+        {
+            (obj->*fn)(s, o);
+        };
+    }
+
     virtual ColliderShape GetColliderShape() const = 0;
     void OnAttach(const AttachContext& context) override;
     void OnDetach() override;
