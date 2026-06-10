@@ -28,3 +28,5 @@ bool HitCheckSphereSegment(Vec4* hit_vec, const Sphere& sphere, const Vec3& a, c
 bool HitCheckTriangleSegment(Vec4* hit_pos, const Vec3& a, const Vec3& b, const Vec3& c,const Vec3& seg,const Vec3& pos);
 bool TriangleCheckInner(const Vec3& a,const Vec3& b,const Vec3& c,const Vec3& p);
 bool HitCheckPlaneSengment(Vec3* hit_pos, const Vec4& plane, const Vec3& seg,const Vec3& pos);
+
+bool HitCheckAxis(const Vec3& a, const Vec3& b, const Vec3& c, const Vec3& axis,const Vec3& half_size);

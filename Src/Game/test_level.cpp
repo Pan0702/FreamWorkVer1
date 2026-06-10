@@ -43,7 +43,7 @@ void TestLevel::OnEnter()
     t2->position = Vec3(3, 0, 0);
     
     SkeletalMesh* sk = SkeletalMeshManager::Get().Load("Assets/Mesh/remy.skmesh");
-    if (sk) // Manager ����������ǂݍ��ݎ��s�Ȃ� nullptr
+    if (sk)
     {
         skeletal_material_slot_ =
             std::make_unique<MaterialSlot>(sk->GetMaterialDecs());
@@ -51,7 +51,7 @@ void TestLevel::OnEnter()
         auto* ct = c->AddComponent<TransformComponent>();
         c->AddComponent<SkeletalMeshComponent>(sk, skeletal_material_slot_.get());
         ct->rotation = Vec3(0, 180 * kDegToRad, 0);
-        ct->scale = Vec3(0.01f, 0.01f, 0.01f); //Mixamo��cm�P�ʁ���180�P�ʂ̋��l�B0.01�ŏk��
+        ct->scale = Vec3(0.01f, 0.01f, 0.01f); //Mixamo
         
         auto* sk_mesh_comp = c->AddComponent<AnimationComponent>();
         const std::string gangnam = "gangnam";
@@ -154,6 +154,19 @@ void TestLevel::Tick(float dt)
         if (game_main->GetInput().CheckKey(InputKey::kL, KeyState::kDown))
         {
             collider_test_transform_b_->position.x += kMoveSpeed * dt;
+        }
+    }
+    // --- Box を U/O キーで左右に動かす ---
+    if (collider_test_transform_box_)
+    {
+        constexpr float kMoveSpeed = 3.0f;
+        if (game_main->GetInput().CheckKey(InputKey::kU, KeyState::kDown))
+        {
+            collider_test_transform_box_->position.x -= kMoveSpeed * dt;
+        }
+        if (game_main->GetInput().CheckKey(InputKey::kO, KeyState::kDown))
+        {
+            collider_test_transform_box_->position.x += kMoveSpeed * dt;
         }
     }
     // Box と球を可視化（重なりを目で確認する）

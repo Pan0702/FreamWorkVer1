@@ -74,7 +74,41 @@ bool Intersect(const Sphere& s, const Vec3& a, const Vec3& b, const Vec3& c)
 
 bool Intersect(const Box& box, const Vec3& a, const Vec3& b, const Vec3& c)
 {
-    return false;
+    Vec3 box_center = (box.min + box.max) * 0.5f;
+    Vec3 box_half_size = (box.max - box.min) * 0.5f;
+    
+    Vec3 axes[13];
+
+    Vec3 ta = a - box_center;
+    Vec3 tb = b - box_center;
+    Vec3 tc = c - box_center;
+    
+    axes[0] = Vec3(1, 0, 0);
+    axes[1] = Vec3(0, 1, 0);
+    axes[2] = Vec3(0, 0, 1);
+
+    Vec3 e0 = tb - ta;
+    Vec3 e1 = tc - tb;
+    Vec3 e2 = ta - tc;
+    axes[3] = Cross(e1, e0);
+    
+    int index = 4;
+    
+    for (int i = 0; i < 3; i++)
+    {
+        axes[index++] = Cross(axes[i], e0);
+        axes[index++] = Cross(axes[i], e1);
+        axes[index++] = Cross(axes[i], e2);
+    }
+
+    for (auto axe : axes)
+    {
+        if (!HitCheckAxis( a, b, c, axe,box_half_size))
+        {
+            return false;
+        }
+    }
+    return true;
 }
 
 
@@ -204,4 +238,30 @@ bool HitCheckPlaneSengment(Vec3* hit_pos, const Vec4& plane, const Vec3& seg, co
         *hit_pos = pos + Vec * pln_l;
     }
     return true;
+}
+
+bool HitCheckAxis(const Vec3& a, const Vec3& b, const Vec3& c, const Vec3& axis, const Vec3& half_size)
+{
+    if (axis.LengthSquared() < 1e-8f)
+    {
+        return true;
+    }
+    
+    float t = Dot(axis, a);
+    float t1 = Dot(axis, b);
+    float t2 = Dot(axis, c);
+    
+    float tri_max = (std::max)({ t, t1, t2 });
+    float tri_min = (std::min)({ t, t1, t2 });
+    
+    float r = half_size.x *  std::abs(axis.x) + 
+        half_size.y *  std::abs(axis.y) + 
+        half_size.z *  std::abs(axis.z);
+    
+    if (tri_max < -r || tri_min > r)
+    {
+        return false;
+    }
+    return true;
+    
 }
