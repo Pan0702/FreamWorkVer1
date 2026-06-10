@@ -22,19 +22,19 @@ Mesh* MeshManager::Load(const std::string& path)
     {
         return nullptr;
     }
-    
+
     if (auto it = cache_.find(path); it != cache_.end())
     {
         return it->second.get();
     }
-    
-    std::ifstream ifs(path,std::ios::binary);
+
+    std::ifstream ifs(path, std::ios::binary);
     if (!ifs)
     {
         MessageBox(nullptr, L"Failed to read mesh file", L"Error", MB_OK);
         return nullptr;
     }
-    
+
     MeshFileHeader header = {};
     ifs.read(reinterpret_cast<char*>(&header), sizeof(MeshFileHeader));
     if (!ifs)
@@ -65,31 +65,31 @@ Mesh* MeshManager::Load(const std::string& path)
         MessageBoxA(nullptr, "Invalid index stride", "Error", MB_OK);
         return nullptr;
     }
-    
+
     std::vector<StaticVertex> vertices(header.vertex_count);
     std::vector<uint32_t> indices(header.index_count);
-    
+
     ifs.read(reinterpret_cast<char*>(vertices.data()),
-        static_cast<std::streamsize>(header.vertex_count * sizeof(StaticVertex)));
+             static_cast<std::streamsize>(header.vertex_count * sizeof(StaticVertex)));
     ifs.read(reinterpret_cast<char*>(indices.data()),
-        static_cast<std::streamsize>(header.index_count * sizeof(uint32_t)));
-    
+             static_cast<std::streamsize>(header.index_count * sizeof(uint32_t)));
+
     //SubMeshArray
     std::vector<SubMeshEntry> sub_meshes(header.submesh_count);
     if (header.submesh_count > 0)
     {
         ifs.read(reinterpret_cast<char*>(sub_meshes.data()),
-            static_cast<std::streamsize>(header.submesh_count * sizeof(SubMeshEntry)));
+                 static_cast<std::streamsize>(header.submesh_count * sizeof(SubMeshEntry)));
     }
-    
+
     //MaterialArray
     std::vector<MaterialEntry> materials(header.material_count);
     if (header.material_count > 0)
     {
         ifs.read(reinterpret_cast<char*>(materials.data()),
-            static_cast<std::streamsize>(header.material_count * sizeof(MaterialEntry)));
+                 static_cast<std::streamsize>(header.material_count * sizeof(MaterialEntry)));
     }
-    
+
     std::vector<std::wstring> diffuse_paths(header.material_count);
     for (uint32_t i = 0; i < header.material_count; ++i)
     {
@@ -98,30 +98,36 @@ Mesh* MeshManager::Load(const std::string& path)
         {
             diffuse_paths[i].resize(len);
             ifs.read(reinterpret_cast<char*>(diffuse_paths[i].data()),
-                static_cast<std::streamsize>(len * sizeof(wchar_t)));
+                     static_cast<std::streamsize>(len * sizeof(wchar_t)));
         }
     }
     if (!ifs)
     {
         return nullptr;
     }
-    
+
     VertexData vd = {};
     vd.data = vertices.data();
     vd.total_size = header.vertex_count * sizeof(StaticVertex);
     vd.stride = sizeof(StaticVertex);
-    
+
     IndexData id = {};
     id.data = indices.data();
     id.total_size = header.index_count * sizeof(uint32_t);
     id.format = DXGI_FORMAT_R32_UINT;
-    
+
     auto mesh = std::make_unique<Mesh>();
-    if (!mesh->Create(device_, vd, id,kStaticVertexLayout))
+    if (!mesh->Create(device_, vd, id, kStaticVertexLayout))
     {
         return nullptr;
     }
-    
+    std::vector<Vec3> col_pos(header.vertex_count);
+    for (uint32 i = 0; i < header.vertex_count; ++i)
+    {
+        col_pos[i] = Vec3(vertices[i].position[0],vertices[i].position[1],vertices[i].position[2]);
+    }
+    mesh->SetCollisionMesh(std::move(col_pos), std::move(indices));
+
     //Change MaterialEntry -> MeshMaterialDesc
     std::vector<MeshMaterialDesc> descs(header.material_count);
     for (uint32_t i = 0; i < header.material_count; ++i)
@@ -130,7 +136,7 @@ Mesh* MeshManager::Load(const std::string& path)
         descs[i].diffuse_texture_path = diffuse_paths[i].c_str();
     }
     mesh->SetMaterialDescs(descs);
-    
+
     //Change SubMeshEntry -> SubMesh
     std::vector<SubMesh> sub_decs(header.submesh_count);
     for (uint32_t i = 0; i < header.submesh_count; ++i)
@@ -140,8 +146,8 @@ Mesh* MeshManager::Load(const std::string& path)
         sub_decs[i].material_slot = sub_meshes[i].material_slot;
     }
     mesh->SetSubMeshes(sub_decs);
-    
+
     Mesh* result = mesh.get();
     cache_.emplace(path, std::move(mesh));
-    return result;   
+    return result;
 }

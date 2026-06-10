@@ -40,7 +40,7 @@ void TestLevel::OnEnter()
     Actor* a2 = SpawnActor();
     auto* t2 = a2->AddComponent<TransformComponent>();
     a2->AddComponent<StaticMeshComponent>(mesh, material_slot_2_.get());
-    t2->position = Vec3(3, 0, 0);
+    t2->position = Vec3(3, 2, 0);
     
     SkeletalMesh* sk = SkeletalMeshManager::Get().Load("Assets/Mesh/remy.skmesh");
     if (sk)
@@ -78,17 +78,14 @@ void TestLevel::OnEnter()
     }
     // 固定の Mesh(壁quad): x=0 に立てる。動く球Bがここを通過すると Mesh-Sphere が発火
     {
-        Actor* sm = SpawnActor();
-        auto* tm = sm->AddComponent<TransformComponent>();
-        tm->position = Vec3(0, 2, 0);
-        collider_test_mesh_ = sm->AddComponent<MeshColliderComponent>();
+        collider_test_mesh_ = a2->AddComponent<MeshColliderComponent>(mesh2);
 
         // YZ平面の壁（ローカル）。x=0 の面、y,z が ±2 の 2三角形
-        std::vector<Vec3> verts = {
-            Vec3(0, -2, -2), Vec3(0, 2, -2), Vec3(0, 2, 2), Vec3(0, -2, 2),
-        };
-        std::vector<uint32> idx = {0, 1, 2, 0, 2, 3};
-        collider_test_mesh_->SetTriangles(std::move(verts), std::move(idx));
+        // std::vector<Vec3> verts = {
+        //     Vec3(0, -2, -2), Vec3(0, 2, -2), Vec3(0, 2, 2), Vec3(0, -2, 2),
+        // };
+        // std::vector<uint32> idx = {0, 1, 2, 0, 2, 3};
+        // collider_test_mesh_->SetTriangles(std::move(verts), std::move(idx));
 
         collider_test_mesh_->SetOnBeginOverlap([](const ColliderComponent*, const ColliderComponent*)
         {

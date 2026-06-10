@@ -3,6 +3,25 @@
 #include "transform_component.h"
 #include "../actor.h"
 #include "../../Debug/debug.h"
+#include "../../Resource/mesh.h"
+
+MeshColliderComponent::MeshColliderComponent(const Mesh* mesh)
+{
+    if (mesh)
+    {
+        vertices_ = mesh->GetCollisionPositions();
+        indices_  = mesh->GetCollisionIndices();
+    }
+}
+
+void MeshColliderComponent::SetMesh(const Mesh* mesh)
+{
+    if (mesh)
+    {
+        vertices_ = mesh->GetCollisionPositions();
+        indices_  = mesh->GetCollisionIndices();
+    }  
+}
 
 ColliderShape MeshColliderComponent::GetColliderShape() const
 {

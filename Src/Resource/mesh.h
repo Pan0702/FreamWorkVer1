@@ -6,12 +6,14 @@
 #include "../Core/common.h"
 #include "../Graphics/index_buffer.h"
 #include "../Graphics/vertex_buffer.h"
+#include "../Core/Math/my_math.h"
 /**
  * @brief Meshのデータと処理をまとめる型。
  */
 class Mesh
 {
 public:
+    
     /**
      * @brief DirectX 12 リソースを作成する関数。
      * @param device DirectX 12 デバイス。
@@ -20,7 +22,8 @@ public:
      * @param D3D12_INPUT_ELEMENT_DESC 引数。
      * @return 条件を満たす場合は true。
      */
-    bool Create(ID3D12Device* device, VertexData vertex_data, IndexData index_data, std::span<const D3D12_INPUT_ELEMENT_DESC>);
+    bool Create(ID3D12Device* device, VertexData vertex_data, IndexData index_data,
+                std::span<const D3D12_INPUT_ELEMENT_DESC>);
     /**
      * @brief VertexBufferViewを取得する関数。
      * @return 戻り値。
@@ -61,11 +64,29 @@ public:
      * @return 戻り値。
      */
     const std::vector<SubMesh>& GetSubMeshes();
+
+    /**
+     * @brief 
+     * @return collision_positionsを返す。
+     */
+    const std::vector<Vec3>& GetCollisionPositions() const;
+
+    /**
+    * @brief 
+    * @return collision_indicesを返す。
+    */
+    const std::vector<uint32_t>& GetCollisionIndices() const;
+
+    void SetCollisionMesh(std::vector<Vec3> positions, std::vector<uint32> indices);
 private:
     std::unique_ptr<VertexBuffer> vertex_buffer_;
     std::unique_ptr<IndexBuffer> index_buffer_;
     std::vector<D3D12_INPUT_ELEMENT_DESC> input_layout_;
     std::vector<MeshMaterialDesc> material_descs_;
     std::vector<SubMesh> sub_meshes_;
+    std::vector<Vec3> collision_positions_;
+    std::vector<uint32_t> collision_indices_;
     uint32_t index_count_ = 0;
 };
+
+

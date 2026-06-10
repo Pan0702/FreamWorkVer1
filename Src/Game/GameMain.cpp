@@ -36,7 +36,7 @@ namespace
         float t = static_cast<float>(current.QuadPart - last.QuadPart) / freq.QuadPart;
         float t2 = t;
         
-        // deltaTime‚ÍA•½‹ÏƒtƒŒ[ƒ€ƒŒ[ƒg‚Ì3”{‚ð’´‚¦‚È‚¢‚æ‚¤‚É§ŒÀ‚·‚éiƒXƒpƒCƒN‘Îôj
+        // deltaTimeï¿½ÍAï¿½ï¿½ï¿½Ïƒtï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½gï¿½ï¿½3ï¿½{ï¿½ð’´‚ï¿½ï¿½È‚ï¿½ï¿½æ‚¤ï¿½Éï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½iï¿½Xï¿½pï¿½Cï¿½Nï¿½Îï¿½j
         if (recCount >= REC_SIZE)
         {
             float sum = 0;
@@ -147,21 +147,6 @@ void GameMain::Run()
 
         if (profile_timer >= 1.0 && frame_count > 0)
         {
-            const double inv_frames = 1.0 / static_cast<double>(frame_count);
-            Debug::Get().Log(
-                "[Profile] fps=%.1f frame=%.3fms msg=%.3fms tick=%.3fms input=%.3fms game_tick=%.3fms render=%.3fms present=%.3fms gpu_wait=%.3fms messages/frame=%.2f key_messages=%u",
-                static_cast<double>(frame_count) / profile_timer,
-                frame_ms_sum * inv_frames,
-                message_ms_sum * inv_frames,
-                tick_ms_sum * inv_frames,
-                input_ms_sum * inv_frames,
-                game_tick_ms_sum * inv_frames,
-                render_ms_sum * inv_frames,
-                present_ms_sum * inv_frames,
-                gpu_wait_ms_sum * inv_frames,
-                static_cast<double>(message_count) * inv_frames,
-                key_message_count);
-
             profile_timer = 0.0;
             frame_ms_sum = 0.0;
             message_ms_sum = 0.0;

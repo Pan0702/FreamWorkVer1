@@ -66,3 +66,19 @@ const std::vector<SubMesh>& Mesh::GetSubMeshes()
 {
     return sub_meshes_;
 }
+
+const std::vector<Vec3>& Mesh::GetCollisionPositions() const
+{
+    return collision_positions_;
+}
+
+const std::vector<uint32_t>& Mesh::GetCollisionIndices() const
+{
+    return collision_indices_;
+}
+
+ void Mesh::SetCollisionMesh(std::vector<Vec3> positions, std::vector<uint32> indices)
+{
+    collision_positions_ = std::move(positions);
+    collision_indices_ = std::move(indices);
+}
