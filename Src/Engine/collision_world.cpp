@@ -153,6 +153,21 @@ bool CollisionWorld::TestCollision(ColliderComponent* coll1, ColliderComponent* 
         auto* m = static_cast<MeshColliderComponent*>(coll2);
         return IntersectMeshSphere(m, sp->GetColliderShapeData());
     }
+    if (coll1->GetColliderShape() == ColliderShape::kMesh
+    && coll2->GetColliderShape() == ColliderShape::kBox)
+    {
+        auto* m = static_cast<MeshColliderComponent*>(coll1);
+        auto* box = static_cast<BoxColliderComponent*>(coll2);
+        return IntersectMeshCube(m, box->GetColliderBoxData());
+    }
+
+    if (coll1->GetColliderShape() == ColliderShape::kBox
+        && coll2->GetColliderShape() == ColliderShape::kMesh)
+    {
+        auto* box = static_cast<BoxColliderComponent*>(coll1);
+        auto* m = static_cast<MeshColliderComponent*>(coll2);
+        return IntersectMeshCube(m, box->GetColliderBoxData());
+    }
     return false;
 }
 
@@ -174,7 +189,7 @@ static bool IntersectMeshSphere(const MeshColliderComponent* mesh, const Sphere&
     return false;
 }
 
-bool IntersectMeshCube(const MeshColliderComponent* mesh, const Box& box)
+static bool IntersectMeshCube(const MeshColliderComponent* mesh, const Box& box)
 {
     const std::vector<Vec3>& vertices = mesh->GetVertices();
     const std::vector<uint32>& indices = mesh->GetIndices();
@@ -189,6 +204,7 @@ bool IntersectMeshCube(const MeshColliderComponent* mesh, const Box& box)
             return true;
         }
     }
+    return false;   
 }
 
 bool ContactMeshSphere(const MeshColliderComponent* mesh, const Sphere& sphere1, ContactInfo& out)

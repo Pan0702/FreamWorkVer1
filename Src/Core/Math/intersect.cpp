@@ -288,7 +288,7 @@ bool Contact(const Sphere& s1, const Sphere& s2, ContactInfo& out)
 bool Contact(const Sphere& s, const Box& box, ContactInfo& out)
 {
     Vec3 closest = ClosestPointOnBox(s.center, box);
-    Vec3 d = closest - s.center;
+    Vec3 d = s.center - closest;
     float dist2 = Dot(d, d);
 
     if (dist2 > s.radius * s.radius)
