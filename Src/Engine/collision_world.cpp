@@ -167,6 +167,9 @@ bool CollisionWorld::TestCollision(ColliderComponent* coll1, ColliderComponent* 
         auto* m2 = static_cast<MeshColliderComponent*>(coll2);
         return IntersectMeshBox(m2, m1->GetColliderBoxData());
     }
+    // Mesh×Mesh は意図的に非対応。メッシュコライダーは静的な world ジオメトリ用で、
+    // 動的メッシュ同士の判定は重い割に用途が乏しいため、ここには分岐を足さず false を返す。
+    // 必要になったら BVH 等の高速化を入れてから対応する。
     return false;
 }
 

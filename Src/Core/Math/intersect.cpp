@@ -31,11 +31,16 @@ bool Intersect(const Sphere& sphere1, const Sphere& sphere2)
 
 bool Intersect(const Sphere& sphere, const Box& box)
 {
-    Vec3 closest;
-    closest.x = std::clamp(sphere.center.x, box.min.x, box.max.x);
-    closest.y = std::clamp(sphere.center.y, box.min.y, box.max.y);
-    closest.z = std::clamp(sphere.center.z, box.min.z, box.max.z);
+    Vec3 closest = ClosestPointOnBox(sphere.center, box);
     return DistanceSquared(closest, sphere.center) <= sphere.radius * sphere.radius;
+}
+
+Vec3 ClosestPointOnBox(const Vec3& p, const Box& box)
+{
+    return Vec3(
+        std::clamp(p.x, box.min.x, box.max.x),
+        std::clamp(p.y, box.min.y, box.max.y),
+        std::clamp(p.z, box.min.z, box.max.z));
 }
 
 bool Intersect(const Box& box1, const Box& box2)
@@ -65,7 +70,7 @@ bool Intersect(const Sphere& s, const Vec3& a, const Vec3& b, const Vec3& c)
     {
         return true;
     }
-     
+
     //球が三角形の中心にめり込むか？
     Vec3 vec = Vec3(-plane.x * s.radius, -plane.y * s.radius, -plane.z * s.radius);
 
@@ -76,13 +81,13 @@ bool Intersect(const Box& box, const Vec3& a, const Vec3& b, const Vec3& c)
 {
     Vec3 box_center = (box.min + box.max) * 0.5f;
     Vec3 box_half_size = (box.max - box.min) * 0.5f;
-    
+
     Vec3 axes[13];
 
     Vec3 ta = a - box_center;
     Vec3 tb = b - box_center;
     Vec3 tc = c - box_center;
-    
+
     axes[0] = Vec3(1, 0, 0);
     axes[1] = Vec3(0, 1, 0);
     axes[2] = Vec3(0, 0, 1);
@@ -91,9 +96,9 @@ bool Intersect(const Box& box, const Vec3& a, const Vec3& b, const Vec3& c)
     Vec3 e1 = tc - tb;
     Vec3 e2 = ta - tc;
     axes[3] = Cross(e1, e0);
-    
+
     int index = 4;
-    
+
     for (int i = 0; i < 3; i++)
     {
         axes[index++] = Cross(axes[i], e0);
@@ -103,14 +108,13 @@ bool Intersect(const Box& box, const Vec3& a, const Vec3& b, const Vec3& c)
 
     for (auto axe : axes)
     {
-        if (!HitCheckAxis( ta, tb, tc, axe,box_half_size))
+        if (!HitCheckAxis(ta, tb, tc, axe, box_half_size))
         {
             return false;
         }
     }
     return true;
 }
-
 
 
 bool HitCheckPlaneSphere(Vec4* hit_vec, const Vec4& plane, const Sphere& sphere)
@@ -154,7 +158,7 @@ bool HitCheckSphereSegment(Vec4* hit_vec, const Sphere& sphere, const Vec3& a, c
         t = t1;
     }
 
-    if (t > 1.0f)  
+    if (t > 1.0f)
     {
         return false;
     }
@@ -165,22 +169,24 @@ bool HitCheckSphereSegment(Vec4* hit_vec, const Sphere& sphere, const Vec3& a, c
     }
     return true;
 }
+
 bool HitCheckTriangleSegment(Vec4* hit_pos, const Vec3& a, const Vec3& b, const Vec3& c,
-    const Vec3& seg,const Vec3& pos)
+                             const Vec3& seg, const Vec3& pos)
 {
     Vec4 plane = PlaneSet(a, b, c);
     Vec3 hit_tmp;
     //三角形を含む平面と線分で確認
-    if (!HitCheckPlaneSengment(&hit_tmp,plane,seg,pos))
+    if (!HitCheckPlaneSengment(&hit_tmp, plane, seg, pos))
     {
         return false;
     }
-    
+
     // 交点が三角形内部に存在するか確認する
-    if (!TriangleCheckInner(a,b,c,hit_tmp))
+    if (!TriangleCheckInner(a, b, c, hit_tmp))
     {
         return false;
-    }else
+    }
+    else
     {
         if (hit_pos)
         {
@@ -196,17 +202,17 @@ bool TriangleCheckInner(const Vec3& a, const Vec3& b, const Vec3& c, const Vec3&
     Vec3 vt0 = a - p;
     Vec3 vt1 = b - p;
     Vec3 vt2 = c - p;
-    
+
     // 三角形の辺をなぞるベクトルを作成
     Vec3 v0 = b - a;
     Vec3 v1 = c - b;
     Vec3 v2 = a - c;
-    
+
     // 各外戚を求める
-    Vec3 c0 = Cross(vt0,v0);
-    Vec3 c1 = Cross(vt1,v1);
-    Vec3 c2 = Cross(vt2,v2);
-    
+    Vec3 c0 = Cross(vt0, v0);
+    Vec3 c1 = Cross(vt1, v1);
+    Vec3 c2 = Cross(vt2, v2);
+
     // 外積の向きがそろっているかチェック
     float dot0 = Dot(c0, c1);
     float dot1 = Dot(c1, c2);
@@ -227,7 +233,7 @@ bool HitCheckPlaneSengment(Vec3* hit_pos, const Vec4& plane, const Vec3& seg, co
     Vec4 Vec = Vec4(seg * (1.0f / vec_l));
     // 線分ベクトルを正規化
     float t = Dot(-plane, Vec);
-    
+
     float pln_l = l / t;
     if (pln_l > vec_l)
     {
@@ -246,22 +252,168 @@ bool HitCheckAxis(const Vec3& a, const Vec3& b, const Vec3& c, const Vec3& axis,
     {
         return true;
     }
-    
+
     float t = Dot(axis, a);
     float t1 = Dot(axis, b);
     float t2 = Dot(axis, c);
-    
-    float tri_max = (std::max)({ t, t1, t2 });
-    float tri_min = (std::min)({ t, t1, t2 });
-    
-    float r = half_size.x *  std::abs(axis.x) + 
-        half_size.y *  std::abs(axis.y) + 
-        half_size.z *  std::abs(axis.z);
-    
+
+    float tri_max = (std::max)({t, t1, t2});
+    float tri_min = (std::min)({t, t1, t2});
+
+    float r = half_size.x * std::abs(axis.x) +
+        half_size.y * std::abs(axis.y) +
+        half_size.z * std::abs(axis.z);
+
     if (tri_max < -r || tri_min > r)
     {
         return false;
     }
     return true;
-    
+}
+
+bool Contact(const Sphere& s1, const Sphere& s2, ContactInfo& out)
+{
+    Vec3 d = s1.center - s2.center;
+    float r = s1.radius + s2.radius;
+    float l = d.Length();
+    if (l > r)
+    {
+        return false;
+    }
+    out.normal = (l > 1e-6f) ? d / l : Vec3(0, 1, 0);
+    out.depth = r - l;
+    return true;
+}
+
+bool Contact(const Sphere& s, const Box& box, ContactInfo& out)
+{
+    Vec3 closest = ClosestPointOnBox(s.center, box);
+    Vec3 d = closest - s.center;
+    float dist2 = Dot(d, d);
+
+    if (dist2 > s.radius * s.radius)
+    {
+        return false;
+    }
+
+    if (dist2 > 1e-12f)
+    {
+        float dist = sqrtf(dist2);
+        out.normal = d / dist;
+        out.depth = s.radius - dist;
+    }
+    else
+    {
+        float dx_min = s.center.x - box.min.x; // -x 面まで
+        float dx_max = box.max.x - s.center.x; // +x 面まで
+        float dy_min = s.center.y - box.min.y;
+        float dy_max = box.max.y - s.center.y;
+        float dz_min = s.center.z - box.min.z;
+        float dz_max = box.max.z - s.center.z;
+
+        // 6面のうち一番近い面を探す
+        float best = dx_min;
+        out.normal = Vec3(-1, 0, 0);
+        if (dx_max < best)
+        {
+            best = dx_max;
+            out.normal = Vec3(1, 0, 0);
+        }
+        if (dy_min < best)
+        {
+            best = dy_min;
+            out.normal = Vec3(0, -1, 0);
+        }
+        if (dy_max < best)
+        {
+            best = dy_max;
+            out.normal = Vec3(0, 1, 0);
+        }
+        if (dz_min < best)
+        {
+            best = dz_min;
+            out.normal = Vec3(0, 0, -1);
+        }
+        if (dz_max < best)
+        {
+            best = dz_max;
+            out.normal = Vec3(0, 0, 1);
+        }
+
+
+        out.depth = s.radius + best;
+    }
+    return true;
+}
+
+bool Contact(const Sphere& s, const Vec3& a, const Vec3& b, const Vec3& c, ContactInfo& out)
+{
+    Vec3 q = ClosestPointOnTriangle(s.center, a, b, c);
+    Vec3 d = s.center - q; // 三角形
+
+    float dist2 = Dot(d, d);
+
+    if (dist2 > s.radius * s.radius)
+    {
+        return false;
+    }
+    float dist = sqrtf(dist2);
+    if (dist > 1e-6f)
+    {
+        out.normal = d / dist;
+    }
+    else
+    {
+        // 中心がちょうど三角形上：面の法線で代用
+        out.normal = Cross(b - a, c - a).Normalized();
+    }
+    out.depth = s.radius - dist;
+    return true;
+}
+
+Vec3 ClosestPointOnTriangle(const Vec3& p, const Vec3& a, const Vec3& b, const Vec3& c)
+{
+    // 頂点a が最近接
+    Vec3 ab = b - a, ac = c - a, ap = p - a;
+    float d1 = Dot(ab, ap), d2 = Dot(ac, ap);
+    if (d1 <= 0 && d2 <= 0) return a;
+
+    // 頂点b
+    Vec3 bp = p - b;
+    float d3 = Dot(ab, bp), d4 = Dot(ac, bp);
+    if (d3 >= 0 && d4 <= d3) return b;
+
+    // 頂点c
+    Vec3 cp = p - c;
+    float d5 = Dot(ab, cp), d6 = Dot(ac, cp);
+    if (d6 >= 0 && d5 <= d6) return c;
+
+    // 辺ab 上
+    float vc = d1 * d4 - d3 * d2;
+    if (vc <= 0 && d1 >= 0 && d3 <= 0)
+    {
+        float v = d1 / (d1 - d3);
+        return a + ab * v;
+    }
+
+    // 辺ac 上
+    float vb = d5 * d2 - d1 * d6;
+    if (vb <= 0 && d2 >= 0 && d6 <= 0)
+    {
+        float w = d2 / (d2 - d6);
+        return a + ac * w;
+    }
+
+    // 辺bc 上
+    float va = d3 * d6 - d5 * d4;
+    if (va <= 0 && (d4 - d3) >= 0 && (d5 - d6) >= 0)
+    {
+        float w = (d4 - d3) / ((d4 - d3) + (d5 - d6));
+        return b + (c - b) * w;
+    }
+
+    // 面の内側（重心座標で復元）
+    float denom = 1.0f / (va + vb + vc);
+    float v = vb * denom, w = vc * denom;
+    return a + ab * v + ac * w;
 }
