@@ -56,3 +56,4 @@ private:
 
 static bool IntersectMeshSphere(const MeshColliderComponent* mesh,const Sphere& sphere);
 static bool IntersectMeshBox(const MeshColliderComponent* mesh,const Box& box);
+static bool ContactMeshSphere(const MeshColliderComponent* mesh,const Sphere& sphere1);
