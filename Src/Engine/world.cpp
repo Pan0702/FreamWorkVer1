@@ -33,4 +33,5 @@ void World::Tick(float dt)
         actor->Tick(dt);
     }
     collision_world_.Collect();
+    collision_world_.DrawDebug();
 }

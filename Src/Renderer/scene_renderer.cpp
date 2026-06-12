@@ -55,7 +55,6 @@ bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQue
 void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* camera)
 {
     (void)world;
-    imgui_manager_.BeginFrame();
    // ImGui::ShowDemoWindow();
     BeginRenderTarget(renderer_data);
 
@@ -134,6 +133,11 @@ SkinnedMeshRenderer* SceneRenderer::GetSkinnedMeshRenderer() const
 DebugLineRenderer* SceneRenderer::GetDebugLineRenderer() const
 {
     return debug_renderer_.get();
+}
+
+ImGuiManager& SceneRenderer::GetImGuiManager()
+{
+    return imgui_manager_;
 }
 
 void SceneRenderer::BeginRenderTarget(const RendererData& renderer_data)

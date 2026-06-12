@@ -8,6 +8,8 @@ public:
     const Vec3& GetHalfSize() const;
     ColliderShape GetColliderShape() const override;
     Box GetColliderBoxData() const;
+
 private:
+    void DrawDebug() const override;
     Vec3 half_size = {0,0,0};
 };

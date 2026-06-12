@@ -41,6 +41,19 @@ public:
      */
     void Tick(float dt);
 
+    template<class T = Actor>
+T* FindActor()
+    {
+        static_assert(std::is_base_of_v<Actor, T>);
+        for (auto& actor : actors_)
+        {
+            if (auto* result = dynamic_cast<T*>(actor))
+            {
+                return result;
+            }
+        }
+        return nullptr;
+    }
 private:
     std::vector<Actor*> actors_;
     AttachContext attach_context_ = {};

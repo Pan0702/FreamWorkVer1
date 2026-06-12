@@ -81,6 +81,8 @@ public:
      * @return –ß‚è’lB
      */
     DebugLineRenderer* GetDebugLineRenderer() const;
+    
+    ImGuiManager& GetImGuiManager();
 
 private:
     /**

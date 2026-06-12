@@ -2,15 +2,17 @@
 #include "../Engine/actor.h"
 #include "../Engine/Components/transform_component.h"
 #include "../Engine/Components/static_mesh_component.h"
-#include "../Resource/mesh_manager.h"
+
 #include "../Resource/material.h"
 #include "../Resource/material_slot.h"
 #include "../Resource/texture_manager.h"
+#include "../Resource/mesh_manager.h"
+#include "../Resource/skeltal_mesh_manager.h"
 #include "GameMain.h"
 #include "../Debug/debug.h"
 #include "../Debug/ImGui/imgui.h"
 #include "../Engine/Components/animation_component.h"
-#include "../Resource/skeltal_mesh_manager.h"
+#include "../Engine/level_manager.h"
 #include "../Resource/skeltal_mesh.h"
 #include "../Engine/Components/skeletal_mesh.h"
 #include "../Resource/animator_manager.h"
@@ -29,7 +31,7 @@ void TestLevel::OnEnter()
     material_slot_->GetMaterial(0)->SetNormal(TextureManager::Get().Load(L"Assets/Texture/NormalMap.png"));
     
     Actor* a = SpawnActor();
-    auto* t = a->AddComponent<TransformComponent>();
+    auto* t = &a->GetTransform();
     a->AddComponent<StaticMeshComponent>(mesh, material_slot_.get());
     t->position = Vec3(0, 0, 0);
     
@@ -38,7 +40,7 @@ void TestLevel::OnEnter()
     material_slot_2_->GetMaterial(0)->SetDiffuse(TextureManager::Get().Load(L"Assets/Texture/NormalMap.png"));
     
     Actor* a2 = SpawnActor();
-    auto* t2 = a2->AddComponent<TransformComponent>();
+    auto* t2 = &a2->GetTransform();
     a2->AddComponent<StaticMeshComponent>(mesh, material_slot_2_.get());
     t2->position = Vec3(3, 2, 0);
     
@@ -48,14 +50,14 @@ void TestLevel::OnEnter()
         skeletal_material_slot_ =
             std::make_unique<MaterialSlot>(sk->GetMaterialDecs());
         Actor* c = SpawnActor();
-        auto* ct = c->AddComponent<TransformComponent>();
+        auto* ct = &c->GetTransform();
         c->AddComponent<SkeletalMeshComponent>(sk, skeletal_material_slot_.get());
         ct->rotation = Vec3(0, 180 * kDegToRad, 0);
         ct->scale = Vec3(0.01f, 0.01f, 0.01f); //Mixamo
         
         auto* sk_mesh_comp = c->AddComponent<AnimationComponent>();
         const std::string gangnam = "gangnam";
-        sk_mesh_comp->AddAnimation(gangnam,AnimatorManager::Get().Load("Assets/Mesh/gangnam.anim"),true);
+        sk_mesh_comp->AddAnimation(gangnam,AnimatorManager::Get().Load("Assets/Animation/gangnam.anim"),true);
        sk_mesh_comp->Play(gangnam);
     }
 
@@ -63,7 +65,7 @@ void TestLevel::OnEnter()
     // 固定の Box: 原点から離して置く。動く球Bをここに突っ込ませて box-sphere を実走させる
     {
         Actor* sbox = SpawnActor();
-        collider_test_transform_box_ = sbox->AddComponent<TransformComponent>();
+        collider_test_transform_box_ = &sbox->GetTransform();
         collider_test_transform_box_->position = Vec3(-3, 2, 0);
         auto* col = sbox->AddComponent<BoxColliderComponent>();
         col->SetHalfSize(collider_test_box_half_);
@@ -99,7 +101,7 @@ void TestLevel::OnEnter()
     // 球B: J/L キーで左右に動かして Box に近づける
     {
         Actor* sb = SpawnActor();
-        collider_test_transform_b_ = sb->AddComponent<TransformComponent>();
+        collider_test_transform_b_ = &sb->GetTransform();
         collider_test_transform_b_->position = Vec3(3, 2, 0);
         auto* col = sb->AddComponent<SphereColliderComponent>();
         col->SetRadius(collider_test_radius_b_);
@@ -118,6 +120,10 @@ void TestLevel::OnEnter()
 
 void TestLevel::Tick(float dt)
 {
+    if (game_main->GetInput().CheckKey(InputKey::kEnter, KeyState::kDown))
+    {
+        game_main->GetApplication().GetLevelManager().OpenLevel("Play");
+    }
     static float num = 0;
     float radius = 5.0f;
     static Vec3 target = Vec3(0, 0, 0);

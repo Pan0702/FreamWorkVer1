@@ -4,6 +4,7 @@
 #include "../Graphics/depth_stencil.h"
 #include "../Resource/texture_manager.h"
 #include "../Debug/debug.h"
+#include "../Renderer/scene_renderer.h"
 #include "../Resource/mesh_manager.h"
 #include "../Resource/skeltal_mesh_manager.h"
 #include "../Resource/animator_manager.h"
@@ -180,6 +181,7 @@ void GameMain::Shutdown()
 void GameMain::Tick()
 {
     delta_time_ = ClacDeltaTime();
+    render_system_->GetSceneRenderer()->GetImGuiManager().BeginFrame();
     LARGE_INTEGER input_begin = {};
     LARGE_INTEGER input_end = {};
     LARGE_INTEGER tick_end = {};

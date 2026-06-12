@@ -32,3 +32,13 @@ Box BoxColliderComponent::GetColliderBoxData() const
     box.max = center + world_half;
     return box;
 }
+
+void BoxColliderComponent::DrawDebug() const
+{
+    Box box = GetColliderBoxData();
+    
+    Vec3 center = (box.min + box.max) * kHalfSize;
+    Vec3 size = (box.max - box.min) * kHalfSize;
+    Debug::Get().DrawBox3D(center, size, color_,Vec3(0,0,0));
+}
+

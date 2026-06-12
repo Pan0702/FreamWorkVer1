@@ -14,7 +14,9 @@ public:
     const std::vector<Vec3>& GetVertices() const;
     const std::vector<uint32>& GetIndices() const;
     Mat GetWorldMatrix() const;
+
 private:
+    void DrawDebug() const override;
     std::vector<Vec3> vertices_;
     std::vector<uint32> indices_;
 };

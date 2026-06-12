@@ -25,3 +25,11 @@ Sphere SphereColliderComponent::GetColliderShapeData() const
     data.radius = radius;
     return data;
 }
+
+void SphereColliderComponent::DrawDebug() const
+{
+    Sphere s = GetColliderShapeData();
+    Debug::Get().DrawSphere3D(s.center,s.radius,color_);
+}
+
+

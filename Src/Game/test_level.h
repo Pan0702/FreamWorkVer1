@@ -3,8 +3,7 @@
 #include "../Engine/level_base.h"
 #include "../Core/Math/my_math.h"
 #include "../Resource/material.h"
-#include "../Resource/material_slot.h"  // MaterialSlot �̊��S�Ȓ�`���g�����߂ɕK�v�B
-
+#include "../Resource/material_slot.h"  
 class MaterialSlot;
 
 /**
@@ -31,7 +30,7 @@ private:
     std::unique_ptr<MaterialSlot> material_slot_;
     std::unique_ptr<MaterialSlot> material_slot_2_;
     std::unique_ptr<MaterialSlot> skeletal_material_slot_;
-    class TransformComponent* collider_test_transform_box_ = nullptr; //固定側のBox
+    class TransformComponent* collider_test_transform_box_ = nullptr; 
     class TransformComponent* collider_test_transform_b_ = nullptr;   //動かす側の球
     class MeshColliderComponent* collider_test_mesh_ = nullptr;       //固定側のMesh(壁quad)
     Vec3 collider_test_box_half_ = {1.0f, 1.0f, 1.0f};                //Boxのローカル半幅

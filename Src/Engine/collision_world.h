@@ -17,7 +17,7 @@ struct HitPair
 
     HitPair(ColliderComponent* a, ColliderComponent* b)
     {
-        // 生ポインタの < は未規定。必ず std::less を通す
+        // 生ポインタの < は未規定。必ず std::less を通す//
         if (std::less<ColliderComponent*>{}(a, b))
         {
             collider1 = a;
@@ -44,16 +44,17 @@ public:
     void Collect();
     void Register(ColliderComponent* coll);
     void Unregister(ColliderComponent* coll);
-    bool TestCollision(ColliderComponent* coll1, ColliderComponent* coll2);
-
+    bool ComputeContact(ColliderComponent* coll1, ColliderComponent* coll2, ContactInfo& out);
+    void DrawDebug();
+    
 private:
-    std::vector<ColliderComponent*> colliders_; //Colliderの配列
-    std::set<HitPair> prev_pairs_; //前フレーム重なってたペア
-    std::vector<ColliderComponent*> pending_add_; //登録用の待機列
-    std::vector<ColliderComponent*> pending_remove_; //解除用の待機列
-    bool dispatching_ = false; //コールバック呼び出しFlag
+    std::vector<ColliderComponent*> colliders_; //Colliderの配列 //
+    std::set<HitPair> prev_pairs_; //前フレーム重なってたペア //
+    std::vector<ColliderComponent*> pending_add_; //登録用の待機列 //
+    std::vector<ColliderComponent*> pending_remove_; //解除用の待機列 //
+    std::vector<ColliderComponent*> debug_objects_;
+    bool dispatching_ = false; //コールバック呼び出しFlag//
 };
 
-static bool IntersectMeshSphere(const MeshColliderComponent* mesh,const Sphere& sphere);
-static bool IntersectMeshCube(const MeshColliderComponent* mesh,const Box& box);
-static bool ContactMeshSphere(const MeshColliderComponent* mesh,const Sphere& sphere1);
+static bool ContactMeshSphere(const MeshColliderComponent* mesh, const Sphere& sphere1, ContactInfo& out);
+static bool ContactMeshBox(const MeshColliderComponent* mesh, const Box& box, ContactInfo& out);

@@ -6,6 +6,12 @@
 #include "world.h"
 #include "attach_context.h"
 #include "component.h"
+#include "Components/transform_component.h"
+#include "../Resource/material_slot.h"
+#include "../Resource/texture_manager.h"
+#include "../Resource/mesh_manager.h"
+#include "../Resource/animator_manager.h"
+#include "../Resource/skeltal_mesh_manager.h"
 
 struct AttachContext;
 
@@ -33,6 +39,10 @@ public:
      * @return 戻り値。
      */
     World* GetWorld() const;
+
+    // 全 Actor が必ず持つ Transform。Component 配列ではなく直接保持する。
+    TransformComponent& GetTransform() { return transform_; }
+    const TransformComponent& GetTransform() const { return transform_; }
 
     Actor(const Actor&) = delete;
     Actor& operator=(const Actor&) = delete;
@@ -74,7 +84,10 @@ public:
      * @brief Tickを行う関数。
      * @param dt 引数。
      */
-    void Tick(float dt);
+    virtual void Tick(float dt);
+
+protected:
+    TransformComponent transform_;
 
 private:
     /**

@@ -98,10 +98,7 @@ void SkinnedMeshRenderer::Collect()
         const std::vector<Mat>* bone_palette = nullptr;
         if (Actor* owner = component->GetOwner())
         {
-            if (auto* t = owner->GetComponent<TransformComponent>())
-            {
-                world = t->Matrix();
-            }
+            world = owner->GetTransform().Matrix();
             if (auto* s = owner->GetComponent<AnimationComponent>())
             {
                 bone_palette = &s->GetBonePalette();

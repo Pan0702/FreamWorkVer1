@@ -102,6 +102,7 @@ public:
      */
     float GetLastGpuWaitMs() const { return last_gpu_wait_ms_; }
 
+
 private:
     std::unique_ptr<GraphicsDevice> graphics_device_;
     std::unique_ptr<CommandQueue> command_queue_;

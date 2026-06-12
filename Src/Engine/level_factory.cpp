@@ -1,5 +1,5 @@
 #include "level_factory.h"
-
+#include "../Play/play_level.h"
 #include "../Game/test_level.h"
 
 void LevelFactory::Initialize()
@@ -11,6 +11,7 @@ void LevelFactory::Initialize()
     //    return std::make_unique<TitleLevel>();
     //});
     Register<TestLevel>("Test");
+    Register<PlayLevel>("Play");
 }
 
 std::unique_ptr<LevelBase> LevelFactory::Create(const std::string& name)

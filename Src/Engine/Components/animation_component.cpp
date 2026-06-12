@@ -1,5 +1,7 @@
 #include "animation_component.h"
 
+#include <utility>
+
 #include "skeletal_mesh.h"
 #include "../actor.h"
 #include "../../Resource/animation.h"
@@ -119,7 +121,7 @@ void AnimationComponent::Tick(float dt)
     }
     const auto& nodes = skeleton_->GetNodes();
     global_poses_.resize(nodes.size());
-    
+
     // 現在クリップ: loop_ を尊重（非ループは末尾でクランプして停止）
     if (playing_ && clip_ && clip_->GetTicksPerSecond() > 0.0f)
     {
@@ -133,8 +135,8 @@ void AnimationComponent::Tick(float dt)
             }
             else if (time_ >= dur)
             {
-                time_ = dur;        // 末尾でクランプ
-                playing_ = false;   // 再生終了
+                time_ = dur; // 末尾でクランプ
+                playing_ = false; // 再生終了
             }
         }
     }
@@ -163,13 +165,15 @@ void AnimationComponent::Tick(float dt)
         }
     }
 
+
     if (channels_dirty_)
     {
         RebuildChannels();
     }
-
+    
     for (size_t i = 0; i < nodes.size(); i++)
     {
+        const int parent_index = nodes[i].parent_index;
         const NodeAnimation* cur_ch = (i < node_channels_.size()) ? node_channels_[i] : nullptr;
         LocalPose pose = SampleNode(cur_ch, time_, nodes[i]);
 
@@ -178,17 +182,17 @@ void AnimationComponent::Tick(float dt)
             // 前アニメも評価してブレンド
             const NodeAnimation* prev_ch = (i < prev_channels_.size()) ? prev_channels_[i] : nullptr;
             LocalPose prev_pose = SampleNode(prev_ch, prev_time_, nodes[i]);
-            pose = BlendPose(prev_pose, pose, w); 
+            pose = BlendPose(prev_pose, pose, w);
         }
+
         Mat local = ToLocalMat(pose);
 
-        if (nodes[i].parent_index < 0)
+        if (parent_index < 0)
         {
             global_poses_[i] = local;
         }
         else
         {
-            const int parent_index = nodes[i].parent_index;
             if (static_cast<size_t>(parent_index) >= i || static_cast<size_t>(parent_index) >= global_poses_.size())
             {
                 global_poses_[i] = local;
@@ -213,7 +217,7 @@ void AnimationComponent::Tick(float dt)
     Component::Tick(dt);
 }
 
-void AnimationComponent::AddAnimation(const std::string& name, Animation* clip,bool loop)
+void AnimationComponent::AddAnimation(const std::string& name, Animation* clip, bool loop)
 {
     clip->SetLooping(loop);
     if (animation_deta_.contains(name))

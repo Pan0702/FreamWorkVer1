@@ -24,35 +24,101 @@
 
 namespace
 {
+    // 埋め込みテクスチャが書き出されるファイル名（例 "diffuse.png"）を返す。 //
+    // 書き出し側・参照側の両方からこれを使い、名前を必ず一致させる。 //
+    std::string EmbeddedTextureFileName(const aiTexture* tex, unsigned int index)
+    {
+        std::string stem = std::filesystem::path(tex->mFilename.C_Str()).stem().string();
+        if (stem.empty())
+        {
+            stem = "tex" + std::to_string(index);
+        }
+        // achFormatHint は "png" / ".png" / "jpg" 等。先頭ドットを正規化する。 //
+        std::string ext = (tex->achFormatHint[0] != '\0') ? tex->achFormatHint : "bin";
+        if (!ext.empty() && ext.front() == '.')
+        {
+            ext.erase(0, 1);
+        }
+        return stem + "." + ext;
+    }
 
-/**
- * @brief 変換中のサブメッシュ範囲と使用マテリアル番号を保持する構造体。
- */
-    struct SubMeshData 
+    // 埋め込みテクスチャ(scene->mTextures)を out_dir に書き出す。 //
+    // FBX(Mixamoなど)ではPNG/JPGが圧縮済みバイト列として埋め込まれる。 //
+    // mHeight == 0 の場合は pcData をそのままファイルへ保存する。 //
+    void ExtractEmbeddedTextures(const aiScene* scene, const std::string& out_dir)
+    {
+        if (scene == nullptr || !scene->HasTextures())
+        {
+            std::printf("no embedded textures\n");
+            return;
+        }
+
+        std::error_code ec;
+        std::filesystem::create_directories(out_dir, ec);
+
+        for (unsigned int i = 0; i < scene->mNumTextures; ++i)
+        {
+            const aiTexture* tex = scene->mTextures[i];
+            if (tex == nullptr)
+            {
+                continue;
+            }
+
+            if (tex->mHeight == 0)
+            {
+                // 圧縮済みデータ。achFormatHint には "png" / "jpg" などが入る。 //
+                const std::filesystem::path out =
+                    std::filesystem::path(out_dir) / EmbeddedTextureFileName(tex, i);
+
+                std::ofstream ofs(out, std::ios::binary);
+                if (ofs)
+                {
+                    ofs.write(reinterpret_cast<const char*>(tex->pcData),
+                              static_cast<std::streamsize>(tex->mWidth));
+                    std::printf("extracted: %s (%u bytes)\n", out.string().c_str(), tex->mWidth);
+                }
+                else
+                {
+                    std::printf("cannot write: %s\n", out.string().c_str());
+                }
+            }
+            else
+            {
+                // 生のBGRAデータ。FBXではまれなので、ここでは再エンコードしない。 //
+                std::printf("skip raw texture %u (%ux%u): re-encode not implemented\n",
+                            i, tex->mWidth, tex->mHeight);
+            }
+        }
+    }
+
+    /**
+     * @brief 1つのサブメッシュで使用するインデックス範囲とマテリアルを表す。
+     */
+    struct SubMeshData
     {
         uint32_t index_start; // サブメッシュの開始インデックス。
-        uint32_t index_count; // サブメッシュが使うインデックス数。
+        uint32_t index_count; // サブメッシュで使うインデックス数。
         uint32_t material_slot; // 参照するマテリアル番号。
     };
 
-/**
- * @brief 変換中のマテリアル色とディフューズテクスチャパスを保持する構造体。
- */
+    /**
+     * @brief 書き出すマテリアルの色とディフューズテクスチャパスを表す。
+     */
     struct MaterialData
     {
         Vec4 base_color; // マテリアルの基本色。
-        std::wstring diffuse_path; // ディフューズテクスチャの相対パス。
+        std::wstring diffuse_path; // ディフューズテクスチャへのパス。
     };
 
-/**
- * @brief 静的メッシュの頂点、インデックス、マテリアル、サブメッシュ情報を .mesh として書き出す関数。
- * @param out_path 書き出す .mesh ファイルのパス。
- * @param vertices 書き出す静的頂点配列。
- * @param indices 書き出すインデックス配列。
- * @param materials 書き出すマテリアル配列。
- * @param sub_meshes 書き出すサブメッシュ配列。
- * @return 書き出しに成功した場合は true。
- */
+    /**
+     * @brief 静的メッシュの頂点、インデックス、マテリアル、サブメッシュを .mesh に書き出す。
+     * @param out_path 書き出し先 .mesh ファイルのパス。
+     * @param vertices 書き出す静的頂点配列。
+     * @param indices 書き出すインデックス配列。
+     * @param materials 書き出すマテリアル配列。
+     * @param sub_meshes 書き出すサブメッシュ配列。
+     * @return 書き出しに成功したら true。
+     */
     bool WriteMesh(const char* out_path,
                    const std::vector<StaticVertex>& vertices,
                    const std::vector<std::uint32_t>& indices,
@@ -60,12 +126,12 @@ namespace
                    const std::vector<SubMeshData>& sub_meshes);
     bool ConvertMesh(const char* in_path, const char* out_path, const std::string& tex_folder);
 
-/**
- * @brief 要素数が uint32_t に収まるか確認する関数。
- * @param count 確認する要素数。
- * @param label エラー表示に使う対象名。
- * @return uint32_t に収まる場合は true。
- */
+    /**
+     * @brief 要素数が uint32_t に収まるか確認する。
+     * @param count 確認する要素数。
+     * @param label エラー表示に使う名前。
+     * @return uint32_t に収まるなら true。
+     */
     bool CheckCountFitsUint32(std::size_t count, const char* label)
     {
         if (count > static_cast<std::size_t>((std::numeric_limits<std::uint32_t>::max)()))
@@ -77,13 +143,13 @@ namespace
         return true;
     }
 
-/**
- * @brief Assimp の静的メッシュから頂点とインデックスを抽出して配列へ追加する関数。
- * @param mesh 読み取り元の Assimp メッシュ。
- * @param vertices 追加先の静的頂点配列。
- * @param indices 追加先のインデックス配列。
- * @return 追加に成功した場合は true。
- */
+    /**
+     * @brief Assimp の静的メッシュから頂点とインデックスを取り出して配列へ追加する。
+     * @param mesh 読み込む Assimp メッシュ。
+     * @param vertices 追加先の静的頂点配列。
+     * @param indices 追加先のインデックス配列。
+     * @return 追加に成功したら true。
+     */
     bool AppendMesh(const aiMesh& mesh,
                     std::vector<StaticVertex>& vertices,
                     std::vector<std::uint32_t>& indices)
@@ -156,37 +222,61 @@ namespace
         return true;
     }
 
-/**
- * @brief Assimp のテクスチャ参照からランタイムで使う相対テクスチャパスを作る関数。
- * @param tex Assimp が返したテクスチャパス。
- * @param tex_folder Assets/Texture の下に付けるサブフォルダ名。
- * @return Assets/Texture から始まるワイド文字列の相対パス。
- */
-    std::wstring BuildTexturePath(const aiString& tex, const std::string& tex_folder)
+    std::filesystem::path BuildTextureDir(const char* out_path, const std::string& tex_folder)
+    {
+        std::filesystem::path base = std::filesystem::path(out_path).parent_path().parent_path() / "Texture";
+        if (!tex_folder.empty())
+        {
+            base /= tex_folder;
+        }
+        return base;
+    }
+
+    /**
+     * @brief Assimp のテクスチャ参照から、出力で使うテクスチャパスを作る。
+     * @param tex Assimp から取得したテクスチャパス。
+     * @param tex_folder Assets/Texture からの相対サブフォルダー名。
+     * @return Assets/Texture から始まるワイド文字列のパス。
+     */
+    std::wstring BuildTexturePath(const aiString& tex, const std::filesystem::path& tex_dir)
     {
         std::filesystem::path src(tex.C_Str());
-        const std::filesystem::path filename = src.filename();
+        const std::filesystem::path filename =
+            src.filename();
         if (filename.empty())
         {
             return std::wstring();
         }
-
-        std::filesystem::path full = "Assets/Texture";
-        if (!tex_folder.empty())
-        {
-            full /= tex_folder;
-        }
-        full /= filename;
-        return full.generic_wstring();
+        return (tex_dir / filename).generic_wstring();
     }
 
-/**
- * @brief 入力モデルを静的メッシュ形式の .mesh ファイルへ変換する関数。
- * @param in_path 読み込むモデルファイルのパス。
- * @param out_path 書き出す .mesh ファイルのパス。
- * @param tex_folder テクスチャ用サブフォルダ名。
- * @return 変換と書き出しに成功した場合は true。
- */
+    // マテリアルのテクスチャ参照を、実際に書き出すファイル名へ解決する。 //
+    // *N 形式の埋め込み参照は ExtractEmbeddedTextures と同じ名前に合わせる。 //
+    std::wstring BuildTexturePathResolved(const aiScene* scene, const aiString& tex,
+                                          const std::filesystem::path& tex_dir)
+    {
+        if (const aiTexture* emb =
+            scene->GetEmbeddedTexture(tex.C_Str()))
+        {
+            unsigned int idx = 0;
+            for (; idx < scene->mNumTextures; ++idx)
+            {
+                if (scene->mTextures[idx] == emb)
+                    break;
+            }
+            return (tex_dir / EmbeddedTextureFileName(emb, idx)).generic_wstring();
+        }
+        return BuildTexturePath(tex, tex_dir);
+    }
+
+
+    /**
+     * @brief 入力モデルを静的メッシュとして .mesh ファイルへ変換する。
+     * @param in_path 読み込むモデルファイルのパス。
+     * @param out_path 書き出し先 .mesh ファイルのパス。
+     * @param tex_folder テクスチャ用サブフォルダー名。
+     * @return 変換と書き出しに成功したら true。
+     */
     bool ConvertMesh(const char* in_path, const char* out_path, const std::string& tex_folder)
     {
         Assimp::Importer importer;
@@ -205,6 +295,11 @@ namespace
             std::printf("assimp: %s\n", importer.GetErrorString());
             return false;
         }
+        {
+            // マテリアルパスが指す場所に合わせて埋め込みテクスチャを書き出す。 //
+            const std::filesystem::path tex_dir = BuildTextureDir(out_path, tex_folder);
+            ExtractEmbeddedTextures(scene, tex_dir.string());
+        }
 
         std::vector<StaticVertex> vertices;
         std::vector<std::uint32_t> indices;
@@ -216,39 +311,40 @@ namespace
             {
                 continue;
             }
-            
+
             const uint32_t start = static_cast<uint32_t>(vertices.size());
-            
-            if (!AppendMesh(*mesh,vertices,indices)) return false;
-            
+
+            if (!AppendMesh(*mesh, vertices, indices)) return false;
+
             SubMeshData data = {};
             data.index_start = start;
             data.index_count = static_cast<uint32_t>(indices.size()) - start;
             data.material_slot = mesh->mMaterialIndex;
             sub_meshes.push_back(data);
         }
-        
+
         std::vector<MaterialData> materials;
-        
+
         for (unsigned int m = 0; m < scene->mNumMaterials; ++m)
         {
             const aiMaterial* material = scene->mMaterials[m];
             MaterialData data = {};
             data.base_color = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
-            
+
             aiColor4D color;
             if (material->Get(AI_MATKEY_COLOR_DIFFUSE, color) == AI_SUCCESS)
             {
                 data.base_color = Vec4(color.r, color.g, color.b, color.a);
             }
             aiString tex;
+            const std::filesystem::path tex_dir = BuildTextureDir(out_path, tex_folder);
             if (material->GetTexture(aiTextureType_DIFFUSE, 0, &tex) == AI_SUCCESS)
             {
-                data.diffuse_path = BuildTexturePath(tex, tex_folder);
+                data.diffuse_path = BuildTexturePathResolved(scene, tex, tex_dir);
             }
             materials.push_back(data);
         }
-        
+
 
         if (vertices.empty() || indices.empty())
         {
@@ -259,15 +355,15 @@ namespace
         return WriteMesh(out_path, vertices, indices, materials, sub_meshes);
     }
 
-/**
- * @brief 静的メッシュの頂点、インデックス、マテリアル、サブメッシュ情報を .mesh として書き出す関数。
- * @param out_path 書き出す .mesh ファイルのパス。
- * @param vertices 書き出す静的頂点配列。
- * @param indices 書き出すインデックス配列。
- * @param materials 書き出すマテリアル配列。
- * @param sub_meshes 書き出すサブメッシュ配列。
- * @return 書き出しに成功した場合は true。
- */
+    /**
+     * @brief 静的メッシュの頂点、インデックス、マテリアル、サブメッシュを .mesh に書き出す。
+     * @param out_path 書き出し先 .mesh ファイルのパス。
+     * @param vertices 書き出す静的頂点配列。
+     * @param indices 書き出すインデックス配列。
+     * @param materials 書き出すマテリアル配列。
+     * @param sub_meshes 書き出すサブメッシュ配列。
+     * @return 書き出しに成功したら true。
+     */
     bool WriteMesh(const char* out_path,
                    const std::vector<StaticVertex>& vertices,
                    const std::vector<std::uint32_t>& indices,
@@ -289,7 +385,7 @@ namespace
         header.index_stride = sizeof(std::uint32_t);
         header.material_count = static_cast<std::uint32_t>(materials.size());
         header.submesh_count = static_cast<std::uint32_t>(sub_meshes.size());
-        
+
         const std::filesystem::path output_path(out_path);
         const std::filesystem::path parent = output_path.parent_path();
         if (!parent.empty())
@@ -317,8 +413,10 @@ namespace
                   static_cast<std::streamsize>(indices.size() * sizeof(std::uint32_t)));
         for (const auto& sub_mesh : sub_meshes)
         {
-            SubMeshEntry e = { sub_mesh.index_start, sub_mesh.index_count,
-                sub_mesh.material_slot };
+            SubMeshEntry e = {
+                sub_mesh.index_start, sub_mesh.index_count,
+                sub_mesh.material_slot
+            };
             ofs.write(reinterpret_cast<const char*>(&e), sizeof(e));
         }
         for (const auto& mat : materials)
@@ -326,17 +424,17 @@ namespace
             MaterialEntry e = {};
             e.base_color = mat.base_color;
             e.diffuse_texture_length =
-        static_cast<std::uint32_t>(mat.diffuse_path.size());
+                static_cast<std::uint32_t>(mat.diffuse_path.size());
             ofs.write(reinterpret_cast<const char*>(&e), sizeof(e));
         }
         for (const auto& mat : materials)
         {
             if (!mat.diffuse_path.empty())
-            ofs.write(reinterpret_cast<const char*>(mat.diffuse_path.c_str()),
-                      static_cast<std::streamsize>(mat.diffuse_path.size() * sizeof(std::wstring::value_type)));
+                ofs.write(reinterpret_cast<const char*>(mat.diffuse_path.c_str()),
+                          static_cast<std::streamsize>(mat.diffuse_path.size() * sizeof(std::wstring::value_type)));
             printf("write %ls\n", mat.diffuse_path.c_str());
         }
-        
+
         if (!ofs)
         {
             std::printf("write failed: %s\n", out_path);
@@ -346,15 +444,15 @@ namespace
         return true;
     }
 
-/**
- * @brief Assimp の行列をプロジェクトの row-vector 規約に合わせて転置して取り込む関数。
- * @param m 変換元の Assimp 行列。
- * @return プロジェクト側で使う Mat。
- */
+    /**
+     * @brief Assimp の行列をプロジェクトの row-vector 形式に合わせて転置する。
+     * @param m 変換する Assimp 行列。
+     * @return プロジェクトで使う Mat。
+     */
     Mat ToRowVectorMat(const aiMatrix4x4& m)
     {
-        // aiMatrix4x4 は m.a1..a4(1行目) ... という row-major。
-        // 転置 = 行と列を入れ替えて格納する。
+        // aiMatrix4x4 は m.a1..a4(1行目) ... の row-major。
+        // 転置して、このプロジェクト側の行列表現に合わせる。
         return Mat(
             m.a1, m.b1, m.c1, m.d1,
             m.a2, m.b2, m.c2, m.d2,
@@ -362,26 +460,28 @@ namespace
             m.a4, m.b4, m.c4, m.d4);
     }
 
-/**
- * @brief 1 頂点に対する 1 本分のボーン影響を保持する構造体。
- */
+    /**
+     * @brief 1頂点に対する1本分のボーン影響を表す。
+     */
     struct SkinInfluence
     {
-        uint32_t bone; // ボーンパレット上のボーン番号。
-        float    weight; // このボーンが頂点へ与える重み。
+        uint32_t bone; // ボーンパレット内のボーン番号。
+        float weight; // このボーンが頂点へ与える重み。
     };
 
-/**
- * @brief 1 頂点に効くボーンを最大 4 本に絞り、重みを正規化して頂点へ書き込む関数。
- * @param inf 対象頂点に集まったボーン影響配列。
- * @param v 書き込み先のスキニング頂点。
- */
+    /**
+     * @brief 1頂点のボーン影響を最大4本に絞り、重みを正規化して頂点へ書き込む。
+     * @param inf 頂点に集めたボーン影響配列。
+     * @param v 書き込み先のスキニング頂点。
+     */
     void FinalizeSkinWeights(std::vector<SkinInfluence>& inf, SkinnedVertex& v)
     {
-        // weight 降順で上位4本だけ残す
+        // weight が大きい順に並べて上位4本だけ残す。
         std::sort(inf.begin(), inf.end(),
                   [](const SkinInfluence& a, const SkinInfluence& b)
-                  { return a.weight > b.weight; });
+                  {
+                      return a.weight > b.weight;
+                  });
         if (inf.size() > 4)
         {
             inf.resize(4);
@@ -394,36 +494,36 @@ namespace
         {
             if (i < static_cast<int>(inf.size()) && sum > 0.0f)
             {
-                v.bone_ids[i]     = inf[i].bone;
-                v.bone_weights[i] = inf[i].weight / sum;   // 正規化
+                v.bone_ids[i] = inf[i].bone;
+                v.bone_weights[i] = inf[i].weight / sum; // 正規化
             }
             else
             {
-                v.bone_ids[i]     = 0;
+                v.bone_ids[i] = 0;
                 v.bone_weights[i] = 0.0f;
             }
         }
     }
 
-/**
- * @brief Assimp のノード階層を平坦化した 1 ノード分の情報を保持する構造体。
- */
+    /**
+     * @brief Assimp のノード階層を平坦化した1ノード分の情報を表す。
+     */
     struct FlatNode
     {
         std::string name; // ノード名。
-        int32_t     parent_index; // 親ノードのインデックス。ルートは -1。
-        Mat         local_bind_transform;   // = aiNode::mTransformation（転置済み）
-        int32_t     skin_index = -1;        // 後でボーンに対応するノードへ採番
-        Mat         inverse_bind_pose;      // skin_index>=0 のみ有効
+        int32_t parent_index; // 親ノードのインデックス。ルートは -1。
+        Mat local_bind_transform; // = aiNode::mTransformation(転置済み)
+        int32_t skin_index = -1; // ボーンとして使うノードだけに設定する。
+        Mat inverse_bind_pose; // skin_index >= 0 のとき有効。
     };
 
-/**
- * @brief Assimp のノードツリーを親が子より前に来る順番で平坦化する関数。
- * @param node 処理する Assimp ノード。
- * @param parent_index 親ノードのインデックス。ルートは -1。
- * @param out 平坦化したノードの追加先。
- * @param name_to_index ノード名からインデックスを引くためのマップ。
- */
+    /**
+     * @brief Assimp のノードツリーを親から子の順で平坦な配列へ変換する。
+     * @param node 変換する Assimp ノード。
+     * @param parent_index 親ノードのインデックス。ルートは -1。
+     * @param out 変換結果のノード配列。
+     * @param name_to_index ノード名からインデックスを引くためのマップ。
+     */
     void FlattenNodes(const aiNode* node, int32_t parent_index,
                       std::vector<FlatNode>& out,
                       std::unordered_map<std::string, int32_t>& name_to_index)
@@ -432,7 +532,7 @@ namespace
         fn.name = node->mName.C_Str();
         fn.parent_index = parent_index;
         fn.local_bind_transform = ToRowVectorMat(node->mTransformation);
-        fn.inverse_bind_pose = Mat(); // 既定。ボーン採番時に上書き
+        fn.inverse_bind_pose = Mat(); // 初期値。ボーンでなければ使わない。
 
         const int32_t my_index = static_cast<int32_t>(out.size());
         out.push_back(fn);
@@ -444,17 +544,17 @@ namespace
         }
     }
 
-/**
- * @brief Assimp のスキニングメッシュから頂点、インデックス、ボーンウェイトを抽出する関数。
- * @param mesh 読み取り元の Assimp メッシュ。
- * @param vertices 追加先のスキニング頂点配列。
- * @param indices 追加先のインデックス配列。
- * @param influences 頂点ごとのボーン影響の追加先。
- * @param name_to_index ノード名からノード番号を引くマップ。
- * @param nodes スケルトンノード配列。
- * @param skin_counter 新しく採番するボーン番号。
- * @return 追加に成功した場合は true。
- */
+    /**
+     * @brief Assimp のスキニングメッシュから頂点、インデックス、ボーンウェイトを取り出す。
+     * @param mesh 読み込む Assimp メッシュ。
+     * @param vertices 追加先のスキニング頂点配列。
+     * @param indices 追加先のインデックス配列。
+     * @param influences 頂点ごとに集めるボーン影響。
+     * @param name_to_index ノード名からノード番号を引くためのマップ。
+     * @param nodes スケルトンのノード配列。
+     * @param skin_counter 新しく割り当てるボーン番号。
+     * @return 追加に成功したら true。
+     */
     bool AppendSkinnedMesh(const aiMesh& mesh,
                            std::vector<SkinnedVertex>& vertices,
                            std::vector<std::uint32_t>& indices,
@@ -502,11 +602,11 @@ namespace
                 out.bitangent[1] = mesh.mBitangents[v].y;
                 out.bitangent[2] = mesh.mBitangents[v].z;
             }
-            // ウェイトはこの後 mBones から埋める
+            // ウェイトはあとで mBones から埋める。
             vertices.push_back(out);
         }
 
-        // インデックス（base オフセット込み）
+        // インデックスには base オフセットを足す。
         indices.reserve(indices.size() + static_cast<std::size_t>(mesh.mNumFaces) * 3);
         for (unsigned int f = 0; f < mesh.mNumFaces; ++f)
         {
@@ -517,7 +617,7 @@ namespace
             indices.push_back(base + face.mIndices[2]);
         }
 
-        // スキンウェイト抽出: mBones[b] の各 mWeights を頂点側へ集約。
+        // スキンウェイトを抽出: mBones[b] の各 mWeights を頂点へ集める。
         for (unsigned int b = 0; b < mesh.mNumBones; ++b)
         {
             const aiBone* bone = mesh.mBones[b];
@@ -532,8 +632,8 @@ namespace
             }
             FlatNode& node = nodes[it->second];
 
-            // 初めてボーンとして使われたノードに skin_index を採番し、
-            // inverse_bind_pose（= mOffsetMatrix 転置）を設定。
+            // 初めてボーンとして使うノードに skin_index を割り当て、
+            // inverse_bind_pose(= mOffsetMatrix 転置済み)を保存する。
             if (node.skin_index < 0)
             {
                 node.skin_index = static_cast<int32_t>(skin_counter++);
@@ -544,24 +644,24 @@ namespace
             {
                 const aiVertexWeight& vw = bone->mWeights[w];
                 const std::size_t vi = static_cast<std::size_t>(base) + vw.mVertexId;
-                influences[vi].push_back({ static_cast<uint32_t>(node.skin_index), vw.mWeight });
+                influences[vi].push_back({static_cast<uint32_t>(node.skin_index), vw.mWeight});
             }
         }
 
         return true;
     }
 
-/**
- * @brief スキニングメッシュ、マテリアル、サブメッシュ、スケルトン階層を .skmesh として書き出す関数。
- * @param out_path 書き出す .skmesh ファイルのパス。
- * @param vertices 書き出すスキニング頂点配列。
- * @param indices 書き出すインデックス配列。
- * @param materials 書き出すマテリアル配列。
- * @param sub_meshes 書き出すサブメッシュ配列。
- * @param nodes 書き出すスケルトンノード配列。
- * @param skin_count ボーンパレットに入るボーン数。
- * @return 書き出しに成功した場合は true。
- */
+    /**
+     * @brief スキニングメッシュ、マテリアル、サブメッシュ、スケルトン階層を .skmesh に書き出す。
+     * @param out_path 書き出し先 .skmesh ファイルのパス。
+     * @param vertices 書き出すスキニング頂点配列。
+     * @param indices 書き出すインデックス配列。
+     * @param materials 書き出すマテリアル配列。
+     * @param sub_meshes 書き出すサブメッシュ配列。
+     * @param nodes 書き出すスケルトンノード配列。
+     * @param skin_count ボーンパレット内のボーン数。
+     * @return 書き出しに成功したら true。
+     */
     bool WriteSkMesh(const char* out_path,
                      const std::vector<SkinnedVertex>& vertices,
                      const std::vector<std::uint32_t>& indices,
@@ -616,7 +716,7 @@ namespace
 
         for (const auto& sub_mesh : sub_meshes)
         {
-            SubMeshEntry e = { sub_mesh.index_start, sub_mesh.index_count, sub_mesh.material_slot };
+            SubMeshEntry e = {sub_mesh.index_start, sub_mesh.index_count, sub_mesh.material_slot};
             ofs.write(reinterpret_cast<const char*>(&e), sizeof(e));
         }
         for (const auto& mat : materials)
@@ -635,7 +735,7 @@ namespace
             }
         }
 
-        // ノード階層（topo 順）
+        // ノード階層(topo順)。
         for (const FlatNode& node : nodes)
         {
             NodeEntry e = {};
@@ -647,7 +747,7 @@ namespace
             e.inverse_bind_pose = node.inverse_bind_pose;
             ofs.write(reinterpret_cast<const char*>(&e), sizeof(e));
         }
-        // ノード名文字列群（NodeEntry 順、char 列）
+        // ノード名を連続して書く(NodeEntry のあとに char 列)。
         for (const FlatNode& node : nodes)
         {
             if (!node.name.empty())
@@ -667,11 +767,11 @@ namespace
         return true;
     }
 
-/**
- * @brief アニメーション名をファイル名に使える文字だけへ置き換える関数。
- * @param s 変換元のアニメーション名。
- * @return ファイル名として使いやすい文字列。
- */
+    /**
+     * @brief アニメーション名をファイル名として使える文字だけに置き換える。
+     * @param s 変換するアニメーション名。
+     * @return ファイル名として使える文字列。
+     */
     std::string SanitizeName(const std::string& s)
     {
         std::string out;
@@ -679,27 +779,61 @@ namespace
         for (char c : s)
         {
             const bool ok = (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') ||
-                            (c >= '0' && c <= '9') || c == '-' || c == '_';
+                (c >= '0' && c <= '9') || c == '-' || c == '_';
             out.push_back(ok ? c : '_');
         }
         return out;
     }
 
-/**
- * @brief Assimp の 1 アニメーションクリップを .anim ファイルとして書き出す関数。
- * @param out_path 書き出す .anim ファイルのパス。
- * @param anim 書き出す Assimp アニメーション。
- * @return 書き出しに成功した場合は true。
- */
-    bool WriteAnim(const std::string& out_path, const aiAnimation& anim)
+    int NodeDepth(const aiNode* node, const std::string& name, int depth)
+    {
+        if (name == node->mName.C_Str())
+        {
+            return depth;
+        }
+        for (unsigned int i = 0; i < node->mNumChildren; ++i)
+        {
+            const int d = NodeDepth(node->mChildren[i], name, depth + 1);
+            if (d >= 0)
+            {
+                return d;
+            }
+        }
+        return -1;
+    }
+
+    std::string FindRootMotionNode(const aiNode* root, const aiAnimation& anim)
+    {
+        std::string best;
+        int best_depth = -1;
+        for (unsigned int i = 0; i < anim.mNumChannels; ++i)
+        {
+            const std::string name = anim.mChannels[i]->mNodeName.C_Str();
+            const int d = NodeDepth(root, name, 0);
+            if (d >= 0 && (best_depth < 0 || d < best_depth))
+            {
+                best = name;
+                best_depth = d;
+            }
+        }
+        return best;
+    }
+    
+    /**
+     * @brief Assimp の1つのアニメーションクリップを .anim ファイルへ書き出す。
+     * @param out_path 書き出し先 .anim ファイルのパス。
+     * @param anim 書き出す Assimp アニメーション。
+     * @return 書き出しに成功したら true。
+     */
+    bool WriteAnim(const std::string& out_path, const aiAnimation& anim,bool in_place,const std::string& root_node)
     {
         SkAnimFileHeader header = {};
         std::memcpy(header.magic, kSkAnimMagic, 4);
         header.version = kSkAnimVersion;
-        // mTicksPerSecond は 0 で来ることがある（FBX 既定値欠落）。assimp 慣例に倣い 25 で代替。
+        // mTicksPerSecond が 0 の場合がある(FBXで値がないケース)。Assimp の既定値として 25 を使う。
         const double tps = (anim.mTicksPerSecond != 0.0) ? anim.mTicksPerSecond : 25.0;
         header.ticks_per_second = static_cast<float>(tps);
-        header.duration = static_cast<float>(anim.mDuration);   // ticks 単位
+        header.duration = static_cast<float>(anim.mDuration); // ticks 単位
         header.channel_count = anim.mNumChannels;
 
         const std::filesystem::path output_path(out_path);
@@ -731,43 +865,47 @@ namespace
 
             SkAnimChannel ce = {};
             ce.node_name_length = static_cast<uint32_t>(node_name.size());
-            ce.pos_key_count    = ch->mNumPositionKeys;
-            ce.rot_key_count    = ch->mNumRotationKeys;
-            ce.scale_key_count  = ch->mNumScalingKeys;
+            ce.pos_key_count = ch->mNumPositionKeys;
+            ce.rot_key_count = ch->mNumRotationKeys;
+            ce.scale_key_count = ch->mNumScalingKeys;
             ofs.write(reinterpret_cast<const char*>(&ce), sizeof(ce));
 
-            // ノード名（解決はロード時に Skeleton の name->index で行う）
+            // ノード名。読み込み側では Skeleton の name->index へ対応させる。
             if (!node_name.empty())
             {
                 ofs.write(node_name.data(), static_cast<std::streamsize>(node_name.size()));
             }
 
-            // 位置キー（ticks 時刻 + Vec3）。座標系は .skmesh と同じく未変換で素通し。
+            // 位置キー(ticks 時刻 + Vec3)。座標系は .skmesh と同じ前提。
             for (unsigned int k = 0; k < ch->mNumPositionKeys; ++k)
             {
                 const aiVectorKey& src = ch->mPositionKeys[k];
                 PositionKey key = {};
-                key.time  = static_cast<float>(src.mTime);
+                key.time = static_cast<float>(src.mTime);
                 key.value = Vec3(src.mValue.x, src.mValue.y, src.mValue.z);
                 ofs.write(reinterpret_cast<const char*>(&key), sizeof(key));
             }
-            // 回転キー（ticks 時刻 + Quat）。
-            // 注意: assimp の aiQuaternion は (w,x,y,z) 順、プロジェクトの Quat(XMFLOAT4) は (x,y,z,w) 順。
+            // 回転キー(ticks 時刻 + Quat)。
+            // 注意: Assimp の aiQuaternion は (w,x,y,z) だが、プロジェクトの Quat(XMFLOAT4) は (x,y,z,w)。
             for (unsigned int k = 0; k < ch->mNumRotationKeys; ++k)
             {
                 const aiQuatKey& src = ch->mRotationKeys[k];
                 RotationKey key = {};
-                key.time  = static_cast<float>(src.mTime);
+                key.time = static_cast<float>(src.mTime);
                 key.value = Quat(src.mValue.x, src.mValue.y, src.mValue.z, src.mValue.w);
                 ofs.write(reinterpret_cast<const char*>(&key), sizeof(key));
             }
-            // スケールキー（ticks 時刻 + Vec3）。
+            // in_placeかつチャンネルノードがルートならx/zを初期フレーム値に固定する。
+            const bool lock = in_place && !root_node.empty() && node_name == root_node && ch->mNumPositionKeys > 0;
+            const float lock_x = lock ? ch->mPositionKeys[0].mValue.x : 0.0f;
+            const float lock_z = lock ? ch->mPositionKeys[0].mValue.z : 0.0f;
+            // スケールキー(ticks 時刻 + Vec3)。
             for (unsigned int k = 0; k < ch->mNumScalingKeys; ++k)
             {
                 const aiVectorKey& src = ch->mScalingKeys[k];
                 ScaleKey key = {};
-                key.time  = static_cast<float>(src.mTime);
-                key.value = Vec3(src.mValue.x, src.mValue.y, src.mValue.z);
+                key.time = static_cast<float>(src.mTime);
+                key.value = Vec3(lock ? lock_x : src.mValue.x,src.mValue.y,lock ? lock_z : src.mValue.z);
                 ofs.write(reinterpret_cast<const char*>(&key), sizeof(key));
             }
         }
@@ -783,13 +921,13 @@ namespace
         return true;
     }
 
-/**
- * @brief シーン内の全アニメーションを .anim ファイルとして書き出す関数。
- * @param skmesh_out_path .skmesh の出力パス。アニメーション出力名の基準に使う。
- * @param scene アニメーションを含む Assimp シーン。
- * @return 全アニメーションの書き出しに成功した場合は true。
- */
-    bool WriteAnimations(const char* skmesh_out_path, const aiScene& scene)
+    /**
+     * @brief シーン内の全アニメーションを .anim ファイルとして書き出す。
+     * @param skmesh_out_path .skmesh の出力パス。アニメーション出力名の基準に使う。
+     * @param scene アニメーションを含む Assimp シーン。
+     * @return 全アニメーションを書き出せたら true。
+     */
+    bool WriteAnimations(const char* skmesh_out_path, const aiScene& scene, bool in_place)
     {
         if (scene.mNumAnimations == 0)
         {
@@ -798,7 +936,7 @@ namespace
         }
 
         std::filesystem::path base(skmesh_out_path);
-        base.replace_extension();   // ".skmesh" を除去（ディレクトリは保持）
+        base.replace_extension(); // ".skmesh" を外す(ディレクトリは残る)。
         const std::string stem = base.string();
 
         bool all_ok = true;
@@ -815,8 +953,8 @@ namespace
                 out += "_" + name;
             }
             out += ".anim";
-
-            if (!WriteAnim(out, *anim))
+            const std::string root_node = FindRootMotionNode(scene.mRootNode, *anim);
+            if (!WriteAnim(out, *anim,in_place,root_node))
             {
                 all_ok = false;
             }
@@ -824,19 +962,19 @@ namespace
         return all_ok;
     }
 
-/**
- * @brief 入力モデルをスケルトン付きメッシュ形式の .skmesh と .anim へ変換する関数。
- * @param in_path 読み込むモデルファイルのパス。
- * @param out_path 書き出す .skmesh ファイルのパス。
- * @param tex_folder テクスチャ用サブフォルダ名。
- * @return メッシュ変換に成功した場合は true。
- */
-    bool ConvertSkMesh(const char* in_path, const char* out_path, const std::string& tex_folder)
+    /**
+     * @brief 入力モデルをスケルトン付きメッシュとして .skmesh と .anim に変換する。
+     * @param in_path 読み込むモデルファイルのパス。
+     * @param out_path 書き出し先 .skmesh ファイルのパス。
+     * @param tex_folder テクスチャ用サブフォルダー名。
+     * @return メッシュ変換に成功したら true。
+     */
+    bool ConvertSkMesh(const char* in_path, const char* out_path, const std::string& tex_folder,bool in_place)
     {
         Assimp::Importer importer;
-        // スキンド用フラグ規約:
-        //  - PreTransformVertices は使わない（階層を破壊する）
-        //  - ConvertToLeftHanded は使わない（offset/transform/anim/頂点への一貫適用を保証できないうちは外す）
+        // スキンド用フラグの方針:
+        //  - PreTransformVertices は使わない(階層がつぶれるため)。
+        //  - ConvertToLeftHanded は使わない(offset/transform/anim/頂点を一括変換すると崩れやすいため)。
         const unsigned int flags =
             aiProcess_Triangulate |
             aiProcess_GenSmoothNormals |
@@ -851,13 +989,19 @@ namespace
             std::printf("assimp: %s\n", importer.GetErrorString());
             return false;
         }
+        {
+            // マテリアルパスが指す場所に合わせて埋め込みテクスチャを書き出す。 //
+            const std::filesystem::path tex_dir =
+                BuildTextureDir(out_path, tex_folder);
+            ExtractEmbeddedTextures(scene, tex_dir.string());
+        }
 
-        // 1. ノード階層を平坦化（topo 順 + name マップ）
+        // 1. ノード階層を構築(topo順 + name マップ)。
         std::vector<FlatNode> nodes;
         std::unordered_map<std::string, int32_t> name_to_index;
         FlattenNodes(scene->mRootNode, -1, nodes, name_to_index);
 
-        // 2. メッシュ取り込み（頂点・インデックス・スキンウェイト）
+        // 2. メッシュを読み込む(頂点・インデックス・スキンウェイト)。
         std::vector<SkinnedVertex> vertices;
         std::vector<std::uint32_t> indices;
         std::vector<std::vector<SkinInfluence>> influences;
@@ -883,13 +1027,13 @@ namespace
             sub_meshes.push_back(data);
         }
 
-        // 3. スキンウェイトを頂点へ確定（上位4本・正規化）
+        // 3. スキンウェイトを頂点へ確定(最大4本・正規化)。
         for (std::size_t i = 0; i < vertices.size(); ++i)
         {
             FinalizeSkinWeights(influences[i], vertices[i]);
         }
 
-        // 4. マテリアル（静的版と同じ抽出）
+        // 4. マテリアル(最後にまとめて出力)。
         std::vector<MaterialData> materials;
         for (unsigned int m = 0; m < scene->mNumMaterials; ++m)
         {
@@ -903,9 +1047,10 @@ namespace
                 data.base_color = Vec4(color.r, color.g, color.b, color.a);
             }
             aiString tex;
+            const std::filesystem::path tex_dir = BuildTextureDir(out_path, tex_folder);
             if (material->GetTexture(aiTextureType_DIFFUSE, 0, &tex) == AI_SUCCESS)
             {
-                data.diffuse_path = BuildTexturePath(tex, tex_folder);
+                data.diffuse_path = BuildTexturePathResolved(scene, tex, tex_dir);
             }
             materials.push_back(data);
         }
@@ -921,20 +1066,37 @@ namespace
             return false;
         }
 
-        // アニメは別ファイル(.anim)へ。メッシュは既に書けているので、
-        // アニメ書き出しに失敗しても警告に留め、メッシュ変換は成功扱いとする。
-        if (!WriteAnimations(out_path, *scene))
+        // アニメ用ファイル(.anim)も出力する。メッシュ変換は成功扱いにするが、
+        // アニメの書き出しに失敗したときは警告だけ出して処理を続ける。
+        if (!WriteAnimations(out_path, *scene,in_place))
         {
             std::printf("warn: some animations failed to write\n");
         }
         return true;
     }
 
-/**
- * @brief 入力文字列の先頭と末尾にあるダブルクォートを取り除く関数。
- * @param s クォートを取り除く対象文字列。
- * @return クォートを取り除いた文字列。
- */
+    bool ConvertAnim(const char* in_path, const char* out_path,bool in_place)
+    {
+        Assimp::Importer importer;
+        const unsigned int flags = aiProcess_Triangulate |
+            aiProcess_JoinIdenticalVertices |
+            aiProcess_LimitBoneWeights |
+            aiProcess_PopulateArmatureData;
+
+        const aiScene* scene = importer.ReadFile(in_path, flags);
+        if (scene == nullptr || scene->mRootNode == nullptr)
+        {
+            std::printf("assimp: %s\n", importer.GetErrorString());
+            return false;
+        }
+        return WriteAnimations(out_path, *scene,in_place);
+    }
+
+    /**
+     * @brief 文字列の前後にあるダブルクォートを取り除く。
+     * @param s クォートを取り除く文字列。
+     * @return クォートを取り除いた文字列。
+     */
     std::string StripQuotes(std::string s)
     {
         if (s.size() >= 2 && s.front() == '"' && s.back() == '"')
@@ -944,9 +1106,9 @@ namespace
         return s;
     }
 
-/**
- * @brief Enter 入力を待ってコンソールを閉じる前に停止する関数。
- */
+    /**
+     * @brief Enter 入力までコンソールを閉じずに待つ。
+     */
     void WaitEnter()
     {
         std::printf("\nPushEnter Finish...");
@@ -970,15 +1132,20 @@ int main(int argc, char** argv)
     {
         in_path = argv[1];
         out_path = argv[2];
-        // 任意: Assets/Texture/ の下のサブフォルダ
+        // 省略時: Assets/Texture/ 直下のサブフォルダーなし。
         const std::string tex_folder = (argc >= 4) ? argv[3] : "";
 
-        // 出力拡張子が .skmesh ならスケルタル変換に分岐
-        const bool skinned =
-            std::filesystem::path(out_path).extension() == ".skmesh";
-        const bool ok = skinned
-            ? ConvertSkMesh(in_path.c_str(), out_path.c_str(), tex_folder)
-            : ConvertMesh(in_path.c_str(), out_path.c_str(), tex_folder);
+        // 出力拡張子が .skmesh ならスケルトン付きとして変換する。
+        const std::filesystem::path ext =
+            std::filesystem::path(out_path).extension();
+        bool in_place = false;
+        
+        const bool ok =
+            ext == ".anim"
+                ? ConvertAnim(in_path.c_str(), out_path.c_str(),in_place) : ext == ".skmesh"
+                ? ConvertSkMesh(in_path.c_str(), out_path.c_str(),tex_folder,in_place) 
+                : ConvertMesh(in_path.c_str(), out_path.c_str(),
+                              tex_folder);
         std::printf(ok ? "[OK] %s -> %s\n" : "[FAILED] %s\n", in_path.c_str(), out_path.c_str());
         return ok ? 0 : 2;
     }
@@ -994,11 +1161,11 @@ int main(int argc, char** argv)
         std::getline(std::cin, in_path);
         in_path = StripQuotes(in_path);
 
-        std::printf("output (.mesh / .skmesh): ");
+        std::printf("output (.mesh / .skmesh / .anim): ");
         std::getline(std::cin, out_path);
         out_path = StripQuotes(out_path);
 
-        // Assets/Texture/ の下のサブフォルダ（空Enterでサブフォルダなし= Assets/Texture/直下）
+        // Assets/Texture/ 配下のサブフォルダー。空Enterなら Assets/Texture/ 直下に置く。
         std::printf("texture folder (under Assets/Texture/, empty = none): ");
         std::string tex_folder;
         std::getline(std::cin, tex_folder);
@@ -1010,15 +1177,28 @@ int main(int argc, char** argv)
         }
         else
         {
-            // 出力拡張子が .skmesh ならスケルタル変換に分岐
-            const bool skinned =
-                std::filesystem::path(out_path).extension() == ".skmesh";
-            const bool ok = skinned
-                ? ConvertSkMesh(in_path.c_str(), out_path.c_str(), tex_folder)
-                : ConvertMesh(in_path.c_str(), out_path.c_str(), tex_folder);
+            // 出力拡張子が .skmesh ならスケルトン付きとして変換する。
+            const std::filesystem::path ext =
+                std::filesystem::path(out_path).extension();
+            bool in_place = false;
+            // その場でずっとアニメーションをするか？
+            if (ext == ".skmesh" || ext == ".anim")
+            {
+                std::printf("in-place (remove root motion)?(y/N): ");
+                std::string s;
+                std::getline(std::cin, s);
+                in_place = (!s.empty() && s[0] == 'y' || s[0] == 'Y');
+            }
+
+            const bool ok =
+                ext == ".anim"
+                    ? ConvertAnim(in_path.c_str(), out_path.c_str(),in_place) : ext == ".skmesh"
+                    ? ConvertSkMesh(in_path.c_str(), out_path.c_str(), tex_folder, in_place)
+                    : ConvertMesh(in_path.c_str(), out_path.c_str(), tex_folder);
             std::printf(ok ? "[OK] %s -> %s\n" : "[FAILED] %s\n",
                         in_path.c_str(), out_path.c_str());
         }
+
 
         std::printf("\n if continue convert anything key push / Esc key finish...\n");
         const int key = _getch();

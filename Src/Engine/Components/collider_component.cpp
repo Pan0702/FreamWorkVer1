@@ -2,7 +2,6 @@
 #include "collider_component.h"
 #include "../actor.h"
 #include "transform_component.h"
-#include "../../Debug/debug.h"
 #include "../collision_world.h"
 void ColliderComponent::SetOnBeginOverlap(OverlapCallback callback)
 {
@@ -18,15 +17,6 @@ void ColliderComponent::OnAttach(const AttachContext& context)
 {
     collision_world_ = context.collision_world;
     Component::OnAttach(context);
-    Actor* actor = GetOwner();
-    if (!actor || !actor->GetComponent<TransformComponent>())
-    {
-        has_transform_ = false;
-        DEBUG_LOG("ColliderComponent requires TransformComponent");
-    }else
-    {
-        has_transform_ = true;
-    }
     if (collision_world_)
     {
         collision_world_->Register(this);
@@ -49,24 +39,14 @@ bool ColliderComponent::TryGetColliderTransform(Vec3* center, Vec3* abs_scale) c
     {
         return false;
     }
-    auto* transform = actor->GetComponent<TransformComponent>();
-    if (!transform)
-    {
-        return false;
-    }
-    
-    *center = transform->position;
+    const TransformComponent& transform = actor->GetTransform();
+    *center = transform.position;
     *abs_scale = Vec3{
-        std::abs(transform->scale.x),
-        std::abs(transform->scale.y),
-        std::abs(transform->scale.z)
+        std::abs(transform.scale.x),
+        std::abs(transform.scale.y),
+        std::abs(transform.scale.z)
     };
     return true;
-}
-
-bool ColliderComponent::HasTransform() const
-{
-    return has_transform_;
 }
 
 void ColliderComponent::InvokeBeginOverlap(const ColliderComponent* other) const
@@ -83,4 +63,27 @@ void ColliderComponent::InvokeEndOverlap(const ColliderComponent* other)
     {
         on_end_(this,other);
     }   
+}
+
+void ColliderComponent::InvokeHit(ColliderComponent* other, const ContactInfo& info)
+{
+    if (on_hit_)
+    {
+        on_hit_(this,other->GetOwner(),other,info);
+    }
+}
+
+void ColliderComponent::SetColor(const Vec4& color)
+{
+    color_ = color;
+}
+
+void ColliderComponent::SetDraw(bool draw)
+{
+    is_draw_ = draw;
+}
+
+bool ColliderComponent::IsDraw() const
+{
+    return is_draw_;
 }

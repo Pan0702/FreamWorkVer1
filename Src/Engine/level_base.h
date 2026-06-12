@@ -45,6 +45,7 @@ public:
         return result;
     }
 
+
 protected:
     World* world_ = nullptr;
     std::vector<std::unique_ptr<Actor>> actors_;

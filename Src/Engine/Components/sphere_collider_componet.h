@@ -10,6 +10,8 @@ public:
     float GetRadius() const;
     ColliderShape GetColliderShape() const override;
     Sphere GetColliderShapeData() const;
+
 private:
+    void DrawDebug() const override;
     float local_radius_ = 0.0f;
 };
