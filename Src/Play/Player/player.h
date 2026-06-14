@@ -18,9 +18,6 @@ private:
     class AnimationComponent* animation_ = nullptr;
 
     Vec3 vel_;
-    float jump_timer_;
-    float kGravity = 20.0f;
-    float kJumpHight = 1.0f;
     bool is_moving_ = false;
     bool is_grounded_ = true;
 };

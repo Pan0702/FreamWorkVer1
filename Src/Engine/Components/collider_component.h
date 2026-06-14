@@ -67,12 +67,13 @@ public:
     void SetColor(const Vec4& color);
     void SetDraw(bool draw);
     bool IsDraw() const;
+    void SetUseTransform(bool use_transform);
     virtual void DrawDebug() const = 0;
     
 protected:
-    Vec4 color_ = Vec4(1, 1, 1, 1);
+    Vec4 color_ = Vec4(1, 0, 1, 0);
     bool is_draw_ = false;
-    
+    bool use_transform_ = true;
 private:
 
     OverlapCallback on_begin_;
@@ -80,3 +81,8 @@ private:
     HitCallback on_hit_;
     CollisionWorld* collision_world_ = nullptr;
 };
+
+inline void ColliderComponent::SetUseTransform(bool use_transform)
+{
+    use_transform_ = use_transform;
+}

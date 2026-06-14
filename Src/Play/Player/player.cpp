@@ -8,6 +8,8 @@
 
 #include <cmath>
 
+#include "../../Core/Math/intersect.h"
+
 namespace
 {
     const std::string gangnam = "gangnam";
@@ -15,9 +17,12 @@ namespace
     const std::string idle = "idle";
     const std::string jump = "jump";
     
-    constexpr float kApexHeight = 2.0f;  
-    constexpr float kApexTime   = 0.32f;  
-    constexpr float kFallMul    = 1.8f;   
+    constexpr float kApexHeight = 4.233f;  
+    constexpr float kApexTime   = 0.373f;  
+    constexpr float kFallMul    = 0.8f;   
+    
+    constexpr float kJumpVel   = 2.0f * kApexHeight / kApexTime;
+    constexpr float kGravityUp = 2.0f * kApexHeight / (kApexTime * kApexTime);
 }
 
 Player::Player()
@@ -35,6 +40,8 @@ Player::Player()
     animation_->Play(idle);
     auto sphere = AddComponent<SphereColliderComponent>();
     sphere->SetOnHit(this, &Player::OnHit);
+    sphere->SetRadius(1.0f);
+    sphere->SetUseTransform(false);
     transform_.position = Vec3(0, 0, 0);
     transform_.rotation = Vec3(0, 0, 0);
     transform_.scale = Vec3(0.01f, 0.01f, 0.01f);
@@ -69,10 +76,8 @@ void Player::Tick(float dt)
 
     if (game_main->GetInput().CheckKey(InputKey::kSpace, KeyState::kDown) && is_grounded_)
     {
-        const float jump_vel   = 2.0f * kApexHeight / kApexTime;
-        vel_.y = jump_vel;
+        vel_.y = kJumpVel;
         is_grounded_ = false;
-        jump_timer_ = 0.0f;
         //animation_->CrossFade(jump, 0.2f);
     }
 
@@ -80,12 +85,6 @@ void Player::Tick(float dt)
     {
         velocity += ClalcMovingJumoAmount(dt);
         is_moving = true;
-    }
-    if (transform_.position.y < 0.0f)
-    {
-        transform_.position.y = 0.0f;
-        is_grounded_ = true;
-        is_moving = false;
     }
 
     if (is_moving != is_moving_)
@@ -100,11 +99,6 @@ void Player::Tick(float dt)
     ImGui::Begin("test");
     ImGui::SliderFloat3("position", &transform_.position.x, -300.0f, 300.0f);
     ImGui::Text("position: (%.2f, %.2f, %.2f)", transform_.position.x, transform_.position.y, transform_.position.z);
-    ImGui::End();
-    ImGui::Begin("jump");
-
-    ImGui::SliderFloat("kGravity", &kGravity, 0.0f, 100.0f);
-    ImGui::SliderFloat("kJumpHight", &kJumpHight, 0.0f, 6.0f);
     ImGui::End();
     Actor::Tick(dt);
 }
@@ -135,9 +129,9 @@ Vec3 Player::ClalcMovingAmount(float dt)
 Vec3 Player::ClalcMovingJumoAmount(float dt)
 {
 
-    const float gravity_up = 2.0f * kApexHeight / (kApexTime * kApexTime);
+    
     Vec3 velocity;
-    float g = (vel_.y > 0.0f) ? gravity_up : gravity_up * kFallMul;
+    float g = (vel_.y > 0.0f) ? kGravityUp : kGravityUp * kFallMul;
     vel_.y -= g * dt;         
     velocity.y =  vel_.y * dt;  
     return velocity;
@@ -157,4 +151,8 @@ float Player::ClalcRotationAmount(const Vec3& velocity)
 
 void Player::OnHit(ColliderComponent* self, Actor* other_actor, ColliderComponent* other_coll, const ContactInfo& info)
 {
+    transform_.position += info.normal * info.depth;
+    DEBUG_LOG("OnHit\n");
+    is_grounded_ = true;
+    
 }

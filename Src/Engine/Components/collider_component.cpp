@@ -41,11 +41,17 @@ bool ColliderComponent::TryGetColliderTransform(Vec3* center, Vec3* abs_scale) c
     }
     const TransformComponent& transform = actor->GetTransform();
     *center = transform.position;
-    *abs_scale = Vec3{
-        std::abs(transform.scale.x),
-        std::abs(transform.scale.y),
-        std::abs(transform.scale.z)
-    };
+    if (use_transform_)
+    {
+        *abs_scale = Vec3{
+            std::abs(transform.scale.x),
+            std::abs(transform.scale.y),
+            std::abs(transform.scale.z)
+        };
+    }else
+    {
+        *abs_scale = Vec3(1,1,1);
+    }
     return true;
 }
 

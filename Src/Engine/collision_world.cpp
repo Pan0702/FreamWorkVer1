@@ -171,19 +171,14 @@ bool CollisionWorld::ComputeContact(ColliderComponent* coll1, ColliderComponent*
 
 void CollisionWorld::DrawDebug()
 {
-    static bool is_init = false;
-    if (!is_init)
+    for (ColliderComponent* coll : colliders_)
     {
-        for (ColliderComponent* coll : colliders_)
+        if (coll->IsDraw())
         {
-            if (coll->IsDraw())
-            {
-                debug_objects_.push_back(coll);
-            }
+            debug_objects_.push_back(coll);
         }
-        is_init = true;
     }
-    
+
     for (ColliderComponent* coll : debug_objects_)
     {
         coll->DrawDebug();
