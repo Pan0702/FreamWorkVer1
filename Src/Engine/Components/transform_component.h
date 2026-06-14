@@ -17,4 +17,7 @@ public:
     Vec3 position = {0.0f, 0.0f, 0.0f};
     Vec3 rotation = {0.0f, 0.0f, 0.0f};
     Vec3 scale = {1.0f, 1.0f, 1.0f};
+    Vec3 forward = {0.0f, 0.0f, 1.0f};
+    Vec3 up = {0.0f, 1.0f, 0.0f};
+    Vec3 right = {1.0f, 0.0f, 0.0f};
 };

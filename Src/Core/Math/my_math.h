@@ -171,6 +171,10 @@ Vec3 Rotate(const Quat& q, const Vec3& v);
 bool Decompose(const Mat& m, Vec3& s, Quat& r, Vec3& t);
 
 float PlaneLength(const Vec4& plane,const Vec3& point);
+float NormalizeAngleDeg(float angle);
+float NormalizeAngleRad(float angle);
+float NormalizeAngleRadSigned(float angle);
+float PowF(float num,int power);
 
 // Šp“x•ÏŠ·‚Æ‰~ü—¦‚Ì’è”B
 constexpr float kPI = std::numbers::pi_v<float>;
@@ -179,6 +183,7 @@ constexpr float kHalfPi = kPI * 0.5f;
 constexpr float kDegToRad = kPI / 180.0f;
 constexpr float kRadToDeg = 180.0f / kPI;
 constexpr float kHalfSize = 0.5f;
+
 
 // ‚æ‚­g‚¤®”Œ^‚Ì’Zk•Ê–¼B
 using uint32 = uint32_t;

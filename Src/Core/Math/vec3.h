@@ -215,4 +215,7 @@ inline void IsZeroVec(Vec3& v)
     }
 }
 
-
+inline Vec3 Abs(const Vec3& v)
+{
+    return Vec3(std::fabs(v.x), std::fabs(v.y), std::fabs(v.z));
+}

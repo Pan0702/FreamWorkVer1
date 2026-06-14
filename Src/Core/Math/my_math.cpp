@@ -1,5 +1,7 @@
 #include "my_math.h"
 
+#include <cmath>
+
 Mat Identity()
 {
     return XMMatrixIdentity();
@@ -132,4 +134,40 @@ float PlaneLength(const Vec4& plane, const Vec3& point)
 {
     float l = plane.x * point.x + plane.y * point.y + plane.z * point.z + plane.w;
     return l;
+}
+
+
+float NormalizeAngleDeg(float angle)
+{
+    angle = std::fmodf(angle, 360.0f);
+    if (angle < 0.0f)
+    {
+        angle += 360.0f;
+    }
+    return angle;
+}
+
+float NormalizeAngleRad(float angle)
+{
+    angle = std::fmodf(angle,k2PI);
+    if (angle < 0.0f)
+    {
+        angle += k2PI;
+    }
+    return angle;
+}
+
+float NormalizeAngleRadSigned(float angle)
+{
+    return std::remainder(angle, k2PI);
+}
+
+float PowF(float num, int power)
+{
+    float tmp = num;
+    for (int i = 1; i <= power; i++)
+    {
+        tmp = tmp * num;
+    }
+    return tmp;
 }
