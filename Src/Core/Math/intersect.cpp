@@ -149,11 +149,13 @@ bool Contact(const Box& b1, const Box& b2, ContactInfo& out)
     {
         return false;
     }
+    
     float oy = (std::min)(b1.max.y, b2.max.y) - (std::max)(b1.min.y, b2.min.y);
     if (oy < 0)
     {
         return false;
     }
+    
     float oz = (std::min)(b1.max.z, b2.max.z) - (std::max)(b1.min.z, b2.min.z);
     if (oz < 0)
     {

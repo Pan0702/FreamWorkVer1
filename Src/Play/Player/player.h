@@ -1,6 +1,13 @@
 #pragma once
 #include "../../Engine/actor.h"
 #include "../../Resource/material_slot.h"
+class StateComponentBase;
+enum class PlayerState : uint8_t
+{
+    kIdle = 1 << 0,
+    kWalk = 1 << 1,
+    kJump = 1 << 2,
+};
 
 class Player : public Actor
 {
@@ -20,4 +27,6 @@ private:
     Vec3 vel_;
     bool is_moving_ = false;
     bool is_grounded_ = true;
+    
+    std::unordered_map<PlayerState,StateComponentBase*> States;
 };

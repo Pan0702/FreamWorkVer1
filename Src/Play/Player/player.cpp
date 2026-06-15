@@ -9,6 +9,7 @@
 #include <cmath>
 
 #include "../../Core/Math/intersect.h"
+#include "PlayerComponent/state_component.h"
 
 namespace
 {
@@ -16,12 +17,12 @@ namespace
     const std::string run = "run";
     const std::string idle = "idle";
     const std::string jump = "jump";
-    
-    constexpr float kApexHeight = 4.233f;  
-    constexpr float kApexTime   = 0.373f;  
-    constexpr float kFallMul    = 0.8f;   
-    
-    constexpr float kJumpVel   = 2.0f * kApexHeight / kApexTime;
+
+    constexpr float kApexHeight = 4.233f;
+    constexpr float kApexTime = 0.373f;
+    constexpr float kFallMul = 0.8f;
+
+    constexpr float kJumpVel = 2.0f * kApexHeight / kApexTime;
     constexpr float kGravityUp = 2.0f * kApexHeight / (kApexTime * kApexTime);
 }
 
@@ -54,6 +55,19 @@ void Player::Begin()
 
 void Player::Tick(float dt)
 {
+    static int state = 0.0f;
+    if (state & static_cast<int>(PlayerState::kJump) != 0)
+    {
+        States.at(PlayerState::kJump)->Tick(dt);
+    }
+    if (state & static_cast<int>(PlayerState::kWalk) != 0)
+    {
+        States.at(PlayerState::kWalk)->Tick(dt);
+    }
+    if (state & static_cast<int>(PlayerState::kIdle) != 0)
+    {
+        States.at(PlayerState::kIdle)->Tick(dt);
+    }
     Vec3 velocity = ClalcMovingAmount(dt);
     bool is_moving = velocity.LengthSquared() > 1e-6f;
 
@@ -128,12 +142,10 @@ Vec3 Player::ClalcMovingAmount(float dt)
 
 Vec3 Player::ClalcMovingJumoAmount(float dt)
 {
-
-    
     Vec3 velocity;
     float g = (vel_.y > 0.0f) ? kGravityUp : kGravityUp * kFallMul;
-    vel_.y -= g * dt;         
-    velocity.y =  vel_.y * dt;  
+    vel_.y -= g * dt;
+    velocity.y = vel_.y * dt;
     return velocity;
 }
 
@@ -154,5 +166,4 @@ void Player::OnHit(ColliderComponent* self, Actor* other_actor, ColliderComponen
     transform_.position += info.normal * info.depth;
     DEBUG_LOG("OnHit\n");
     is_grounded_ = true;
-    
 }
