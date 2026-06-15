@@ -9,6 +9,13 @@ enum class PlayerState : uint8_t
     kJump = 1 << 2,
 };
 
+struct PlayerInput
+{
+    Vec3 move_dir = {0.0f, 0.0f, 0.0f};
+    bool jump = false;
+};
+
+
 class Player : public Actor
 {
 public:
@@ -17,6 +24,7 @@ public:
 private:
     void Begin() override;
     void Tick(float dt) override;
+    PlayerInput Input(float dt);
     Vec3 ClalcMovingAmount(float dt);
     Vec3 ClalcMovingJumoAmount(float dt);
     float ClalcRotationAmount(const Vec3& velocity);
@@ -27,6 +35,6 @@ private:
     Vec3 vel_;
     bool is_moving_ = false;
     bool is_grounded_ = true;
-    
+    PlayerInput pl_input_;
     std::unordered_map<PlayerState,StateComponentBase*> States;
 };

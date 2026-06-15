@@ -55,38 +55,8 @@ void Player::Begin()
 
 void Player::Tick(float dt)
 {
-    static int state = 0.0f;
-    if (state & static_cast<int>(PlayerState::kJump) != 0)
-    {
-        States.at(PlayerState::kJump)->Tick(dt);
-    }
-    if (state & static_cast<int>(PlayerState::kWalk) != 0)
-    {
-        States.at(PlayerState::kWalk)->Tick(dt);
-    }
-    if (state & static_cast<int>(PlayerState::kIdle) != 0)
-    {
-        States.at(PlayerState::kIdle)->Tick(dt);
-    }
-    Vec3 velocity = ClalcMovingAmount(dt);
-    bool is_moving = velocity.LengthSquared() > 1e-6f;
+    pl_input_ = Input(dt);
 
-    if (is_moving)
-    {
-        const float delta = ClalcRotationAmount(velocity);
-        constexpr float rot_speed = 10.0f;
-        const float step = rot_speed * dt;
-
-        if (std::abs(delta) <= step)
-        {
-            transform_.rotation.y = NormalizeAngleRad(transform_.rotation.y + delta);
-        }
-        else
-        {
-            transform_.rotation.y += delta > 0.0f ? step : -step;
-            transform_.rotation.y = NormalizeAngleRad(transform_.rotation.y);
-        }
-    }
 
     if (game_main->GetInput().CheckKey(InputKey::kSpace, KeyState::kDown) && is_grounded_)
     {
@@ -117,26 +87,35 @@ void Player::Tick(float dt)
     Actor::Tick(dt);
 }
 
-Vec3 Player::ClalcMovingAmount(float dt)
+PlayerInput Player::Input(float dt)
 {
-    constexpr float move_speed = 10.0f; // ˆÚ“®‘¬“x //
-    Vec3 velocity;
+    PlayerInput input;
+    constexpr float move_speed = 10.0f;
     if (game_main->GetInput().CheckKey(InputKey::kA, KeyState::kDown))
     {
-        velocity.x -= move_speed * dt;
+        input.move_dir.x -= move_speed * dt;
     }
     if (game_main->GetInput().CheckKey(InputKey::kD, KeyState::kDown))
     {
-        velocity.x += move_speed * dt;
+        input.move_dir.x += move_speed * dt;
     }
     if (game_main->GetInput().CheckKey(InputKey::kW, KeyState::kDown))
     {
-        velocity.z += move_speed * dt;
+        input.move_dir.z += move_speed * dt;
     }
     if (game_main->GetInput().CheckKey(InputKey::kS, KeyState::kDown))
     {
-        velocity.z -= move_speed * dt;
+        input.move_dir.z -= move_speed * dt;
     }
+    input.jump = game_main->GetInput().CheckKey(InputKey::kSpace, KeyState::kDown);
+    return input;
+}
+
+Vec3 Player::ClalcMovingAmount(float dt)
+{
+    // ˆÚ“®‘¬“x //
+    Vec3 velocity;
+
     return velocity;
 }
 
@@ -156,9 +135,7 @@ float Player::ClalcRotationAmount(const Vec3& velocity)
         return 0.0f;
     }
 
-    const float current_yaw = transform_.rotation.y;
-    const float target_yaw = std::atan2f(velocity.x, velocity.z);
-    return NormalizeAngleRadSigned(target_yaw - current_yaw);
+
 }
 
 void Player::OnHit(ColliderComponent* self, Actor* other_actor, ColliderComponent* other_coll, const ContactInfo& info)
