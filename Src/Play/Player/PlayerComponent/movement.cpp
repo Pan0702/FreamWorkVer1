@@ -4,6 +4,8 @@
 
 #include "../player.h"
 
+PlayerMovement::~PlayerMovement() = default;
+
 void PlayerMovement::OnEnter()
 {
 }

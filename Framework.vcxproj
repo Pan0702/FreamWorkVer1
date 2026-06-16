@@ -76,6 +76,7 @@
     <ClInclude Include="Src\Platform\input.h" />
     <ClInclude Include="Src\Platform\window.h" />
     <ClInclude Include="Src\Play\Objects\cube.h" />
+    <ClInclude Include="Src\Play\Player\PlayerComponent\component_factor.h" />
     <ClInclude Include="Src\Play\Player\PlayerComponent\Jump.h" />
     <ClInclude Include="Src\Play\Player\PlayerComponent\state_component.h" />
     <ClInclude Include="Src\Play\Player\PlayerComponent\movement.h" />
@@ -193,6 +194,7 @@
       <LinkCompiled>true</LinkCompiled>
       <AdditionalIncludeDirectories>;C:\vcpkg\installed\x64-windows\include</AdditionalIncludeDirectories>
     </ClCompile>
+    <ClCompile Include="Src\Play\Player\PlayerComponent\component_factor.cpp" />
     <ClCompile Include="Src\Play\Player\PlayerComponent\Jump.cpp" />
     <ClCompile Include="Src\Play\Player\PlayerComponent\movement.cpp" />
     <ClCompile Include="Src\Play\Player\player_camera.cpp" />

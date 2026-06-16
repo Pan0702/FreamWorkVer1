@@ -1,6 +1,7 @@
 #pragma once
 #include "../../Engine/actor.h"
 #include "../../Resource/material_slot.h"
+#include "PlayerComponent/component_factor.h"
 class StateComponentBase;
 enum class PlayerState : uint8_t
 {
@@ -31,9 +32,10 @@ private:
     class AnimationComponent* animation_ = nullptr;
 
     Vec3 vel_;
-    int state_bit_ = 0;
+    uint32_t state_bit_ = 0;
     bool is_moving_ = false;
     bool is_grounded_ = true;
     PlayerInput pl_input_;
-    std::unordered_map<PlayerState,StateComponentBase*> States;
+    ComponentFactor factor_;
+    std::unordered_map<PlayerState,StateComponentBase*> states_;
 };

@@ -4,6 +4,7 @@
 class PlayerJump : public StateComponentBase
 {
 public:
+    ~PlayerJump();
     void OnEnter() override;
     void Tick(float dt, PlayerInput& input) override;
     void OnExit() override;

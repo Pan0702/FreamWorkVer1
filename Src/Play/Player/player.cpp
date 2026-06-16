@@ -36,9 +36,9 @@ Player::Player()
     sphere->SetOnHit(this, &Player::OnHit);
     sphere->SetRadius(1.0f);
     sphere->SetUseTransform(false);
-    transform_.position = Vec3(0, 0, 0);
-    transform_.rotation = Vec3(0, 0, 0);
     transform_.scale = Vec3(0.01f, 0.01f, 0.01f);
+    std::vector<PlayerState> states = {PlayerState::kJump, PlayerState::kWalk};
+    states_ = factor_.GetComponents(states);
 }
 
 void Player::Begin()
@@ -50,24 +50,26 @@ void Player::Tick(float dt)
 {
     pl_input_ = Input(dt);
 
-    if (state_bit_ & static_cast<int>(PlayerState::kJump) != 0)
+    if ((state_bit_ & (1u << 2)) != 0)
     {
-        States.at(PlayerState::kJump)->Tick(dt, pl_input_);
+        states_.at(PlayerState::kJump)->Tick(dt, pl_input_);
     }
-    if (state_bit_ & static_cast<int>(PlayerState::kWalk) != 0)
+  if ((state_bit_ & (1u << 1)) != 0)
     {
-        States.at(PlayerState::kWalk)->Tick(dt, pl_input_);
+        states_.at(PlayerState::kWalk)->Tick(dt, pl_input_);
     }
     if (state_bit_ & static_cast<int>(PlayerState::kIdle) != 0)
     {
-        States.at(PlayerState::kIdle)->Tick(dt, pl_input_);
     }
-    
-    if (is_moving_)
-    {
-        transform_.position += pl_input_.move_dir;
-        transform_.rotation = pl_input_.move_dir;
-    }
+
+
+    ImGui::Begin("Player");
+    ImGui::Text("Position: %f, %f, %f", transform_.position.x, transform_.position.y, transform_.position.z);
+    ImGui::Text("State: %d", state_bit_);
+    ImGui::End();
+    transform_.position += pl_input_.move_dir;
+    transform_.rotation = pl_input_.move_dir;
+
     Actor::Tick(dt);
 }
 
@@ -95,11 +97,6 @@ PlayerInput Player::Input(float dt)
     {
         state_bit_ = static_cast<int>(PlayerState::kWalk);
     }
-    else
-    {
-        state_bit_ = static_cast<int>(PlayerState::kIdle);
-    }
-
 
     if (game_main->GetInput().CheckKey(InputKey::kSpace, KeyState::kDown))
     {
@@ -107,8 +104,12 @@ PlayerInput Player::Input(float dt)
         {
             state_bit_ = static_cast<int>(PlayerState::kJump);
             input.jump = true;
-            States.at(PlayerState::kWalk)->OnEnter();
+            states_.at(PlayerState::kWalk)->OnEnter();
         }
+    }else if (pl_input_.jump)
+    {
+        state_bit_ = static_cast<int>(PlayerState::kJump);
+        input.jump = true;
     }
 
     input.move_dir = transform_.rotation;

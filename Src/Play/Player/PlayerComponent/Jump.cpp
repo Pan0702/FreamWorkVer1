@@ -10,6 +10,9 @@ namespace
     constexpr float kJumpVel = 2.0f * kApexHeight / kApexTime;
     constexpr float kGravityUp = 2.0f * kApexHeight / (kApexTime * kApexTime);
 }
+
+PlayerJump::~PlayerJump() = default;
+
 void PlayerJump::OnEnter()
 {
     vel_y_ = kJumpVel;
