@@ -17,13 +17,6 @@ namespace
     const std::string run = "run";
     const std::string idle = "idle";
     const std::string jump = "jump";
-
-    constexpr float kApexHeight = 4.233f;
-    constexpr float kApexTime = 0.373f;
-    constexpr float kFallMul = 0.8f;
-
-    constexpr float kJumpVel = 2.0f * kApexHeight / kApexTime;
-    constexpr float kGravityUp = 2.0f * kApexHeight / (kApexTime * kApexTime);
 }
 
 Player::Player()
@@ -57,33 +50,24 @@ void Player::Tick(float dt)
 {
     pl_input_ = Input(dt);
 
-
-    if (game_main->GetInput().CheckKey(InputKey::kSpace, KeyState::kDown) && is_grounded_)
+    if (state_bit_ & static_cast<int>(PlayerState::kJump) != 0)
     {
-        vel_.y = kJumpVel;
-        is_grounded_ = false;
-        //animation_->CrossFade(jump, 0.2f);
+        States.at(PlayerState::kJump)->Tick(dt, pl_input_);
     }
-
-    if (!is_grounded_)
+    if (state_bit_ & static_cast<int>(PlayerState::kWalk) != 0)
     {
-        velocity += ClalcMovingJumoAmount(dt);
-        is_moving = true;
+        States.at(PlayerState::kWalk)->Tick(dt, pl_input_);
     }
-
-    if (is_moving != is_moving_)
+    if (state_bit_ & static_cast<int>(PlayerState::kIdle) != 0)
     {
-        is_moving_ = is_moving;
-        animation_->CrossFade(is_moving_ ? run : idle, 0.2f);
+        States.at(PlayerState::kIdle)->Tick(dt, pl_input_);
     }
+    
     if (is_moving_)
     {
-        transform_.position += velocity;
+        transform_.position += pl_input_.move_dir;
+        transform_.rotation = pl_input_.move_dir;
     }
-    ImGui::Begin("test");
-    ImGui::SliderFloat3("position", &transform_.position.x, -300.0f, 300.0f);
-    ImGui::Text("position: (%.2f, %.2f, %.2f)", transform_.position.x, transform_.position.y, transform_.position.z);
-    ImGui::End();
     Actor::Tick(dt);
 }
 
@@ -107,40 +91,34 @@ PlayerInput Player::Input(float dt)
     {
         input.move_dir.z -= move_speed * dt;
     }
-    input.jump = game_main->GetInput().CheckKey(InputKey::kSpace, KeyState::kDown);
-    return input;
-}
-
-Vec3 Player::ClalcMovingAmount(float dt)
-{
-    // ˆÚ“®‘¬“x //
-    Vec3 velocity;
-
-    return velocity;
-}
-
-Vec3 Player::ClalcMovingJumoAmount(float dt)
-{
-    Vec3 velocity;
-    float g = (vel_.y > 0.0f) ? kGravityUp : kGravityUp * kFallMul;
-    vel_.y -= g * dt;
-    velocity.y = vel_.y * dt;
-    return velocity;
-}
-
-float Player::ClalcRotationAmount(const Vec3& velocity)
-{
-    if (velocity.LengthSquared() <= 1e-6f)
+    if (input.move_dir.LengthSquared() > 1e-6f)
     {
-        return 0.0f;
+        state_bit_ = static_cast<int>(PlayerState::kWalk);
+    }
+    else
+    {
+        state_bit_ = static_cast<int>(PlayerState::kIdle);
     }
 
 
+    if (game_main->GetInput().CheckKey(InputKey::kSpace, KeyState::kDown))
+    {
+        if (!pl_input_.jump)
+        {
+            state_bit_ = static_cast<int>(PlayerState::kJump);
+            input.jump = true;
+            States.at(PlayerState::kWalk)->OnEnter();
+        }
+    }
+
+    input.move_dir = transform_.rotation;
+    return input;
 }
 
 void Player::OnHit(ColliderComponent* self, Actor* other_actor, ColliderComponent* other_coll, const ContactInfo& info)
 {
     transform_.position += info.normal * info.depth;
     DEBUG_LOG("OnHit\n");
-    is_grounded_ = true;
+    state_bit_ = static_cast<int>(PlayerState::kIdle);
+    pl_input_.jump = false;
 }
