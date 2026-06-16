@@ -11,6 +11,7 @@ enum class PlayerState : uint8_t
 
 struct PlayerInput
 {
+    Vec3 move_amount = {0.0f, 0.0f, 0.0f};
     Vec3 move_dir = {0.0f, 0.0f, 0.0f};
     bool jump = false;
 };
@@ -25,14 +26,12 @@ private:
     void Begin() override;
     void Tick(float dt) override;
     PlayerInput Input(float dt);
-    Vec3 ClalcMovingAmount(float dt);
-    Vec3 ClalcMovingJumoAmount(float dt);
-    float ClalcRotationAmount(const Vec3& velocity);
     void OnHit(ColliderComponent* self, Actor* other_actor, ColliderComponent* other_coll, const ContactInfo& info);
     std::unique_ptr<MaterialSlot> materials_;
     class AnimationComponent* animation_ = nullptr;
 
     Vec3 vel_;
+    int state_bit_ = 0;
     bool is_moving_ = false;
     bool is_grounded_ = true;
     PlayerInput pl_input_;
