@@ -1,4 +1,4 @@
-﻿#include "mesh_collider_component.h"
+#include "mesh_collider_component.h"
 
 #include "transform_component.h"
 #include "../actor.h"

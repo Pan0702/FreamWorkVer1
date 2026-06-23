@@ -9,18 +9,18 @@ class MaterialSlot
 {
 public:
     /**
-     * @brief MaterialSlotを初期化するコンストラクタ。
-     * @param materials 引数。
+     * @brief インスタンスの初期状態を整える。
+     * @param materials 描画に使用するマテリアル。
      */
     MaterialSlot(const std::vector<MeshMaterialDesc>& materials);
     /**
-     * @brief MaterialSlotの終了処理を行うデストラクタ。
+     * @brief 保持している登録やリソースを解放する。
      */
     ~MaterialSlot();
     /**
-     * @brief Materialを取得する関数。
-     * @param index 参照する番号。
-     * @return 戻り値。
+     * @brief マテリアル を取得する。
+     * @param index index に設定する値。
+     * @return マテリアル。見つからない、または未作成の場合は nullptr。
      */
     Material* GetMaterial(uint32_t index) const;
 private:

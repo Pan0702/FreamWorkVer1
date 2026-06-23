@@ -1,17 +1,37 @@
-ï»¿#pragma once
+#pragma once
 #include "collider_component.h"
 
 struct Sphere;
 
+// Actor ‚É’Ç‰Á‚µ‚Äg‚¤ SphereColliderComponent ‚Ìó‘Ô‚Æˆ—‚ğ‚Ü‚Æ‚ß‚éB
 class SphereColliderComponent : public ColliderComponent
 {
 public:
+    /**
+     * @brief w’è‚³‚ê‚½’l‚ğ“à•”ó‘Ô‚É”½‰f‚·‚éB
+     * @param radius radius ‚Éİ’è‚·‚é’lB
+     */
     void SetRadius(float radius);
+    /**
+     * @brief ”¼Œa ‚ğæ“¾‚·‚éB
+     * @return Œ»İ•Û‚µ‚Ä‚¢‚é ”¼ŒaB
+     */
     float GetRadius() const;
+    /**
+     * @brief ƒRƒ‰ƒCƒ_[‚ÌŒ`óí•Ê‚ğæ“¾‚·‚éB
+     * @return Œ»İ•Û‚µ‚Ä‚¢‚é ƒRƒ‰ƒCƒ_[‚ÌŒ`óí•ÊB
+     */
     ColliderShape GetColliderShape() const override;
+    /**
+     * @brief Collider Shape Data ‚ğæ“¾‚·‚éB
+     * @return Œ»İ•Û‚µ‚Ä‚¢‚é Collider Shape DataB
+     */
     Sphere GetColliderShapeData() const;
 
 private:
+    /**
+     * @brief Œ»İ‚Ìó‘Ô‚ğ‚à‚Æ‚É•`‰æƒRƒ}ƒ“ƒh‚ğÏ‚ŞB
+     */
     void DrawDebug() const override;
     float local_radius_ = 0.0f;
 };

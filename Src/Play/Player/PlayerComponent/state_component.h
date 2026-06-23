@@ -1,13 +1,28 @@
-ï»¿#pragma once
+#pragma once
 struct PlayerInput;
 class Player;
 
+// StateComponentBase ‚ÉŠÖŒW‚·‚éó‘Ô‚ÆU‚é•‘‚¢‚ğ‚Ü‚Æ‚ß‚éŒ^B
 class StateComponentBase
 {
 public:
+    /**
+     * @brief •Û‚µ‚Ä‚¢‚é“o˜^‚âƒŠƒ\[ƒX‚ğ‰ğ•ú‚·‚éB
+     */
     virtual ~StateComponentBase() = default;
+    /**
+     * @brief ¶¬‚Ü‚½‚Í‘JˆÚ’¼Œã‚É•K—v‚È‰Šúˆ—‚ğs‚¤B
+     */
     virtual void OnEnter() = 0;
+    /**
+     * @brief 1 ƒtƒŒ[ƒ€•ª‚Ìó‘ÔXV‚ği‚ß‚éB
+     * @param dt ‘OƒtƒŒ[ƒ€‚©‚ç‚ÌŒo‰ß•b”B
+     * @param input input ‚Éİ’è‚·‚é’lB
+     */
     virtual void Tick(float dt, PlayerInput& input) = 0;
+    /**
+     * @brief I—¹‚Ü‚½‚Í‘JˆÚ‘O‚É•K—v‚ÈŒãn––‚ğs‚¤B
+     */
     virtual void OnExit() = 0;
 
 protected:

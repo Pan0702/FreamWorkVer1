@@ -33,49 +33,49 @@ class UIRenderer
 {
 public:
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param device DirectX 12 デバイス。
-     * @return 条件を満たす場合は true。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param device 使用する D3D12 デバイス。
+     * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(ID3D12Device* device);
     /**
-     * @brief 保持しているリソースを解放する関数。
+     * @brief 保持しているリソースと登録状態を解放する。
      */
     void Shutdown();
     /**
-     * @brief Registerを行う関数。
-     * @param component 引数。
+     * @brief 対象を管理リストへ登録する。
+     * @param component 登録または解除する Component。
      */
     void Register(SpriteComponent* component);
     /**
-     * @brief Unregisterを行う関数。
-     * @param component 引数。
+     * @brief 対象を管理リストから外す。
+     * @param component 登録または解除する Component。
      */
     void Unregister(SpriteComponent* component);
     /**
-     * @brief DrawImmediateを行う関数。
-     * @param command 引数。
+     * @brief 現在の状態をもとに描画コマンドを積む。
+     * @param command command に設定する値。
      */
     void DrawImmediate(const SpriteDrawCommand& command);
     /**
-     * @brief Collectを行う関数。
+     * @brief 登録済みの対象から今回処理する要素を集める。
      */
     void Collect();
     /**
-     * @brief Sortを行う関数。
+     * @brief 描画順が安定するようにコマンドを並べ替える。
      */
     void Sort();
     /**
-     * @brief Submitを行う関数。
-     * @param context 共有コンテキスト。
+     * @brief 収集済みコマンドを GPU コマンドリストへ書き込む。
+     * @param context 描画や登録に使う共有コンテキスト。
      */
     void Submit(RenderContext& context);
 
 private:
     /**
-     * @brief SubmitCommandを行う関数。
-     * @param context 共有コンテキスト。
-     * @param command 引数。
+     * @brief 1 件分の描画コマンドを GPU コマンドリストへ書き込む。
+     * @param context 描画や登録に使う共有コンテキスト。
+     * @param command command に設定する値。
      */
     void SubmitCommand(RenderContext& context, const SpriteDrawCommand& command);
 

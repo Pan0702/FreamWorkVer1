@@ -1,4 +1,4 @@
-Ôªø#include "box_collider_component.h"
+#include "box_collider_component.h"
 
 #include "../actor.h"
 #include "../../Core/Math/intersect.h"
@@ -21,7 +21,7 @@ ColliderShape BoxColliderComponent::GetColliderShape() const
 Box BoxColliderComponent::GetColliderBoxData() const
 {
     Vec3 center, scale;
-    TryGetColliderTransform(&center, &scale);   // scale „ÅØ‰∏≠„Åß abs Ê∏à„Åø
+    TryGetColliderTransform(&center, &scale);   // scale ÇÕíÜÇ≈ abs çœÇ›
     const Vec3 world_half{
         half_size.x * scale.x,
         half_size.y * scale.y,
@@ -41,4 +41,3 @@ void BoxColliderComponent::DrawDebug() const
     Vec3 size = (box.max - box.min) * kHalfSize;
     Debug::Get().DrawBox3D(center, size, color_,Vec3(0,0,0));
 }
-

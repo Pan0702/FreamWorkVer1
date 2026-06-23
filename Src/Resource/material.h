@@ -17,98 +17,98 @@ class Material
 {
 public:
     /**
-     * @brief Materialを初期化するコンストラクタ。
+     * @brief インスタンスの初期状態を整える。
      */
     Material();
     /**
-     * @brief Materialを初期化するコンストラクタ。
-     * @param desc 引数。
+     * @brief インスタンスの初期状態を整える。
+     * @param desc desc に設定する値。
      */
     Material(const MeshMaterialDesc& desc);
     /**
-     * @brief DirectX 12 リソースを作成する関数。
-     * @param device DirectX 12 デバイス。
-     * @param vs_path 引数。
-     * @param ps_path 引数。
-     * @param input_layout 頂点入力レイアウト。
-     * @return 条件を満たす場合は true。
+     * @brief 内部で使用するリソースを作成する。
+     * @param device 使用する D3D12 デバイス。
+     * @param vs_path vs_path に設定する値。
+     * @param ps_path ps_path に設定する値。
+     * @param input_layout input_layout に設定する値。
+     * @return 対象リソースの作成が完了した場合は true。
      */
     bool Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_t* ps_path,
                 std::span<const D3D12_INPUT_ELEMENT_DESC> input_layout);
     /**
-     * @brief Applyを行う関数。
-     * @param command_list DirectX 12 コマンドリスト。
-     * @param descriptor_heap 引数。
+     * @brief マテリアルに必要な GPU 状態とテクスチャを設定する。
+     * @param command_list 描画コマンドを書き込むコマンドリスト。
+     * @param descriptor_heap SRV/CBV/UAV などを保持するディスクリプタヒープ。
      */
     void Apply(ID3D12GraphicsCommandList* command_list, DescriptorHeap* descriptor_heap);
     /**
-     * @brief Diffuseを設定する関数。
-     * @param diffuse 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param diffuse diffuse に設定する値。
      */
     void SetDiffuse(Texture2D* diffuse);
     /**
-     * @brief Normalを設定する関数。
-     * @param normal 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param normal normal に設定する値。
      */
     void SetNormal(Texture2D* normal);
     /**
-     * @brief Specularを設定する関数。
-     * @param specular 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param specular specular に設定する値。
      */
     void SetSpecular(Texture2D* specular);
     /**
-     * @brief Heightを設定する関数。
-     * @param height 高さ。
+     * @brief 指定された値を内部状態に反映する。
+     * @param height 作成または変更後の高さ。
      */
     void SetHeight(Texture2D* height);
     /**
-     * @brief BaseColorを設定する関数。
-     * @param color 色。
+     * @brief 指定された値を内部状態に反映する。
+     * @param color 設定する色。
      */
     void SetBaseColor(const Vec4& color);
     /**
-     * @brief Diffuseを取得する関数。
-     * @return 戻り値。
+     * @brief Diffuse を取得する。
+     * @return Diffuse。見つからない、または未作成の場合は nullptr。
      */
     Texture2D* GetDiffuse() const;
     /**
-     * @brief Normalを取得する関数。
-     * @return 戻り値。
+     * @brief Normal を取得する。
+     * @return Normal。見つからない、または未作成の場合は nullptr。
      */
     Texture2D* GetNormal() const;
     /**
-     * @brief Specularを取得する関数。
-     * @return 戻り値。
+     * @brief Specular を取得する。
+     * @return Specular。見つからない、または未作成の場合は nullptr。
      */
     Texture2D* GetSpecular() const;
     /**
-     * @brief Heightを取得する関数。
-     * @return 戻り値。
+     * @brief 高さ を取得する。
+     * @return 高さ。見つからない、または未作成の場合は nullptr。
      */
     Texture2D* GetHeight() const;
     /**
-     * @brief SpecularPowerを取得する関数。
-     * @return 戻り値。
+     * @brief スペキュラの強さ指数を取得する。
+     * @return ハイライトの鋭さに使うスペキュラ指数。
      */
     float GetSpecularPower() const;
     /**
-     * @brief SpecularIntensityを取得する関数。
-     * @return 戻り値。
+     * @brief スペキュラの強度を取得する。
+     * @return ハイライトの明るさに使うスペキュラ強度。
      */
     float GetSpecularIntensity() const;
     /**
-     * @brief SpecularPowerを設定する関数。
-     * @param power 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param power power に設定する値。
      */
     void SetSpecularPower(float power);
     /**
-     * @brief SpecularIntensityを設定する関数。
-     * @param intensity 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param intensity intensity に設定する値。
      */
     void SetSpecularIntensity(float intensity);
     /**
-     * @brief BaseColorを取得する関数。
-     * @return 戻り値。
+     * @brief ベースカラーを取得する。
+     * @return マテリアルのベースカラー。
      */
     Vec4 GetBaseColor() const;
 

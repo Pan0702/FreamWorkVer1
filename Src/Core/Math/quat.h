@@ -10,86 +10,122 @@ using namespace DirectX;
 struct Quat : public XMFLOAT4
 {
     /**
-     * @brief Quatを初期化するコンストラクタ。
-     * @param f 引数。
+     * @brief インスタンスの初期状態を整える。
      */
     Quat() : XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f){}
     /**
-     * @brief Quatを初期化するコンストラクタ。
-     * @param x 引数。
-     * @param y 引数。
-     * @param z 引数。
-     * @param w 引数。
+     * @brief インスタンスの初期状態を整える。
+     * @param x x に設定する値。
+     * @param y y に設定する値。
+     * @param z z に設定する値。
+     * @param y y に設定する値。
+     * @param z z に設定する値。
+     * @param w w に設定する値。
      */
     Quat(float x, float y, float z, float w) : XMFLOAT4(x, y, z, w){}
 
     /**
-     * @brief Quatを初期化するコンストラクタ。
-     * @param v 引数。
+     * @brief インスタンスの初期状態を整える。
+     * @param v 計算に使用するベクトルまたは点。
      */
     Quat(const XMVECTOR& v)
     {
         XMStoreFloat4((this), v);
     }
 
+    /**
+     * @brief 演算子 operator= で値を扱う。
+     * @return 演算結果を反映した自分自身。
+     */
     Quat& operator=(const Quat&) = default;
-    // v: DirectXMath のベクトル。戻り値: 代入後の自分自身。
+    /**
+     * @brief 演算子 operator= で値を扱う。
+     * @param v 計算に使用するベクトルまたは点。
+     * @return 演算結果を反映した自分自身。
+     */
     Quat& operator=(const XMVECTOR& v)
     {
         XMStoreFloat4((this), v);
         return *this;
     }
 
-    // 戻り値: DirectXMath の計算用ベクトル。
+    /**
+     * @brief インスタンスの初期状態を整える。
+     */
     operator XMVECTOR() const
     {
         return XMLoadFloat4((this));
     }
 
-    // 四則演算。
+    /**
+     * @brief 演算子 operator* で値を扱う。
+     * @param rhs 計算に使用する行列または値。
+     * @return 演算結果として作成した新しい値。
+     */
     Quat operator*(const Quat& rhs) const
     {
         return Quat(XMQuaternionMultiply(*this, rhs));
     }
+    /**
+     * @brief 演算子 operator*= で値を扱う。
+     * @param rhs 計算に使用する行列または値。
+     * @return 演算結果を反映した自分自身。
+     */
     Quat& operator*=(const Quat& rhs)
     {
         *this = *this * rhs;
         return *this;
     }
 
-    // 比較。
     bool operator==(const Quat& rhs) const
     {
         return XMQuaternionEqual(*this, rhs);
     }
 
+    /**
+     * @brief 演算子 operator!= で値を扱う。
+     * @param rhs 計算に使用する行列または値。
+     * @return 左右の値が異なる場合は true。
+     */
     bool operator!=(const Quat& rhs) const
     {
         return !(*this == rhs);
     }
 
-    // 戻り値: 長さの二乗。
+    /**
+     * @brief クォータニオンの大きさの二乗を求める。
+     * @return 平方根を取らないクォータニオンの大きさの二乗。
+     */
     float LengthSquared() const
     {
         return XMVectorGetX(XMQuaternionLengthSq(*this));
     }
 
-    // 戻り値: 長さ。
+    /**
+     * @brief クォータニオンの大きさを求める。
+     * @return クォータニオンの大きさ。
+     */
     float Length() const
     {
         return std::sqrt(LengthSquared());
     }
-    // 戻り値: 正規化したクォータニオン。
+    /**
+     * @brief 正規化したクォータニオンを作成する。
+     * @return 長さを 1 にそろえたクォータニオン。
+     */
     Quat Normalized() const
     {
         return Quat(XMQuaternionNormalize(*this));
     }
     /**
-     * @brief Normalizeを行う関数。
-     * @param this 引数。
+     * @brief 数学計算の結果を求める。
+     * @param this this に設定する値。
      */
     void Normalize() { *this = Normalized(); }
-    // 戻り値: 共役クォータニオン。
+    /**
+     * @brief 逆向きの回転を作るための共役を求める。
+     * @return x・y・z の符号を反転した共役クォータニオン。
+     */
     Quat Conjugate() const
     {
         return Quat(XMQuaternionConjugate(*this));

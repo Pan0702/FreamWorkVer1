@@ -12,28 +12,41 @@ class World;
 class LevelBase
 {
 public:
+    /**
+     * @brief インスタンスの初期状態を整える。
+     */
     LevelBase() = default;
+    /**
+     * @brief 保持している登録やリソースを解放する。
+     */
     virtual ~LevelBase() = default;
     /**
-     * @brief Tickを行う関数。
-     * @param dt 引数。
+     * @brief 1 フレーム分の状態更新を進める。
+     * @param dt 前フレームからの経過秒数。
      */
     virtual void Tick(float dt){}
     /**
-     * @brief OnEnterを行う関数。
+     * @brief 生成または遷移直後に必要な初期処理を行う。
      */
     virtual void OnEnter(){}
     /**
-     * @brief OnExitを行う関数。
+     * @brief 終了または遷移前に必要な後始末を行う。
      */
     virtual void OnExit(){}
-    // world: Actor を所属させるワールド。
+    /**
+     * @brief 指定された値を内部状態に反映する。
+     * @param world Actor や描画対象を管理する World。
+     */
     void SetWorld(World* world)
     {
         world_ = world;
     }
 
-    // T: 生成する Actor 派生型。args: コンストラクタ引数。戻り値: 生成した Actor。
+    /**
+     * @brief Actor 派生型を生成し、World へ登録して所有権を保持する。
+     * @param args 生成する型へ渡すコンストラクタ引数。
+     * @return 生成して World に登録した Actor。
+     */
     template <class T = Actor, class... Args>
     T* SpawnActor(Args&&... args)
     {

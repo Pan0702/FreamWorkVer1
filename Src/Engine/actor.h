@@ -21,33 +21,59 @@ struct AttachContext;
 class Actor
 {
 public:
+    /**
+     * @brief インスタンスの初期状態を整える。
+     */
     Actor() = default;
+    /**
+     * @brief 保持している登録やリソースを解放する。
+     */
     virtual ~Actor();
 
-    // 生成直後の初期処理。派生クラスで必要な初期化を行う。
+    /**
+     * @brief 生成または遷移直後に必要な初期処理を行う。
+     */
     virtual void Begin()
     {
     }
 
     /**
-     * @brief OnSpawnを行う関数。
-     * @param world 引数。
+     * @brief 生成または遷移直後に必要な初期処理を行う。
+     * @param world Actor や描画対象を管理する World。
      */
     void OnSpawn(World* world);
     /**
-     * @brief Worldを取得する関数。
-     * @return 戻り値。
+     * @brief Actor が所属している World を取得する。
+     * @return 所属中の World。見つからない、または未作成の場合は nullptr。
      */
     World* GetWorld() const;
 
-    // 全 Actor が必ず持つ Transform。Component 配列ではなく直接保持する。
+    /**
+     * @brief Actor が持つ Transform を取得する。
+     * @return 保持している Transform への参照。
+     */
     TransformComponent& GetTransform() { return transform_; }
+    /**
+     * @brief Actor が持つ Transform を取得する。
+     * @return 保持している Transform への参照。
+     */
     const TransformComponent& GetTransform() const { return transform_; }
 
+    /**
+     * @brief インスタンスの初期状態を整える。
+     */
     Actor(const Actor&) = delete;
+    /**
+     * @brief 演算子 operator= で値を扱う。
+     * @return 演算結果を反映した自分自身。
+     */
     Actor& operator=(const Actor&) = delete;
 
-    // T: 追加する Component 派生型。args: コンストラクタ引数。戻り値: 追加したコンポーネント。
+    /**
+     * @brief Component 派生型を生成し、Actor の所有物として登録する。
+     * @param args 生成する型へ渡すコンストラクタ引数。
+     * @return 生成して Actor に登録した Component。
+     */
     template <class T, class... Args>
     T* AddComponent(Args&&... args)
     {
@@ -64,7 +90,10 @@ public:
         return result;
     }
 
-    // T: 探す Component 派生型。戻り値: 最初に見つかったコンポーネント。なければ nullptr。
+    /**
+     * @brief Actor が所有する Component から指定型の最初の要素を探す。
+     * @return 指定型の Component。見つからない場合は nullptr。
+     */
     template <class T>
     T* GetComponent() const
     {
@@ -81,8 +110,8 @@ public:
     }
 
     /**
-     * @brief Tickを行う関数。
-     * @param dt 引数。
+     * @brief 1 フレーム分の状態更新を進める。
+     * @param dt 前フレームからの経過秒数。
      */
     virtual void Tick(float dt);
 
@@ -91,12 +120,12 @@ protected:
 
 private:
     /**
-     * @brief Attachを行う関数。
-     * @param context 共有コンテキスト。
+     * @brief 所有中の Component を共有コンテキストへ接続する。
+     * @param context 描画や登録に使う共有コンテキスト。
      */
     void Attach(const AttachContext& context);
     /**
-     * @brief Detachを行う関数。
+     * @brief 所有中の Component を逆順で共有コンテキストから外す。
      */
     void Detach();
 

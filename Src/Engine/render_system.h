@@ -23,82 +23,82 @@ class RenderSystem
 {
 public:
     /**
-     * @brief RenderSystemを初期化するコンストラクタ。
+     * @brief インスタンスの初期状態を整える。
      */
     RenderSystem();
     /**
-     * @brief RenderSystemの終了処理を行うデストラクタ。
+     * @brief 保持している登録やリソースを解放する。
      */
     ~RenderSystem();
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param window 描画先または入力元になるウィンドウ。
-     * @return 条件を満たす場合は true。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param window 描画対象のウィンドウ。
+     * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(Window* window);
     /**
-     * @brief 登録済みの描画対象を描画する関数。
-     * @param world 引数。
-     * @param camera 引数。
+     * @brief 現在の状態をもとに描画コマンドを積む。
+     * @param world Actor や描画対象を管理する World。
+     * @param camera ビュー行列と射影行列を提供するカメラ。
      */
     void Render(World* world, Camera* camera) const;
     /**
-     * @brief 保持しているリソースを解放する関数。
+     * @brief 保持しているリソースと登録状態を解放する。
      */
     void Shutdown();
     /**
-     * @brief WaitForGPUを行う関数。
+     * @brief GPU や OS 側へ処理を渡し、必要な同期を進める。
      */
     void WaitForGPU() const;
 
     /**
-     * @brief SwapChainを取得する関数。
-     * @return 戻り値。
+     * @brief スワップチェーン を取得する。
+     * @return 保持しているスワップチェーン。未作成なら nullptr。
      */
     SwapChain* GetSwapChain() const;
     /**
-     * @brief CommandListを取得する関数。
-     * @return 戻り値。
+     * @brief D3D12 コマンドリスト を取得する。
+     * @return 保持している D3D12 コマンドリスト。未作成なら nullptr。
      */
     CommandList* GetCommandList() const;
     /**
-     * @brief DescriptorHeapを取得する関数。
-     * @return 戻り値。
+     * @brief ディスクリプタヒープ を取得する。
+     * @return 保持しているディスクリプタヒープ。未作成なら nullptr。
      */
     DescriptorHeap* GetDescriptorHeap() const;
     /**
-     * @brief ConstantBufferAllocatorを取得する関数。
-     * @return 戻り値。
+     * @brief Constant Buffer Allocator を取得する。
+     * @return Constant Buffer Allocator。見つからない、または未作成の場合は nullptr。
      */
     ConstantBufferAllocator* GetConstantBufferAllocator() const;
     /**
-     * @brief SceneRendererを取得する関数。
-     * @return 戻り値。
+     * @brief SceneRenderer を取得する。
+     * @return SceneRenderer。見つからない、または未作成の場合は nullptr。
      */
     SceneRenderer* GetSceneRenderer() const;
     /**
-     * @brief DebugLineRendererを取得する関数。
-     * @return 戻り値。
+     * @brief DebugLineRenderer を取得する。
+     * @return DebugLineRenderer。見つからない、または未作成の場合は nullptr。
      */
     DebugLineRenderer* GetDebugLineRenderer() const;
     /**
-     * @brief DepthStencilを取得する関数。
-     * @return 戻り値。
+     * @brief Depth Stencil を取得する。
+     * @return Depth Stencil。見つからない、または未作成の場合は nullptr。
      */
     DepthStencil* GetDepthStencil() const;
     /**
-     * @brief Deviceを取得する関数。
-     * @return 戻り値。
+     * @brief D3D12 デバイス を取得する。
+     * @return 保持している D3D12 デバイス。未初期化なら nullptr。
      */
     ID3D12Device* GetDevice() const;
     /**
-     * @brief LastPresentMsを取得する関数。
-     * @return 戻り値。
+     * @brief 直近の Present 計測時間を取得する。
+     * @return 直近の Present にかかったミリ秒単位の時間。
      */
     float GetLastPresentMs() const { return last_present_ms_; }
     /**
-     * @brief 前回のグラフィックス処理装置待機時間をミリ秒で取得する関数。
-     * @return 戻り値。
+     * @brief 直近の GPU 待機時間を取得する。
+     * @return 直近の GPU 完了待ちにかかったミリ秒単位の時間。
      */
     float GetLastGpuWaitMs() const { return last_gpu_wait_ms_; }
 

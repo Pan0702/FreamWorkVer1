@@ -18,72 +18,71 @@ class SkeletalMesh
 {
 public:
     /**
-     * @brief SkeletalMeshを初期化するコンストラクタ。
+     * @brief インスタンスの初期状態を整える。
      */
     SkeletalMesh() ;
     /**
-     * @brief SkeletalMeshの終了処理を行うデストラクタ。
+     * @brief 保持している登録やリソースを解放する。
      */
     ~SkeletalMesh();
     /**
-     * @brief DirectX 12 リソースを作成する関数。
-     * @param device DirectX 12 デバイス。
-     * @param vertex_data 頂点バッファ作成に使うデータ。
-     * @param index_data インデックスバッファ作成に使うデータ。
-     * @param D3D12_INPUT_ELEMENT_DESC 引数。
-     * @return 条件を満たす場合は true。
+     * @brief 内部で使用するリソースを作成する。
+     * @param device 使用する D3D12 デバイス。
+     * @param vertex_data vertex_data に設定する値。
+     * @param index_data index_data に設定する値。
+     * @return 対象リソースの作成が完了した場合は true。
      */
     bool Create(ID3D12Device* device,
         
     VertexData vertex_data, IndexData index_data, std::span<const D3D12_INPUT_ELEMENT_DESC>);
     /**
-     * @brief VertexBufferViewを取得する関数。
-     * @return 戻り値。
+     * @brief 頂点バッファビュー を取得する。
+     * @return 現在保持している 頂点バッファビュー。
      */
     D3D12_VERTEX_BUFFER_VIEW GetVertexBufferView();
     /**
-     * @brief IndexBufferViewを取得する関数。
-     * @return 戻り値。
+     * @brief インデックスバッファビュー を取得する。
+     * @return 現在保持している インデックスバッファビュー。
      */
     D3D12_INDEX_BUFFER_VIEW GetIndexBufferView();
     /**
-     * @brief IndexCountを取得する関数。
-     * @return 戻り値。
+     * @brief インデックス数を取得する。
+     * @return 描画に使うインデックス数。
      */
     uint32_t GetIndexCount();
     /**
-     * @brief InputLayoutを取得する関数。
-     * @return 戻り値。
+     * @brief Input Layout を取得する。
+     * @return 保持している Input Layout への参照。
      */
     const std::vector<D3D12_INPUT_ELEMENT_DESC>& GetInputLayout();
     /**
-     * @brief MaterialDescsを設定する関数。
-     * @param material_descs 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param material_descs 描画に使用するマテリアル。
      */
     void SetMaterialDescs(std::span<const MeshMaterialDesc> material_descs);
     /**
-     * @brief SubMeshesを設定する関数。
-     * @param sub_meshes 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param sub_meshes sub_meshes に設定する値。
      */
     void SetSubMeshes(std::span<const SubMesh> sub_meshes);
     /**
-     * @brief Skeletonを設定する関数。
-     * @param sk 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param sk sk に設定する値。
      */
     void SetSkeleton(std::unique_ptr<Skeleton> sk);
     /**
-     * @brief Skeletonを取得する関数。
-     * @return 戻り値。
+     * @brief スケルトン を取得する。
+     * @return スケルトン。見つからない、または未作成の場合は nullptr。
      */
     Skeleton* GetSkeleton();
     /**
-     * @brief MaterialDecsを取得する関数。
-     * @return 戻り値。
+     * @brief Material Decs を取得する。
+     * @return 保持している Material Decs への参照。
      */
     const std::vector<MeshMaterialDesc>& GetMaterialDecs();
     /**
-     * @brief SubMeshesを取得する関数。
-     * @return 戻り値。
+     * @brief Sub Meshes を取得する。
+     * @return 保持している Sub Meshes への参照。
      */
     const std::vector<SubMesh>& GetSubMeshes();
 

@@ -13,116 +13,117 @@ class Debug
 {
 public:
     /**
-     * @brief インスタンスを取得する関数。
-     * @return 戻り値。
+     * @brief Debug の共有インスタンスを取得する。
+     * @return アプリ全体で共有する Debug インスタンスへの参照。
      */
     static Debug& Get();
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param sprite_renderer 引数。
-     * @param ui_renderer 引数。
-     * @param debug_line_renderer 引数。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param sprite_renderer sprite_renderer に設定する値。
+     * @param ui_renderer ui_renderer に設定する値。
+     * @param debug_line_renderer debug_line_renderer に設定する値。
      */
     void Initialize(SpriteRenderer* sprite_renderer, UIRenderer* ui_renderer
         ,DebugLineRenderer* debug_line_renderer);
     /**
-     * @brief 保持しているリソースを解放する関数。
+     * @brief 保持しているリソースと登録状態を解放する。
      */
     void Shutdown();
     /**
-     * @brief Logを行う関数。
-     * @param format 出力する書式文字列。
-     * @param value 設定する値。
+     * @brief ログへ文字列を書き込む。
+     * @param format format に設定する値。
      */
     void Log(const char* format, ...);
     /**
-     * @brief Printを行う関数。
-     * @param format 出力する書式文字列。
-     * @param value 設定する値。
+     * @brief デバッグ表示へ文字列を積む。
+     * @param format format に設定する値。
      */
     void Print(const char* format, ...);
     /**
-     * @brief DrawSpriteを行う関数。
-     * @param texture 描画に使うテクスチャ。
-     * @param position 位置。
-     * @param size サイズ情報。
-     * @param color 色。
+     * @brief 現在の状態をもとに描画コマンドを積む。
+     * @param texture 使用するテクスチャ。
+     * @param position position に設定する値。
+     * @param size size に設定する値。
+     * @param color 設定する色。
      */
     void DrawSprite(Texture2D* texture, const Vec2& position, const Vec2& size, const Vec4& color);
     /**
-     * @brief DrawBoxを行う関数。
-     * @param position 位置。
-     * @param size サイズ情報。
-     * @param color 色。
-     * @param rotation 引数。
+     * @brief 現在の状態をもとに描画コマンドを積む。
+     * @param position position に設定する値。
+     * @param size size に設定する値。
+     * @param color 設定する色。
+     * @param rotation rotation に設定する値。
      */
     void DrawBox(const Vec2& position, const Vec2& size, const Vec4& color, float rotation = 0.0f);
     /**
-     * @brief DrawLineを行う関数。
-     * @param start 引数。
-     * @param end 引数。
-     * @param color 色。
+     * @brief 現在の状態をもとに描画コマンドを積む。
+     * @param start start に設定する値。
+     * @param end end に設定する値。
+     * @param color 設定する色。
      */
     void DrawLine(const Vec2& start, const Vec2& end, const Vec4& color);
     /**
-     * @brief DrawCircleを行う関数。
-     * @param center 引数。
-     * @param radius 引数。
-     * @param color 色。
+     * @brief 現在の状態をもとに描画コマンドを積む。
+     * @param center center に設定する値。
+     * @param radius radius に設定する値。
+     * @param color 設定する色。
      */
     void DrawCircle(const Vec2& center, float radius, const Vec4& color);
     /**
-     * @brief DrawLine3Dを行う関数。
-     * @param start 引数。
-     * @param end 引数。
-     * @param color 色。
+     * @brief 現在の状態をもとに描画コマンドを積む。
+     * @param start start に設定する値。
+     * @param end end に設定する値。
+     * @param color 設定する色。
      */
     void DrawLine3D(const Vec3& start, const Vec3& end, const Vec4& color);
     /**
-     * @brief DrawBox3Dを行う関数。
-     * @param center 引数。
-     * @param size サイズ情報。
-     * @param color 色。
-     * @param rotation 引数。
-     * @param fill 引数。
+     * @brief 現在の状態をもとに描画コマンドを積む。
+     * @param center center に設定する値。
+     * @param size size に設定する値。
+     * @param color 設定する色。
+     * @param rotation rotation に設定する値。
+     * @param fill fill に設定する値。
      */
     void DrawBox3D(const Vec3& center, const Vec3& size, const Vec4& color, const Vec3& rotation, bool fill = true);
     /**
-     * @brief DrawSphere3Dを行う関数。
-     * @param center 引数。
-     * @param radius 引数。
-     * @param color 色。
+     * @brief 現在の状態をもとに描画コマンドを積む。
+     * @param center center に設定する値。
+     * @param radius radius に設定する値。
+     * @param color 設定する色。
      */
     void DrawSphere3D(const Vec3& center, float radius, const Vec4& color);
     /**
-     * @brief DrawSprite3Dを行う関数。
-     * @param texture 描画に使うテクスチャ。
-     * @param position 位置。
-     * @param rotation 引数。
-     * @param size サイズ情報。
-     * @param src_pos 引数。
-     * @param src_size 引数。
-     * @param alpha 引数。
+     * @brief 現在の状態をもとに描画コマンドを積む。
+     * @param texture 使用するテクスチャ。
+     * @param position position に設定する値。
+     * @param rotation rotation に設定する値。
+     * @param size size に設定する値。
+     * @param src_pos src_pos に設定する値。
+     * @param src_size src_size に設定する値。
+     * @param alpha alpha に設定する値。
      */
     void DrawSprite3D(Texture2D* texture, const Vec3& position, const Vec3& rotation, 
         const Vec2& size, const Vec2& src_pos, const Vec2& src_size, float alpha);
     /**
-     * @brief DrawSprite3Dを行う関数。
-     * @param texture 描画に使うテクスチャ。
-     * @param mat 引数。
-     * @param size サイズ情報。
-     * @param src_pos 引数。
-     * @param src_size 引数。
-     * @param alpha 引数。
+     * @brief 現在の状態をもとに描画コマンドを積む。
+     * @param texture 使用するテクスチャ。
+     * @param mat 描画に使用するマテリアル。
+     * @param size size に設定する値。
+     * @param src_pos src_pos に設定する値。
+     * @param src_size src_size に設定する値。
+     * @param alpha alpha に設定する値。
      */
     void DrawSprite3D(Texture2D* texture,const Mat& mat,const Vec2& size, const Vec2& src_pos, const Vec2& src_size, float alpha);
     /**
-     * @brief Watchを行う関数。
-     * @param name 検索または識別に使う名前。
-     * @param value 設定する値。
+     * @brief 監視したい値をデバッグ表示へ登録する。
+     * @param name name に設定する値。
+     * @param value value に設定する値。
      */
     void Watch(const char* name, float value);
 private:
+    /**
+     * @brief インスタンスの初期状態を整える。
+     */
     Debug() = default;
 
     SpriteRenderer* sprite_renderer_ = nullptr;

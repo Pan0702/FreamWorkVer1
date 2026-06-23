@@ -9,43 +9,43 @@ class RenderObject
 {
 public:
     /**
-     * @brief Meshを設定する関数。
-     * @param mesh 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param mesh 読み込み、描画、または判定に使用するメッシュ。
      */
     void SetMesh(Mesh* mesh);
     /**
-     * @brief Materialを設定する関数。
-     * @param material マテリアル。
+     * @brief 指定された値を内部状態に反映する。
+     * @param material 描画に使用するマテリアル。
      */
     void SetMaterial(Material* material);
     /**
-     * @brief Transformを設定する関数。
-     * @param transform 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param transform transform に設定する値。
      */
     void SetTransform(const Mat& transform);
     /**
-     * @brief Priorityを設定する関数。
-     * @param priority 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param priority priority に設定する値。
      */
     void SetPriority(int priority);
     /**
-     * @brief Priorityを取得する関数。
-     * @return 戻り値。
+     * @brief 描画優先度を取得する。
+     * @return 小さいほど先に扱う描画優先度。
      */
     int GetPriority() const;
     /**
-     * @brief Transformを取得する関数。
-     * @return 戻り値。
+     * @brief Actor が持つ Transform を取得する。
+     * @return 現在保持している Transform。
      */
     Mat GetTransform() const;
     /**
-     * @brief Meshを取得する関数。
-     * @return 戻り値。
+     * @brief メッシュ を取得する。
+     * @return メッシュ。見つからない、または未作成の場合は nullptr。
      */
     Mesh* GetMesh() const;
     /**
-     * @brief Materialを取得する関数。
-     * @return 戻り値。
+     * @brief マテリアル を取得する。
+     * @return マテリアル。見つからない、または未作成の場合は nullptr。
      */
     Material* GetMaterial() const;
     

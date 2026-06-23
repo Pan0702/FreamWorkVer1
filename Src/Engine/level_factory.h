@@ -11,12 +11,15 @@ class LevelFactory
 {
 public:
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
+     * @brief 利用前に必要な参照とリソースを初期化する。
      */
     void Initialize();
     using CreateFunc = std::function<std::unique_ptr<LevelBase>()>;
 
-    // T: 登録する LevelBase 派生型。name: 生成時に使う名前。
+    /**
+     * @brief 対象を管理リストへ登録する。
+     * @param name name に設定する値。
+     */
     template<class T>
     void Register(const std::string& name)
     {
@@ -24,9 +27,9 @@ public:
         factories_[name] = []{return std::make_unique<T>();};
     }
     /**
-     * @brief DirectX 12 リソースを作成する関数。
-     * @param name 検索または識別に使う名前。
-     * @return 戻り値。
+     * @brief 内部で使用するリソースを作成する。
+     * @param name name に設定する値。
+     * @return 対象リソースの作成が完了した場合は true。
      */
     std::unique_ptr<LevelBase> Create(const std::string& name);
 

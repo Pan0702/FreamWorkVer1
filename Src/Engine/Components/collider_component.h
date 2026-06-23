@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include <cstdint>
 #include <functional>
 #include "../component.h"
@@ -15,14 +15,27 @@ enum class ColliderShape : uint8_t
     kMesh,
 };
 
+// Actor ‚É’Ç‰Á‚µ‚Äg‚¤ ColliderComponent ‚Ìó‘Ô‚Æˆ—‚ğ‚Ü‚Æ‚ß‚éB
 class ColliderComponent : public Component
 {
 public:
     using OverlapCallback =
     std::function<void(const ColliderComponent* self, const ColliderComponent* other)>;
+    /**
+     * @brief w’è‚³‚ê‚½’l‚ğ“à•”ó‘Ô‚É”½‰f‚·‚éB
+     * @param callback ’Ê’m‚ÉŒÄ‚Ño‚·ƒR[ƒ‹ƒoƒbƒNB
+     */
     void SetOnBeginOverlap(OverlapCallback callback);
+    /**
+     * @brief w’è‚³‚ê‚½’l‚ğ“à•”ó‘Ô‚É”½‰f‚·‚éB
+     * @param callback ’Ê’m‚ÉŒÄ‚Ño‚·ƒR[ƒ‹ƒoƒbƒNB
+     */
     void SetOnEndOverlap(OverlapCallback callback);
 
+    /**
+     * @brief w’è‚³‚ê‚½’l‚ğ“à•”ó‘Ô‚É”½‰f‚·‚éB
+     * @param obj ƒƒ“ƒoŠÖ”‚ğŒÄ‚Ño‚·‘ÎÛƒIƒuƒWƒFƒNƒgB
+     */
     template <class T>
     void SetOnBeginOverlap(T* obj, void (T::*fn)(const ColliderComponent*, const ColliderComponent*))
     {
@@ -33,6 +46,10 @@ public:
         };
     }
 
+    /**
+     * @brief w’è‚³‚ê‚½’l‚ğ“à•”ó‘Ô‚É”½‰f‚·‚éB
+     * @param obj ƒƒ“ƒoŠÖ”‚ğŒÄ‚Ño‚·‘ÎÛƒIƒuƒWƒFƒNƒgB
+     */
     template <class T>
     void SetOnEndOverlap(T* obj, void (T::*fn)(const ColliderComponent*, const ColliderComponent*))
     {
@@ -47,6 +64,10 @@ public:
     std::function<void(ColliderComponent* self, Actor* other_actor, ColliderComponent* other_coll,
                        const ContactInfo& info)>;
 
+    /**
+     * @brief w’è‚³‚ê‚½’l‚ğ“à•”ó‘Ô‚É”½‰f‚·‚éB
+     * @param obj ƒƒ“ƒoŠÖ”‚ğŒÄ‚Ño‚·‘ÎÛƒIƒuƒWƒFƒNƒgB
+     */
     template <class T>
     void SetOnHit(T* obj, void (T::*fn)(ColliderComponent*, Actor*, ColliderComponent*, const ContactInfo&))
     {
@@ -56,18 +77,67 @@ public:
         };
     }
 
+    /**
+     * @brief ƒRƒ‰ƒCƒ_[‚ÌŒ`óí•Ê‚ğæ“¾‚·‚éB
+     * @return Œ»İ•Û‚µ‚Ä‚¢‚é ƒRƒ‰ƒCƒ_[‚ÌŒ`óí•ÊB
+     */
     virtual ColliderShape GetColliderShape() const = 0;
+    /**
+     * @brief ‹¤—LƒRƒ“ƒeƒLƒXƒg‚Ö“o˜^‚µAƒVƒXƒeƒ€‘¤‚Åˆµ‚¦‚éó‘Ô‚É‚·‚éB
+     * @param context •`‰æ‚â“o˜^‚Ég‚¤‹¤—LƒRƒ“ƒeƒLƒXƒgB
+     */
     void OnAttach(const AttachContext& context) override;
+    /**
+     * @brief ‹¤—LƒRƒ“ƒeƒLƒXƒg‚©‚ç“o˜^‚ğŠO‚µAƒVƒXƒeƒ€‘¤‚ÌQÆ‚ğØ‚éB
+     */
     void OnDetach() override;
+    /**
+     * @brief ƒRƒ‰ƒCƒ_[”»’è‚Ég‚¤’†S‚ÆƒXƒP[ƒ‹‚ğæ“¾‚·‚éB
+     * @param center center ‚Éİ’è‚·‚é’lB
+     * @param abs_scale abs_scale ‚Éİ’è‚·‚é’lB
+     * @return ƒRƒ‰ƒCƒ_[”»’è‚Ég‚¤’†S‚ÆƒXƒP[ƒ‹‚ğæ“¾‚Å‚«‚½ ê‡‚Í trueB
+     */
     bool TryGetColliderTransform(Vec3* center, Vec3* abs_scale) const;
+    /**
+     * @brief d‚È‚èn‚ß‚½’Ê’m‚ğ“o˜^Ï‚İƒR[ƒ‹ƒoƒbƒN‚Ö—¬‚·B
+     * @param other other ‚Éİ’è‚·‚é’lB
+     */
     void InvokeBeginOverlap(const ColliderComponent* other) const;
+    /**
+     * @brief d‚È‚è‚ªI‚í‚Á‚½’Ê’m‚ğ“o˜^Ï‚İƒR[ƒ‹ƒoƒbƒN‚Ö—¬‚·B
+     * @param other other ‚Éİ’è‚·‚é’lB
+     */
     void InvokeEndOverlap(const ColliderComponent* other);
+    /**
+     * @brief ÚG’†‚Ì’Ê’m‚ğ“o˜^Ï‚İƒR[ƒ‹ƒoƒbƒN‚Ö—¬‚·B
+     * @param other other ‚Éİ’è‚·‚é’lB
+     * @param info ŒvZŒ‹‰Ê‚ğ‘‚«‚Şî•ñB
+     */
     void InvokeHit(ColliderComponent* other, const ContactInfo& info);
 
+    /**
+     * @brief w’è‚³‚ê‚½’l‚ğ“à•”ó‘Ô‚É”½‰f‚·‚éB
+     * @param color İ’è‚·‚éFB
+     */
     void SetColor(const Vec4& color);
+    /**
+     * @brief w’è‚³‚ê‚½’l‚ğ“à•”ó‘Ô‚É”½‰f‚·‚éB
+     * @param draw ƒfƒoƒbƒO•`‰æ‚ğ—LŒø‚É‚·‚é‚©‚Ç‚¤‚©B
+     */
     void SetDraw(bool draw);
+    /**
+     * @brief Œ»İ‚Ìó‘Ô‚ªğŒ‚ğ–‚½‚µ‚Ä‚¢‚é‚©’²‚×‚éB
+     * @return ƒfƒoƒbƒO•`‰æ‚ª—LŒø‚Èê‡‚Í trueB
+     */
     bool IsDraw() const;
+    /**
+     * @brief w’è‚³‚ê‚½’l‚ğ“à•”ó‘Ô‚É”½‰f‚·‚éB
+     * @param use_transform Owner ‚Ì Transform ‚ğ”»’è‚Ö”½‰f‚·‚é‚©‚Ç‚¤‚©B
+     */
     void SetUseTransform(bool use_transform);
+    /**
+     * @brief Œ»İ‚Ìó‘Ô‚ğ‚à‚Æ‚É•`‰æƒRƒ}ƒ“ƒh‚ğÏ‚ŞB
+     */
     virtual void DrawDebug() const = 0;
     
 protected:
@@ -82,6 +152,10 @@ private:
     CollisionWorld* collision_world_ = nullptr;
 };
 
+/**
+ * @brief Owner ‚Ì Transform ‚ğ”»’è‚Ö”½‰f‚·‚é‚©‚Ç‚¤‚©‚ğİ’è‚·‚éB
+ * @param use_transform Owner ‚Ì Transform ‚ğ”»’è‚Ö”½‰f‚·‚é‚©‚Ç‚¤‚©B
+ */
 inline void ColliderComponent::SetUseTransform(bool use_transform)
 {
     use_transform_ = use_transform;

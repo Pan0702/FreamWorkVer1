@@ -12,72 +12,71 @@ class GameMain
 {
 public:
     /**
-     * @brief GameMainを初期化するコンストラクタ。
+     * @brief インスタンスの初期状態を整える。
      */
     GameMain();
     /**
-     * @brief GameMainの終了処理を行うデストラクタ。
+     * @brief 保持している登録やリソースを解放する。
      */
     ~GameMain();
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param title 引数。
-     * @param width 幅。
-     * @param height 高さ。
-     * @return 条件を満たす場合は true。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param title title に設定する値。
+     * @param width 作成または変更後の幅。
+     * @param height 作成または変更後の高さ。
+     * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(const wchar_t* title, int32_t width, int32_t height);
     /**
-     * @brief Runを行う関数。
+     * @brief 初期化後にアプリケーションのメインループを回す。
      */
     void Run();
     /**
-     * @brief 保持しているリソースを解放する関数。
+     * @brief 保持しているリソースと登録状態を解放する。
      */
     void Shutdown();
     /**
-     * @brief Tickを行う関数。
+     * @brief 1 フレーム分の状態更新を進める。
      */
     void Tick();
     /**
-     * @brief 登録済みの描画対象を描画する関数。
+     * @brief 現在の状態をもとに描画コマンドを積む。
      */
     void Render();
 
     /**
-     * @brief Windowを取得する関数。
-     * @return 戻り値。
+     * @brief Window を取得する。
+     * @return 保持している Window への参照。
      */
     Window& GetWindow() { return window_; }
     /**
-     * @brief Inputを取得する関数。
-     * @return 戻り値。
+     * @brief 入力状態 を取得する。
+     * @return 保持している 入力状態 への参照。
      */
     Input& GetInput() { return input_; }
     /**
-     * @brief Cameraを取得する関数。
-     * @return 戻り値。
+     * @brief カメラ を取得する。
+     * @return 保持している カメラ への参照。
      */
     Camera& GetCamera() { return camera_; }
     /**
-     * @brief Applicationを取得する関数。
-     * @return 戻り値。
+     * @brief Application を取得する。
+     * @return 保持している Application への参照。
      */
     GameInstance& GetApplication() { return game_instance_; }
     /**
-     * @brief RenderSystemを取得する関数。
-     * @param get 引数。
-     * @return 戻り値。
+     * @brief RenderSystem を取得する。
+     * @return GameMain が保持している RenderSystem。未初期化なら nullptr。
      */
     RenderSystem* GetRenderSystem() const { return render_system_.get(); }
     /**
-     * @brief DeltaTimeを取得する関数。
-     * @return 戻り値。
+     * @brief 前フレームからの経過時間を取得する。
+     * @return 直前のフレーム更新に使った経過秒数。
      */
     float GetDeltaTime() const { return delta_time_; }
 private:
     /**
-     * @brief フレームレートを計測し、表示用の値を更新する関数。
+     * @brief フレーム時間から FPS 表示用の値を更新する。
      */
     void ClacFPS();
 

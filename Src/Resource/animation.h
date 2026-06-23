@@ -30,36 +30,36 @@ class Animation
 {
 public:
     /**
-     * @brief Dataを設定する関数。
-     * @param duration 引数。
-     * @param ticks_per_second 引数。
-     * @param node 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param duration duration に設定する値。
+     * @param ticks_per_second ticks_per_second に設定する値。
+     * @param node node に設定する値。
      */
     void SetData(float duration, float ticks_per_second,
                  std::vector<NodeAnimation> node);
     /**
-     * @brief Loopingを設定する関数。
-     * @param loop 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param loop loop に設定する値。
      */
     void SetLooping(bool loop);
     /**
-     * @brief Durationを取得する関数。
-     * @return 戻り値。
+     * @brief 再生時間 を取得する。
+     * @return 現在保持している 再生時間。
      */
     float GetDuration() const;
     /**
-     * @brief TicksPerSecondを取得する関数。
-     * @return 戻り値。
+     * @brief 1 秒あたりのアニメーション tick 数を取得する。
+     * @return 1 秒あたりに進むアニメーション tick 数。
      */
     float GetTicksPerSecond() const;
     /**
-     * @brief Loopingかどうかを確認する関数。
-     * @return 条件を満たす場合は true。
+     * @brief 現在の状態が条件を満たしているか調べる。
+     * @return 現在の状態が条件を満たしているか調べる 場合は true。
      */
     bool IsLooping() const;
     /**
-     * @brief NodeAnimationsを取得する関数。
-     * @return 戻り値。
+     * @brief Node Animations を取得する。
+     * @return 保持している Node Animations への参照。
      */
     const std::vector<NodeAnimation>& GetNodeAnimations() const;
 private:

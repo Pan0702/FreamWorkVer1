@@ -10,6 +10,7 @@
 
 namespace
 {
+    // LocalPose ‚ÉŠÖŒW‚·‚éó‘Ô‚ÆU‚é•‘‚¢‚ğ‚Ü‚Æ‚ß‚éŒ^B
     struct LocalPose
     {
         Vec3 t;

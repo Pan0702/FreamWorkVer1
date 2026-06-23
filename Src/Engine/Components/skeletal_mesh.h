@@ -15,42 +15,45 @@ class SkeletalMeshComponent : public Component
 {
 public:
     /**
-     * @brief SkeletalMeshComponentを初期化するコンストラクタ。
-     * @param skeletal_mesh 引数。
-     * @param material_slot 引数。
+     * @brief インスタンスの初期状態を整える。
+     * @param skeletal_mesh skeletal_mesh に設定する値。
+     * @param material_slot 描画に使用するマテリアル。
      */
     SkeletalMeshComponent(SkeletalMesh* skeletal_mesh, MaterialSlot* material_slot);
+    /**
+     * @brief 保持している登録やリソースを解放する。
+     */
     ~SkeletalMeshComponent() override;
 
     /**
-     * @brief OnAttachを行う関数。
-     * @param context 共有コンテキスト。
+     * @brief 共有コンテキストへ登録し、システム側で扱える状態にする。
+     * @param context 描画や登録に使う共有コンテキスト。
      */
     void OnAttach(const AttachContext& context) override;
     /**
-     * @brief OnDetachを行う関数。
+     * @brief 共有コンテキストから登録を外し、システム側の参照を切る。
      */
     void OnDetach() override;
     /**
-     * @brief Animationを取得する関数。
-     * @param name 検索または識別に使う名前。
-     * @return 戻り値。
+     * @brief アニメーション を取得する。
+     * @param name name に設定する値。
+     * @return アニメーション。見つからない、または未作成の場合は nullptr。
      */
     Animation* GetAnimation(const std::string& name);
     /**
-     * @brief Animationを設定する関数。
-     * @param name 検索または識別に使う名前。
-     * @param animation 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param name name に設定する値。
+     * @param animation animation に設定する値。
      */
     void SetAnimation(const std::string& name, Animation* animation);
     /**
-     * @brief SkeltalMeshを取得する関数。
-     * @return 戻り値。
+     * @brief Skeltal Mesh を取得する。
+     * @return Skeltal Mesh。見つからない、または未作成の場合は nullptr。
      */
     SkeletalMesh* GetSkeltalMesh() const;
     /**
-     * @brief MaterialSlotを取得する関数。
-     * @return 戻り値。
+     * @brief マテリアルスロット を取得する。
+     * @return マテリアルスロット。見つからない、または未作成の場合は nullptr。
      */
     MaterialSlot* GetMaterialSlot() const;
 private:

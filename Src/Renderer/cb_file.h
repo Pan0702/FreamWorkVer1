@@ -41,4 +41,3 @@ namespace CB
         Mat bones[kMaxBones];
     };
 }
-

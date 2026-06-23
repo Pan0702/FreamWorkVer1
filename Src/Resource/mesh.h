@@ -15,68 +15,72 @@ class Mesh
 public:
     
     /**
-     * @brief DirectX 12 リソースを作成する関数。
-     * @param device DirectX 12 デバイス。
-     * @param vertex_data 頂点バッファ作成に使うデータ。
-     * @param index_data インデックスバッファ作成に使うデータ。
-     * @param D3D12_INPUT_ELEMENT_DESC 引数。
-     * @return 条件を満たす場合は true。
+     * @brief 内部で使用するリソースを作成する。
+     * @param device 使用する D3D12 デバイス。
+     * @param vertex_data vertex_data に設定する値。
+     * @param index_data index_data に設定する値。
+     * @return 対象リソースの作成が完了した場合は true。
      */
     bool Create(ID3D12Device* device, VertexData vertex_data, IndexData index_data,
                 std::span<const D3D12_INPUT_ELEMENT_DESC>);
     /**
-     * @brief VertexBufferViewを取得する関数。
-     * @return 戻り値。
+     * @brief 頂点バッファビュー を取得する。
+     * @return 現在保持している 頂点バッファビュー。
      */
     D3D12_VERTEX_BUFFER_VIEW GetVertexBufferView();
     /**
-     * @brief IndexBufferViewを取得する関数。
-     * @return 戻り値。
+     * @brief インデックスバッファビュー を取得する。
+     * @return 現在保持している インデックスバッファビュー。
      */
     D3D12_INDEX_BUFFER_VIEW GetIndexBufferView();
     /**
-     * @brief IndexCountを取得する関数。
-     * @return 戻り値。
+     * @brief インデックス数を取得する。
+     * @return 描画に使うインデックス数。
      */
     uint32_t GetIndexCount();
     /**
-     * @brief InputLayoutを取得する関数。
-     * @return 戻り値。
+     * @brief Input Layout を取得する。
+     * @return 保持している Input Layout への参照。
      */
     const std::vector<D3D12_INPUT_ELEMENT_DESC>& GetInputLayout();
     /**
-     * @brief MaterialDescsを設定する関数。
-     * @param material_descs 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param material_descs 描画に使用するマテリアル。
      */
     void SetMaterialDescs(std::span<const MeshMaterialDesc> material_descs);
     /**
-     * @brief SubMeshesを設定する関数。
-     * @param sub_meshes 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param sub_meshes sub_meshes に設定する値。
      */
     void SetSubMeshes(std::span<const SubMesh> sub_meshes);
     /**
-     * @brief MaterialDecsを取得する関数。
-     * @return 戻り値。
+     * @brief Material Decs を取得する。
+     * @return 保持している Material Decs への参照。
      */
     const std::vector<MeshMaterialDesc>& GetMaterialDecs();
     /**
-     * @brief SubMeshesを取得する関数。
-     * @return 戻り値。
+     * @brief Sub Meshes を取得する。
+     * @return 保持している Sub Meshes への参照。
      */
     const std::vector<SubMesh>& GetSubMeshes();
 
     /**
-     * @brief 
-     * @return collision_positionsを返す。
+     * @brief Vec3 値 を取得する。
+     * @return 保持している Vec3 値 への参照。
      */
     const std::vector<Vec3>& GetCollisionPositions() const;
 
     /**
-    * @brief 
-    * @return collision_indicesを返す。
-    */
+     * @brief インデックス数を取得する。
+     * @return 保持している 数値 への参照。
+     */
     const std::vector<uint32_t>& GetCollisionIndices() const;
 
+    /**
+     * @brief 指定された値を内部状態に反映する。
+     * @param positions positions に設定する値。
+     * @param indices indices に設定する値。
+     */
     void SetCollisionMesh(std::vector<Vec3> positions, std::vector<uint32> indices);
 private:
     std::unique_ptr<VertexBuffer> vertex_buffer_;
@@ -88,5 +92,3 @@ private:
     std::vector<uint32_t> collision_indices_;
     uint32_t index_count_ = 0;
 };
-
-

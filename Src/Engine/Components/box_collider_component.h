@@ -1,15 +1,35 @@
-ï»¿#pragma once
+#pragma once
 #include "collider_component.h"
 struct Box;
+// Actor ‚É’Ç‰Á‚µ‚Äg‚¤ BoxColliderComponent ‚Ìó‘Ô‚Æˆ—‚ğ‚Ü‚Æ‚ß‚éB
 class BoxColliderComponent : public ColliderComponent
 {
 public:
+    /**
+     * @brief w’è‚³‚ê‚½’l‚ğ“à•”ó‘Ô‚É”½‰f‚·‚éB
+     * @param size size ‚Éİ’è‚·‚é’lB
+     */
     void SetHalfSize(const Vec3& size);
+    /**
+     * @brief Vec3 ’l ‚ğæ“¾‚·‚éB
+     * @return •Û‚µ‚Ä‚¢‚é Vec3 ’l ‚Ö‚ÌQÆB
+     */
     const Vec3& GetHalfSize() const;
+    /**
+     * @brief ƒRƒ‰ƒCƒ_[‚ÌŒ`óí•Ê‚ğæ“¾‚·‚éB
+     * @return Œ»İ•Û‚µ‚Ä‚¢‚é ƒRƒ‰ƒCƒ_[‚ÌŒ`óí•ÊB
+     */
     ColliderShape GetColliderShape() const override;
+    /**
+     * @brief Collider Box Data ‚ğæ“¾‚·‚éB
+     * @return Œ»İ•Û‚µ‚Ä‚¢‚é Collider Box DataB
+     */
     Box GetColliderBoxData() const;
 
 private:
+    /**
+     * @brief Œ»İ‚Ìó‘Ô‚ğ‚à‚Æ‚É•`‰æƒRƒ}ƒ“ƒh‚ğÏ‚ŞB
+     */
     void DrawDebug() const override;
     Vec3 half_size = {0,0,0};
 };

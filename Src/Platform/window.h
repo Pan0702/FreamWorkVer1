@@ -22,95 +22,109 @@ class Window
 {
 public:
     /**
-     * @brief Windowを初期化するコンストラクタ。
+     * @brief インスタンスの初期状態を整える。
      */
     Window();
     /**
-     * @brief Windowの終了処理を行うデストラクタ。
+     * @brief 保持している登録やリソースを解放する。
      */
     ~Window();
+    /**
+     * @brief インスタンスの初期状態を整える。
+     */
     Window(const Window&) = delete;
+    /**
+     * @brief 演算子 operator= で値を扱う。
+     * @return 演算結果を反映した自分自身。
+     */
     Window& operator=(const Window&) = delete;
+    /**
+     * @brief インスタンスの初期状態を整える。
+     */
     Window(Window&&) = delete;
+    /**
+     * @brief 演算子 operator= で値を扱う。
+     * @return 演算結果を反映した自分自身。
+     */
     Window& operator=(Window&&) = delete;
 
     /**
-     * @brief DirectX 12 リソースを作成する関数。
-     * @param title 引数。
-     * @param width 幅。
-     * @param height 高さ。
-     * @return 条件を満たす場合は true。
+     * @brief 内部で使用するリソースを作成する。
+     * @param title title に設定する値。
+     * @param width 作成または変更後の幅。
+     * @param height 作成または変更後の高さ。
+     * @return 対象リソースの作成が完了した場合は true。
      */
     bool Create(const wchar_t* title, uint32_t width, uint32_t height);
     /**
-     * @brief Showを行う関数。
+     * @brief 作成済みウィンドウを表示する。
      */
     void Show() const;
     /**
-     * @brief ProcessMessagesを行う関数。
-     * @return 条件を満たす場合は true。
+     * @brief Win32 メッセージを処理し、終了要求の有無を返す。
+     * @return 終了要求を受け取っていなければ true。
      */
     bool ProcessMessages() const;
 
     /**
-     * @brief Hwndを取得する関数。
-     * @return 戻り値。
+     * @brief Win32 ウィンドウハンドルを取得する。
+     * @return 作成済みウィンドウの HWND。
      */
     HWND GetHwnd() const;
     /**
-     * @brief Widthを取得する関数。
-     * @return 戻り値。
+     * @brief クライアント領域の幅を取得する。
+     * @return クライアント領域の幅。
      */
     uint32_t GetWidth() const;
     /**
-     * @brief Heightを取得する関数。
-     * @return 戻り値。
+     * @brief クライアント領域の高さを取得する。
+     * @return クライアント領域の高さ。
      */
     uint32_t GetHeight() const;
     /**
-     * @brief Sizeを取得する関数。
-     * @return 戻り値。
+     * @brief クライアント領域のサイズを取得する。
+     * @return クライアント領域の幅と高さ。
      */
     WindowSize GetSize() const;
     /**
-     * @brief LastMessageCountを取得する関数。
-     * @return 戻り値。
+     * @brief 直近に処理したメッセージ数を取得する。
+     * @return 直近のメッセージ処理で取り出した全メッセージ数。
      */
     uint32_t GetLastMessageCount() const;
     /**
-     * @brief LastKeyMessageCountを取得する関数。
-     * @return 戻り値。
+     * @brief 直近に処理したキー関連メッセージ数を取得する。
+     * @return 直近のメッセージ処理で取り出したキー関連メッセージ数。
      */
     uint32_t GetLastKeyMessageCount() const;
     /**
-     * @brief フレームレートを表示用に反映する関数。
-     * @param title 引数。
+     * @brief タイトルバーへ FPS を表示する。
+     * @param title title に設定する値。
      */
     void DispFPS(const wchar_t* title);
 
     using ResizeCallback = std::function<void(uint32_t, uint32_t)>;
     /**
-     * @brief ResizeCallbackを設定する関数。
-     * @param callback 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param callback 通知時に呼び出すコールバック。
      */
     void SetResizeCallback(ResizeCallback callback);
 
 private:
     /**
-     * @brief WndProcを行う関数。
-     * @param hwnd Win32 ウィンドウハンドル。
-     * @param msg 引数。
-     * @param wParam 引数。
-     * @param lParam 引数。
-     * @return 戻り値。
+     * @brief Win32 から届いたメッセージを Window インスタンスへ橋渡しする。
+     * @param hwnd 描画対象の Win32 ウィンドウハンドル。
+     * @param msg msg に設定する値。
+     * @param wParam wParam に設定する値。
+     * @param lParam lParam に設定する値。
+     * @return Win32 に返すメッセージ処理結果。
      */
     static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
     /**
-     * @brief HandleMessageを行う関数。
-     * @param msg 引数。
-     * @param wParam 引数。
-     * @param lParam 引数。
-     * @return 戻り値。
+     * @brief Window インスタンス側で Win32 メッセージを処理する。
+     * @param msg msg に設定する値。
+     * @param wParam wParam に設定する値。
+     * @param lParam lParam に設定する値。
+     * @return Win32 に返すメッセージ処理結果。
      */
     LRESULT HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam);
 

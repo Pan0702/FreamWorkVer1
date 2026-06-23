@@ -10,21 +10,25 @@ class MeshManager
 {
 public:
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param device DirectX 12 デバイス。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param device 使用する D3D12 デバイス。
      */
     void Initialize(ID3D12Device* device);
     /**
-     * @brief 保持しているリソースを解放する関数。
+     * @brief 保持しているリソースと登録状態を解放する。
      */
     void Shutdown();
     /**
-     * @brief 指定されたリソースを読み込む関数。
-     * @param path 読み込むファイルパスまたは検索キー。
-     * @return 戻り値。
+     * @brief ファイルや外部データを読み込んで内部表現へ変換する。
+     * @param path 読み書きするファイルパス。
+     * @return 指定リソースの読み込みが完了した場合は true。
      */
     Mesh* Load(const std::string& path);
     
+    /**
+     * @brief MeshManager の共有インスタンスを取得する。
+     * @return メッシュキャッシュを管理する MeshManager への参照。
+     */
     static MeshManager& Get()
     {
         static MeshManager instance;

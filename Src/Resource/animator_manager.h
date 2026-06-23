@@ -10,32 +10,32 @@ class AnimatorManager
 {
 public:
     /**
-     * @brief AnimatorManagerを初期化するコンストラクタ。
+     * @brief インスタンスの初期状態を整える。
      */
     AnimatorManager();
     /**
-     * @brief AnimatorManagerの終了処理を行うデストラクタ。
+     * @brief 保持している登録やリソースを解放する。
      */
     ~AnimatorManager();
     /**
-     * @brief 保持しているリソースを解放する関数。
+     * @brief 保持しているリソースと登録状態を解放する。
      */
     void Shutdown();
     /**
-     * @brief 指定されたリソースを読み込む関数。
-     * @param path 読み込むファイルパスまたは検索キー。
-     * @return 戻り値。
+     * @brief ファイルや外部データを読み込んで内部表現へ変換する。
+     * @param path 読み書きするファイルパス。
+     * @return 指定リソースの読み込みが完了した場合は true。
      */
     Animation* Load(const std::string& path);
     /**
-     * @brief Animationを取得する関数。
-     * @param name 検索または識別に使う名前。
-     * @return 戻り値。
+     * @brief アニメーション を取得する。
+     * @param name name に設定する値。
+     * @return アニメーション。見つからない、または未作成の場合は nullptr。
      */
     Animation* GetAnimation(const std::string& name);
     /**
-     * @brief インスタンスを取得する関数。
-     * @return 戻り値。
+     * @brief AnimatorManager の共有インスタンスを取得する。
+     * @return アニメーションキャッシュを管理する AnimatorManager への参照。
      */
     static AnimatorManager& Get();
 private:

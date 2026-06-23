@@ -21,22 +21,28 @@ enum class SpriteSpace
 class SpriteComponent : public Component
 {
 public:
+    /**
+     * @brief インスタンスの初期状態を整える。
+     */
     SpriteComponent() = default;
     /**
-     * @brief SpriteComponentを初期化するコンストラクタ。
-     * @param texture 描画に使うテクスチャ。
-     * @param space 引数。
+     * @brief インスタンスの初期状態を整える。
+     * @param texture 使用するテクスチャ。
+     * @param space space に設定する値。
      */
     SpriteComponent(Texture2D* texture, SpriteSpace space);
+    /**
+     * @brief 保持している登録やリソースを解放する。
+     */
     ~SpriteComponent() override;
 
     /**
-     * @brief OnAttachを行う関数。
-     * @param context 共有コンテキスト。
+     * @brief 共有コンテキストへ登録し、システム側で扱える状態にする。
+     * @param context 描画や登録に使う共有コンテキスト。
      */
     void OnAttach(const AttachContext& context) override;
     /**
-     * @brief OnDetachを行う関数。
+     * @brief 共有コンテキストから登録を外し、システム側の参照を切る。
      */
     void OnDetach() override;
 

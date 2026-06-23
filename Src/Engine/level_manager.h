@@ -11,31 +11,31 @@ class LevelManager
 {
 public:
     /**
-     * @brief LevelManagerを初期化するコンストラクタ。
+     * @brief インスタンスの初期状態を整える。
      */
     LevelManager();
     /**
-     * @brief LevelManagerの終了処理を行うデストラクタ。
+     * @brief 保持している登録やリソースを解放する。
      */
     ~LevelManager();
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param world 引数。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param world Actor や描画対象を管理する World。
      */
     void Initialize(World* world);
     /**
-     * @brief Tickを行う関数。
-     * @param dt 引数。
+     * @brief 1 フレーム分の状態更新を進める。
+     * @param dt 前フレームからの経過秒数。
      */
     void Tick(float dt);
     /**
-     * @brief OpenLevelを行う関数。
-     * @param name 検索または識別に使う名前。
+     * @brief 次に開く Level を予約する。
+     * @param name name に設定する値。
      */
     void OpenLevel(const std::string& name);
 private:
     /**
-     * @brief ApplyPendingLevelを行う関数。
+     * @brief 予約された Level へ切り替える。
      */
     void ApplyPendingLevel();
     std::string current_name_;

@@ -8,52 +8,52 @@ class CommandQueue
 {
 public:
     /**
-     * @brief CommandQueueを初期化するコンストラクタ。
+     * @brief インスタンスの初期状態を整える。
      */
     CommandQueue();
     /**
-     * @brief CommandQueueの終了処理を行うデストラクタ。
+     * @brief 保持している登録やリソースを解放する。
      */
     ~CommandQueue();
 
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param device DirectX 12 デバイス。
-     * @return 条件を満たす場合は true。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param device 使用する D3D12 デバイス。
+     * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(ID3D12Device* device);
     /**
-     * @brief Signalを行う関数。
-     * @return 戻り値。
+     * @brief GPU や OS 側へ処理を渡し、必要な同期を進める。
+     * @return フェンスへ新しい値を通知できた場合は true。
      */
     uint64_t Signal();
     /**
-     * @brief WaitForFenceを行う関数。
-     * @param fence_value 引数。
+     * @brief GPU や OS 側へ処理を渡し、必要な同期を進める。
+     * @param fence_value fence_value に設定する値。
      */
     void WaitForFence(uint64_t fence_value) const;
     /**
-     * @brief WaitIdleを行う関数。
+     * @brief GPU や OS 側へ処理を渡し、必要な同期を進める。
      */
     void WaitIdle();
 
     /**
-     * @brief CommandQueueを取得する関数。
-     * @return 戻り値。
+     * @brief D3D12 コマンドキュー を取得する。
+     * @return 保持している D3D12 コマンドキュー。未作成なら nullptr。
      */
     ID3D12CommandQueue* GetCommandQueue() const;
 
 private:
     /**
-     * @brief CreateCommandQueueを行う関数。
-     * @param device DirectX 12 デバイス。
-     * @return 条件を満たす場合は true。
+     * @brief 内部で使用するリソースを作成する。
+     * @param device 使用する D3D12 デバイス。
+     * @return 対象リソースの作成が完了した場合は true。
      */
     bool CreateCommandQueue(ID3D12Device* device);
     /**
-     * @brief CreateFenceを行う関数。
-     * @param device DirectX 12 デバイス。
-     * @return 条件を満たす場合は true。
+     * @brief 内部で使用するリソースを作成する。
+     * @param device 使用する D3D12 デバイス。
+     * @return 対象リソースの作成が完了した場合は true。
      */
     bool CreateFence(ID3D12Device* device);
 

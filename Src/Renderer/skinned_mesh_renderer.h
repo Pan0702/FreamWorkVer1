@@ -17,41 +17,41 @@ class SkinnedMeshRenderer
 {
 public:
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param device DirectX 12 デバイス。
-     * @return 条件を満たす場合は true。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param device 使用する D3D12 デバイス。
+     * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(ID3D12Device* device);
     /**
-     * @brief 登録済みの描画対象を描画する関数。
-     * @param command_list DirectX 12 コマンドリスト。
-     * @param render_objects 引数。
-     * @param camera 引数。
-     * @param descriptor_heap 引数。
+     * @brief 現在の状態をもとに描画コマンドを積む。
+     * @param command_list 描画コマンドを書き込むコマンドリスト。
+     * @param render_objects render_objects に設定する値。
+     * @param camera ビュー行列と射影行列を提供するカメラ。
+     * @param descriptor_heap SRV/CBV/UAV などを保持するディスクリプタヒープ。
      */
     void Render(ID3D12GraphicsCommandList* command_list, const std::vector<RenderObject*>& render_objects,
                 Camera* camera, DescriptorHeap* descriptor_heap);
     /**
-     * @brief Registerを行う関数。
-     * @param component 引数。
+     * @brief 対象を管理リストへ登録する。
+     * @param component 登録または解除する Component。
      */
     void Register(SkeletalMeshComponent* component);
     /**
-     * @brief Unregisterを行う関数。
-     * @param component 引数。
+     * @brief 対象を管理リストから外す。
+     * @param component 登録または解除する Component。
      */
     void Unregister(SkeletalMeshComponent* component);
     /**
-     * @brief Collectを行う関数。
+     * @brief 登録済みの対象から今回処理する要素を集める。
      */
     void Collect();
     /**
-     * @brief Sortを行う関数。
+     * @brief 描画順が安定するようにコマンドを並べ替える。
      */
     void Sort();
     /**
-     * @brief Submitを行う関数。
-     * @param context 共有コンテキスト。
+     * @brief 収集済みコマンドを GPU コマンドリストへ書き込む。
+     * @param context 描画や登録に使う共有コンテキスト。
      */
     void Submit(RenderContext& context);
 

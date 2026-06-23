@@ -25,8 +25,6 @@ cbuffer SpriteWorldCB : register(b0)
 
 /**
  * @brief 入力された補間済みデータから最終カラーを計算する関数。
- * @param input シェーダーに入力されるデータ。
- * @return 出力するピクセルカラー。
  */
 float4 PSMain(PSInput input) : SV_Target
 {

@@ -17,10 +17,10 @@ class TextureLoader
 {
 public:
     /**
-     * @brief LoadFromFileを行う関数。
-     * @param filename 読み込むファイル名。
-     * @param image テクスチャ化する読み込み済み画像。
-     * @return 条件を満たす場合は true。
+     * @brief ファイルや外部データを読み込んで内部表現へ変換する。
+     * @param filename 読み書きするファイルパス。
+     * @param image image に設定する値。
+     * @return 指定データの読み込みが完了した場合は true。
      */
     static bool LoadFromFile(const wchar_t* filename, LoadedImage& image);
 };

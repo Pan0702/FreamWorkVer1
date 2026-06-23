@@ -1,4 +1,4 @@
-﻿#include "movement.h"
+#include "movement.h"
 
 #include <cmath>
 
@@ -12,7 +12,7 @@ void PlayerMovement::OnEnter()
 
 void PlayerMovement::Tick(float dt, PlayerInput& input)
 {
-    const float current_yaw = input.move_dir.y;
+    const float current_yaw = input.yaw;
     const float target_yaw = std::atan2f(input.move_dir.x, input.move_dir.z);
     const float delta = NormalizeAngleRadSigned(target_yaw - current_yaw);
     constexpr float rot_speed = 10.0f;

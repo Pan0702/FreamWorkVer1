@@ -1,4 +1,4 @@
-﻿#include "sphere_collider_componet.h"
+#include "sphere_collider_componet.h"
 #include "../../Core/Math/intersect.h"
 void SphereColliderComponent::SetRadius(float radius)
 {
@@ -31,5 +31,3 @@ void SphereColliderComponent::DrawDebug() const
     Sphere s = GetColliderShapeData();
     Debug::Get().DrawSphere3D(s.center,s.radius,color_);
 }
-
-

@@ -1,4 +1,4 @@
-﻿#include "cube.h"
+#include "cube.h"
 
 #include "../../Engine/Components/static_mesh_component.h"
 #include "../../Resource/mesh.h"

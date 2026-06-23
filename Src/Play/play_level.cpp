@@ -1,4 +1,4 @@
-﻿#include "play_level.h"
+#include "play_level.h"
 
 #include "Objects/cube.h"
 #include "Player/player.h"

@@ -10,36 +10,59 @@
 class World
 {
 public:
+    /**
+     * @brief インスタンスの初期状態を整える。
+     */
     World() = default;
+    /**
+     * @brief インスタンスの初期状態を整える。
+     */
     World(const World&) = delete;
+    /**
+     * @brief 演算子 operator= で値を扱う。
+     * @return 演算結果を反映した自分自身。
+     */
     World& operator=(const World&) = delete;
+    /**
+     * @brief インスタンスの初期状態を整える。
+     */
     World(World&&) = delete;
+    /**
+     * @brief 演算子 operator= で値を扱う。
+     * @return 演算結果を反映した自分自身。
+     */
     World& operator=(World&&) = delete;
     /**
-     * @brief RegisterActorを行う関数。
-     * @param actor 引数。
+     * @brief 対象を管理リストへ登録する。
+     * @param actor 登録または解除する Actor。
      */
     void RegisterActor(Actor* actor);
     /**
-     * @brief UnregisterActorを行う関数。
-     * @param actor 引数。
+     * @brief 対象を管理リストから外す。
+     * @param actor 登録または解除する Actor。
      */
     void UnregisterActor(Actor* actor);
     /**
-     * @brief AttachContextを設定する関数。
-     * @param context 共有コンテキスト。
+     * @brief 指定された値を内部状態に反映する。
+     * @param context 描画や登録に使う共有コンテキスト。
      */
     void SetAttachContext(const AttachContext& context);
     /**
-     * @brief AttachContextを取得する関数。
-     * @return 戻り値。
+     * @brief Attach Context を取得する。
+     * @return 現在保持している Attach Context。
      */
     AttachContext GetAttachContext() const;
     /**
-     * @brief Tickを行う関数。
-     * @param dt 引数。
+     * @brief 1 フレーム分の状態更新を進める。
+     * @param dt 前フレームからの経過秒数。
      */
     void Tick(float dt);
+
+    /**
+     * @brief CollisionWorld を取得する。
+     * @return 保持している CollisionWorld への参照。
+     */
+    CollisionWorld& GetCollisionWorld() { return collision_world_; }
 
     template<class T = Actor>
 T* FindActor()

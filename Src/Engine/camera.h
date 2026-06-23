@@ -8,41 +8,41 @@ class Camera
 {
 public:
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param fov 引数。
-     * @param aspect 引数。
-     * @param near_z 引数。
-     * @param far_z 引数。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param fov 縦方向の視野角。
+     * @param aspect 画面のアスペクト比。
+     * @param near_z ニアクリップ面の距離。
+     * @param far_z ファークリップ面の距離。
      */
     void Initialize(float fov, float aspect, float near_z, float far_z);
     /**
-     * @brief ViewMatrixを取得する関数。
-     * @return 戻り値。
+     * @brief ビュー行列 を取得する。
+     * @return 現在のカメラ姿勢から作成したビュー行列。
      */
     Mat GetViewMatrix();
     /**
-     * @brief ProjectionMatrixを取得する関数。
-     * @return 戻り値。
+     * @brief プロジェクション行列 を取得する。
+     * @return 現在のカメラ設定から作成したプロジェクション行列。
      */
     Mat GetProjectionMatrix();
     /**
-     * @brief Forwardを取得する関数。
-     * @return 戻り値。
+     * @brief 前方向ベクトル を取得する。
+     * @return 現在の回転から求めた前方向ベクトル。
      */
     Vec3 GetForward();
     /**
-     * @brief Rightを取得する関数。
-     * @return 戻り値。
+     * @brief 右方向ベクトル を取得する。
+     * @return 現在の回転から求めた右方向ベクトル。
      */
     Vec3 GetRight();
     /**
-     * @brief Upを取得する関数。
-     * @return 戻り値。
+     * @brief 上方向ベクトル を取得する。
+     * @return 現在の回転から求めた上方向ベクトル。
      */
     Vec3 GetUp() const;
     /**
-     * @brief Aspectを設定する関数。
-     * @param aspect 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param aspect 画面のアスペクト比。
      */
     void SetAspect(float aspect);
 

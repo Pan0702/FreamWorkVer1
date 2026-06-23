@@ -17,50 +17,60 @@ struct ConstantBufferAllocation
 class ConstantBufferAllocator
 {
 public:
+    /**
+     * @brief インスタンスの初期状態を整える。
+     */
     ConstantBufferAllocator() = default;
     /**
-     * @brief ConstantBufferAllocatorの終了処理を行うデストラクタ。
+     * @brief 保持している登録やリソースを解放する。
      */
     ~ConstantBufferAllocator();
 
+    /**
+     * @brief インスタンスの初期状態を整える。
+     */
     ConstantBufferAllocator(const ConstantBufferAllocator&) = delete;
+    /**
+     * @brief 演算子 operator= で値を扱う。
+     * @return 演算結果を反映した自分自身。
+     */
     ConstantBufferAllocator& operator=(const ConstantBufferAllocator&) = delete;
 
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param device DirectX 12 デバイス。
-     * @param capacity 引数。
-     * @return 条件を満たす場合は true。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param device 使用する D3D12 デバイス。
+     * @param capacity capacity に設定する値。
+     * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(ID3D12Device* device, uint32_t capacity);
     /**
-     * @brief 定数バッファから指定サイズの領域を割り当てる関数。
-     * @param size サイズ情報。
-     * @param out_allocation 引数。
-     * @return 条件を満たす場合は true。
+     * @brief アラインメントを考慮してバッファ領域を切り出す。
+     * @param size size に設定する値。
+     * @param out_allocation out_allocation に設定する値。
+     * @return アラインメントを考慮してバッファ領域を切り出す 場合は true。
      */
     bool Allocate(uint32_t size, ConstantBufferAllocation* out_allocation);
     /**
-     * @brief 再利用できるように状態をリセットする関数。
+     * @brief 再利用できるように内部状態を初期位置へ戻す。
      */
     void Reset();
 
     /**
-     * @brief Capacityを取得する関数。
-     * @return 戻り値。
+     * @brief 定数バッファ領域の容量を取得する。
+     * @return 確保済み定数バッファ領域のバイト数。
      */
     uint32_t GetCapacity() const;
     /**
-     * @brief UsedSizeを取得する関数。
-     * @return 戻り値。
+     * @brief 使用済み定数バッファ領域のサイズを取得する。
+     * @return 現在割り当て済みの定数バッファ領域のバイト数。
      */
     uint32_t GetUsedSize() const;
 
 private:
     /**
-     * @brief AlignConstantBufferSizeを行う関数。
-     * @param size サイズ情報。
-     * @return 戻り値。
+     * @brief Constant Buffer の 256 バイト境界にサイズを丸める。
+     * @param size size に設定する値。
+     * @return 256 バイト境界に切り上げたサイズ。
      */
     static uint32_t AlignConstantBufferSize(uint32_t size);
 

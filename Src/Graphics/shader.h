@@ -9,21 +9,21 @@ class Shader
 {
 public:
     /**
-     * @brief LoadFromFileを行う関数。
-     * @param filename 読み込むファイル名。
-     * @param entry_point 引数。
-     * @param target 引数。
-     * @return 条件を満たす場合は true。
+     * @brief ファイルや外部データを読み込んで内部表現へ変換する。
+     * @param filename 読み書きするファイルパス。
+     * @param entry_point entry_point に設定する値。
+     * @param target target に設定する値。
+     * @return 指定データの読み込みが完了した場合は true。
      */
     bool LoadFromFile(const wchar_t* filename, const char* entry_point, const char* target);
     /**
-     * @brief Validかどうかを確認する関数。
-     * @return 条件を満たす場合は true。
+     * @brief 現在の状態が条件を満たしているか調べる。
+     * @return 内部リソースが使用可能な状態なら true。
      */
     bool IsValid() const;
     /**
-     * @brief Bytecodeを取得する関数。
-     * @return 戻り値。
+     * @brief Bytecode を取得する。
+     * @return 現在保持している Bytecode。
      */
     D3D12_SHADER_BYTECODE GetBytecode() const;
 

@@ -9,28 +9,28 @@ class GameInstance
 {
 public:
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @return 条件を満たす場合は true。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize();
     /**
-     * @brief Tickを行う関数。
-     * @param dt 引数。
+     * @brief 1 フレーム分の状態更新を進める。
+     * @param dt 前フレームからの経過秒数。
      */
     void Tick(float dt);
     /**
-     * @brief 登録済みの描画対象を描画する関数。
+     * @brief 現在の状態をもとに描画コマンドを積む。
      */
     void Render();
 
     /**
-     * @brief Worldを取得する関数。
-     * @return 戻り値。
+     * @brief Actor が所属している World を取得する。
+     * @return 所属中の World。見つからない、または未作成の場合は nullptr。
      */
     World* GetWorld();
     /**
-     * @brief LevelManagerを取得する関数。
-     * @return 戻り値。
+     * @brief Level Manager を取得する。
+     * @return 保持している Level Manager への参照。
      */
     LevelManager& GetLevelManager();
 

@@ -1,10 +1,18 @@
-ï»¿#pragma once
+#pragma once
 #include "../../Game/GameMain.h"
 
+// PlayerCamera ‚ÉŠÖŒW‚·‚éó‘Ô‚ÆU‚é•‘‚¢‚ğ‚Ü‚Æ‚ß‚éŒ^B
 class PlayerCamera : public Actor
 {
 private:
+    /**
+     * @brief ¶¬‚Ü‚½‚Í‘JˆÚ’¼Œã‚É•K—v‚È‰Šúˆ—‚ğs‚¤B
+     */
     void Begin() override;
+    /**
+     * @brief 1 ƒtƒŒ[ƒ€•ª‚Ìó‘ÔXV‚ği‚ß‚éB
+     * @param dt ‘OƒtƒŒ[ƒ€‚©‚ç‚ÌŒo‰ß•b”B
+     */
     void Tick(float dt) override;
     Camera* camera_ = nullptr;
     class Player* player_ = nullptr;

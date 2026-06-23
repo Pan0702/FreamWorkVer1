@@ -1,8 +1,15 @@
-ï»¿#pragma once
+#pragma once
 #include "../Engine/level_base.h"
+// PlayLevel ‚ÉŠÖŒW‚·‚éó‘Ô‚ÆU‚é•‘‚¢‚ğ‚Ü‚Æ‚ß‚éŒ^B
 class PlayLevel : public LevelBase
 {
 public:
+    /**
+     * @brief ƒCƒ“ƒXƒ^ƒ“ƒX‚Ì‰Šúó‘Ô‚ğ®‚¦‚éB
+     */
     PlayLevel();
+    /**
+     * @brief ¶¬‚Ü‚½‚Í‘JˆÚ’¼Œã‚É•K—v‚È‰Šúˆ—‚ğs‚¤B
+     */
     void OnEnter() override;
 };

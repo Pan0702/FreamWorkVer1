@@ -95,6 +95,3 @@ ID3D12CommandQueue* CommandQueue::GetCommandQueue() const
 {
     return command_queue_.Get(); 
 }
-
-
-

@@ -10,56 +10,56 @@ class SwapChain
 {
 public:
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param factory 引数。
-     * @param device DirectX 12 デバイス。
-     * @param queue コマンド実行に使うキュー。
-     * @param hwnd Win32 ウィンドウハンドル。
-     * @param width 幅。
-     * @param height 高さ。
-     * @return 条件を満たす場合は true。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param factory SwapChain 作成に使用する DXGI ファクトリ。
+     * @param device 使用する D3D12 デバイス。
+     * @param queue GPU コマンドを実行するキュー。
+     * @param hwnd 描画対象の Win32 ウィンドウハンドル。
+     * @param width 作成または変更後の幅。
+     * @param height 作成または変更後の高さ。
+     * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(IDXGIFactory6* factory, ID3D12Device* device, ID3D12CommandQueue* queue,
                     HWND hwnd, uint32_t width, uint32_t height);
     /**
-     * @brief バックバッファを画面へ表示する関数。
+     * @brief GPU や OS 側へ処理を渡し、必要な同期を進める。
      */
     void Present();
     /**
-     * @brief CurrentBackBufferを取得する関数。
-     * @return 戻り値。
+     * @brief Current Back Buffer を取得する。
+     * @return Current Back Buffer。見つからない、または未作成の場合は nullptr。
      */
     ID3D12Resource* GetCurrentBackBuffer() const;
     /**
-     * @brief 現在のバックバッファ用レンダーターゲットビューハンドルを取得する関数。
-     * @return 戻り値。
+     * @brief Current Rtv Handle を取得する。
+     * @return 現在保持している Current Rtv Handle。
      */
     D3D12_CPU_DESCRIPTOR_HANDLE GetCurrentRtvHandle() const;
     /**
-     * @brief Resizeを行う関数。
-     * @param width 幅。
-     * @param height 高さ。
-     * @return 条件を満たす場合は true。
+     * @brief サイズ変更に合わせて GPU リソースを作り直す。
+     * @param width 作成または変更後の幅。
+     * @param height 作成または変更後の高さ。
+     * @return 新しいサイズでリソースを作り直せた場合は true。
      */
     bool Resize(uint32_t width, uint32_t height);
 
 private:
     /**
-     * @brief CreateSwapChainを行う関数。
-     * @param factory 引数。
-     * @param command_queue コマンド実行に使うキュー。
-     * @param hwnd Win32 ウィンドウハンドル。
-     * @param width 幅。
-     * @param height 高さ。
-     * @return 条件を満たす場合は true。
+     * @brief 内部で使用するリソースを作成する。
+     * @param factory SwapChain 作成に使用する DXGI ファクトリ。
+     * @param command_queue GPU コマンドを実行するキュー。
+     * @param hwnd 描画対象の Win32 ウィンドウハンドル。
+     * @param width 作成または変更後の幅。
+     * @param height 作成または変更後の高さ。
+     * @return 対象リソースの作成が完了した場合は true。
      */
     bool CreateSwapChain(IDXGIFactory6* factory, ID3D12CommandQueue* command_queue,
                          HWND hwnd, uint32_t width, uint32_t height);
 
     /**
-     * @brief CreateRenderTargetViewsを行う関数。
-     * @param device DirectX 12 デバイス。
-     * @return 条件を満たす場合は true。
+     * @brief 内部で使用するリソースを作成する。
+     * @param device 使用する D3D12 デバイス。
+     * @return 対象リソースの作成が完了した場合は true。
      */
     bool CreateRenderTargetViews(ID3D12Device* device);
 

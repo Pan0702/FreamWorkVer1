@@ -1,22 +1,62 @@
-ï»¿#pragma once
+#pragma once
 #include "../Core/common.h"
 #include <xaudio2.h>
 #include <vector>
 
+// AudioPlayer ‚ÉŠÖŒW‚·‚éó‘Ô‚ÆU‚é•‘‚¢‚ğ‚Ü‚Æ‚ß‚éŒ^B
 class AudioPlayer
 {
 public:
+    /**
+     * @brief ƒCƒ“ƒXƒ^ƒ“ƒX‚Ì‰Šúó‘Ô‚ğ®‚¦‚éB
+     */
     AudioPlayer();
+    /**
+     * @brief •Û‚µ‚Ä‚¢‚é“o˜^‚âƒŠƒ\[ƒX‚ğ‰ğ•ú‚·‚éB
+     */
     ~AudioPlayer();
 
+    /**
+     * @brief ƒCƒ“ƒXƒ^ƒ“ƒX‚Ì‰Šúó‘Ô‚ğ®‚¦‚éB
+     */
     AudioPlayer(const AudioPlayer&) = delete;
+    /**
+     * @brief ‰‰Zq operator= ‚Å’l‚ğˆµ‚¤B
+     * @return ‰‰ZŒ‹‰Ê‚ğ”½‰f‚µ‚½©•ª©gB
+     */
     AudioPlayer& operator=(const AudioPlayer&) = delete;
     
+    /**
+     * @brief —˜—p‘O‚É•K—v‚ÈQÆ‚ÆƒŠƒ\[ƒX‚ğ‰Šú‰»‚·‚éB
+     * @param xaudio2 xaudio2 ‚Éİ’è‚·‚é’lB
+     * @return •K—v‚ÈƒŠƒ\[ƒX‚ğì¬‚µAg—p‰Â”\‚Èó‘Ô‚É‚Å‚«‚½ê‡‚Í trueB
+     */
     bool Initialize(IXAudio2* xaudio2);
+    /**
+     * @brief ƒtƒ@ƒCƒ‹‚âŠO•”ƒf[ƒ^‚ğ“Ç‚İ‚ñ‚Å“à•”•\Œ»‚Ö•ÏŠ·‚·‚éB
+     * @param filename “Ç‚İ‘‚«‚·‚éƒtƒ@ƒCƒ‹ƒpƒXB
+     * @param loop loop ‚Éİ’è‚·‚é’lB
+     * @return w’èƒf[ƒ^‚Ì“Ç‚İ‚İ‚ªŠ®—¹‚µ‚½ê‡‚Í trueB
+     */
     bool LoadWaveFile(const char* filename, bool loop);
+    /**
+     * @brief w’è‚µ‚½ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌÄ¶‚ğŠJn‚·‚éB
+     * @param loop loop ‚Éİ’è‚·‚é’lB
+     * @return w’è‚µ‚½ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌÄ¶‚ğŠJn‚Å‚«‚½ ê‡‚Í trueB
+     */
     bool Play(bool loop);
+    /**
+     * @brief Ä¶’†‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ğ’â~‚·‚éB
+     */
     void Stop();
+    /**
+     * @brief w’è‚³‚ê‚½’l‚ğ“à•”ó‘Ô‚É”½‰f‚·‚éB
+     * @param volume volume ‚Éİ’è‚·‚é’lB
+     */
     void SetVolume(float volume);
+    /**
+     * @brief XAudio2 ‚ÌÄ¶ƒ{ƒCƒX‚ğ”jŠü‚·‚éB
+     */
     void DestroyVoice();
 
 private:

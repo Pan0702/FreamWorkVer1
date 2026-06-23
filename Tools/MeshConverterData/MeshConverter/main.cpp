@@ -235,12 +235,15 @@ namespace
     /**
      * @brief Assimp のテクスチャ参照から、出力で使うテクスチャパスを作る。
      * @param tex Assimp から取得したテクスチャパス。
-     * @param tex_folder Assets/Texture からの相対サブフォルダー名。
+     * @param tex_dir Assets/Texture からの相対サブフォルダー名。
      * @return Assets/Texture から始まるワイド文字列のパス。
      */
     std::wstring BuildTexturePath(const aiString& tex, const std::filesystem::path& tex_dir)
     {
-        std::filesystem::path src(tex.C_Str());
+        // aiString is UTF-8. On Windows, constructing a path from const char*
+        // decodes it with the ANSI code page (CP932) and garbles non-ASCII
+        // names. Build via char8_t so it is interpreted as UTF-8.
+        std::filesystem::path src(reinterpret_cast<const char8_t*>(tex.C_Str()));
         const std::filesystem::path filename =
             src.filename();
         if (filename.empty())

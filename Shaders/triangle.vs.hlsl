@@ -33,8 +33,6 @@ cbuffer SceneCB : register(b0)
 };
 /**
  * @brief 頂点データを変換し、ピクセルシェーダーへ渡す値を作成する関数。
- * @param input シェーダーに入力されるデータ。
- * @return ピクセルシェーダーへ渡す変換済みデータ。
  */
 PSInput VSMain(VSInput input)
 {

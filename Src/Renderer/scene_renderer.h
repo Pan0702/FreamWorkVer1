@@ -37,62 +37,66 @@ class SceneRenderer
 {
 public:
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param device DirectX 12 デバイス。
-     * @param hwnd Win32 ウィンドウハンドル。
-     * @param command_queue コマンド実行に使うキュー。
-     * @param frame_count 引数。
-     * @return 条件を満たす場合は true。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param device 使用する D3D12 デバイス。
+     * @param hwnd 描画対象の Win32 ウィンドウハンドル。
+     * @param command_queue GPU コマンドを実行するキュー。
+     * @param frame_count frame_count に設定する値。
+     * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQueue* command_queue, uint32_t frame_count);
  /**
-  * @brief 登録済みの描画対象を描画する関数。
-  * @param renderer_data 引数。
-  * @param world 引数。
-  * @param camera 引数。
+  * @brief 現在の状態をもとに描画コマンドを積む。
+  * @param renderer_data renderer_data に設定する値。
+  * @param world Actor や描画対象を管理する World。
+  * @param camera ビュー行列と射影行列を提供するカメラ。
   */
  void Render(RendererData& renderer_data, World* world, Camera* camera);
     /**
-     * @brief 保持しているリソースを解放する関数。
+     * @brief 保持しているリソースと登録状態を解放する。
      */
     void Shutdown();
     /**
-     * @brief MeshRendererを取得する関数。
-     * @return 戻り値。
+     * @brief MeshRenderer を取得する。
+     * @return MeshRenderer。見つからない、または未作成の場合は nullptr。
      */
     MeshRenderer* GetMeshRenderer() const;
     /**
-     * @brief SpriteRendererを取得する関数。
-     * @return 戻り値。
+     * @brief SpriteRenderer を取得する。
+     * @return SpriteRenderer。見つからない、または未作成の場合は nullptr。
      */
     SpriteRenderer* GetSpriteRenderer() const;
     /**
-     * @brief UIRendererを取得する関数。
-     * @return 戻り値。
+     * @brief UiRenderer を取得する。
+     * @return UiRenderer。見つからない、または未作成の場合は nullptr。
      */
     UIRenderer* GetUIRenderer() const;
     /**
-     * @brief SkinnedMeshRendererを取得する関数。
-     * @return 戻り値。
+     * @brief SkinnedMeshRenderer を取得する。
+     * @return SkinnedMeshRenderer。見つからない、または未作成の場合は nullptr。
      */
     SkinnedMeshRenderer* GetSkinnedMeshRenderer() const;
     /**
-     * @brief DebugLineRendererを取得する関数。
-     * @return 戻り値。
+     * @brief DebugLineRenderer を取得する。
+     * @return DebugLineRenderer。見つからない、または未作成の場合は nullptr。
      */
     DebugLineRenderer* GetDebugLineRenderer() const;
     
+    /**
+     * @brief Im Gui Manager を取得する。
+     * @return 保持している Im Gui Manager への参照。
+     */
     ImGuiManager& GetImGuiManager();
 
 private:
     /**
-     * @brief BeginRenderTargetを行う関数。
-     * @param renderer_data 引数。
+     * @brief 描画先をバックバッファと深度バッファへ切り替える。
+     * @param renderer_data renderer_data に設定する値。
      */
     void BeginRenderTarget(const RendererData& renderer_data);
     /**
-     * @brief EndRenderTargetを行う関数。
-     * @param renderer_data 引数。
+     * @brief 描画先のバックバッファを Present 可能な状態へ戻す。
+     * @param renderer_data renderer_data に設定する値。
      */
     void EndRenderTarget(const RendererData& renderer_data);
 

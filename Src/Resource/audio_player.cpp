@@ -1,10 +1,11 @@
-ï»¿#include "audio_player.h"
+#include "audio_player.h"
 #include <cstring>
 #include <fstream>
 #include <vector>
 
 namespace
 {
+    // ƒtƒ@ƒCƒ‹“üo—Í‚Åg‚¤ ChunkHeader ‚ÌƒoƒCƒiƒŠ\‘¢‚ğ•\‚·B
     struct ChunkHeader
     {
         char id[4];

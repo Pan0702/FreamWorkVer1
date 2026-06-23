@@ -1,21 +1,58 @@
-ï»¿#pragma once
+#pragma once
 #include "collider_component.h"
 #include <vector>
 class Mesh;
 
+// Actor ‚É’Ç‰Á‚µ‚Äg‚¤ MeshColliderComponent ‚Ìó‘Ô‚Æˆ—‚ğ‚Ü‚Æ‚ß‚éB
 class MeshColliderComponent : public ColliderComponent
 {
 public:
+    /**
+     * @brief ƒCƒ“ƒXƒ^ƒ“ƒX‚Ì‰Šúó‘Ô‚ğ®‚¦‚éB
+     * @param mesh “Ç‚İ‚İA•`‰æA‚Ü‚½‚Í”»’è‚Ég—p‚·‚éƒƒbƒVƒ…B
+     */
     explicit MeshColliderComponent(const Mesh* mesh = nullptr);
+    /**
+     * @brief w’è‚³‚ê‚½’l‚ğ“à•”ó‘Ô‚É”½‰f‚·‚éB
+     * @param mesh “Ç‚İ‚İA•`‰æA‚Ü‚½‚Í”»’è‚Ég—p‚·‚éƒƒbƒVƒ…B
+     */
     void SetMesh(const Mesh* mesh = nullptr);
+    /**
+     * @brief ƒRƒ‰ƒCƒ_[‚ÌŒ`óí•Ê‚ğæ“¾‚·‚éB
+     * @return Œ»İ•Û‚µ‚Ä‚¢‚é ƒRƒ‰ƒCƒ_[‚ÌŒ`óí•ÊB
+     */
     ColliderShape GetColliderShape() const override;
+    /**
+     * @brief ‹¤—LƒRƒ“ƒeƒLƒXƒg‚Ö“o˜^‚µAƒVƒXƒeƒ€‘¤‚Åˆµ‚¦‚éó‘Ô‚É‚·‚éB
+     * @param context •`‰æ‚â“o˜^‚Ég‚¤‹¤—LƒRƒ“ƒeƒLƒXƒgB
+     */
     void OnAttach(const AttachContext& context) override;
+    /**
+     * @brief w’è‚³‚ê‚½’l‚ğ“à•”ó‘Ô‚É”½‰f‚·‚éB
+     * @param vertices vertices ‚Éİ’è‚·‚é’lB
+     * @param indices indices ‚Éİ’è‚·‚é’lB
+     */
     void SetTriangles(std::vector<Vec3> vertices,std::vector<uint32> indices);
+    /**
+     * @brief Vec3 ’l ‚ğæ“¾‚·‚éB
+     * @return •Û‚µ‚Ä‚¢‚é Vec3 ’l ‚Ö‚ÌQÆB
+     */
     const std::vector<Vec3>& GetVertices() const;
+    /**
+     * @brief ”’l ‚ğæ“¾‚·‚éB
+     * @return •Û‚µ‚Ä‚¢‚é ”’l ‚Ö‚ÌQÆB
+     */
     const std::vector<uint32>& GetIndices() const;
+    /**
+     * @brief ƒ[ƒ‹ƒhs—ñ ‚ğæ“¾‚·‚éB
+     * @return Œ»İ‚Ì Transform ‚©‚çì¬‚µ‚½ƒ[ƒ‹ƒhs—ñB
+     */
     Mat GetWorldMatrix() const;
 
 private:
+    /**
+     * @brief Œ»İ‚Ìó‘Ô‚ğ‚à‚Æ‚É•`‰æƒRƒ}ƒ“ƒh‚ğÏ‚ŞB
+     */
     void DrawDebug() const override;
     std::vector<Vec3> vertices_;
     std::vector<uint32> indices_;

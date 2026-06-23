@@ -1,18 +1,14 @@
 #pragma once
 #include "state_component.h"
 
-// PlayerMovement に関係する状態と振る舞いをまとめる型。
-class PlayerMovement : public StateComponentBase
+// PlayerJump に関係する状態と振る舞いをまとめる型。
+class PlayerJump : public StateComponentBase
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
-     */
-    PlayerMovement() = default;
-    /**
      * @brief 保持している登録やリソースを解放する。
      */
-    ~PlayerMovement();
+    ~PlayerJump();
     /**
      * @brief 生成または遷移直後に必要な初期処理を行う。
      */
@@ -22,9 +18,12 @@ public:
      * @param dt 前フレームからの経過秒数。
      * @param input input に設定する値。
      */
-    void Tick(float dt,PlayerInput& input) override;
+    void Tick(float dt, PlayerInput& input) override;
     /**
      * @brief 終了または遷移前に必要な後始末を行う。
      */
     void OnExit() override;
+
+private:
+    float vel_y_;
 };

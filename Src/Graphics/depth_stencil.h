@@ -9,33 +9,33 @@ class DepthStencil
 {
 public:
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param device DirectX 12 デバイス。
-     * @param width 幅。
-     * @param height 高さ。
-     * @return 条件を満たす場合は true。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param device 使用する D3D12 デバイス。
+     * @param width 作成または変更後の幅。
+     * @param height 作成または変更後の高さ。
+     * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(ID3D12Device* device, uint32_t width, uint32_t height);
     /**
-     * @brief 中央処理装置側ディスクリプタハンドルを取得する関数。
-     * @return 戻り値。
+     * @brief CPU ディスクリプタハンドル を取得する。
+     * @return 現在保持している CPU ディスクリプタハンドル。
      */
     D3D12_CPU_DESCRIPTOR_HANDLE GetCpuHandle() const;
     static constexpr DXGI_FORMAT kFORMAT = DXGI_FORMAT_D32_FLOAT;
     /**
-     * @brief Resizeを行う関数。
-     * @param w 引数。
-     * @param h 引数。
-     * @return 条件を満たす場合は true。
+     * @brief サイズ変更に合わせて GPU リソースを作り直す。
+     * @param w w に設定する値。
+     * @param h h に設定する値。
+     * @return 新しいサイズでリソースを作り直せた場合は true。
      */
     bool Resize(uint32_t w, uint32_t h);
 
 private:
     /**
-     * @brief CreateResourceを行う関数。
-     * @param w 引数。
-     * @param h 引数。
-     * @return 条件を満たす場合は true。
+     * @brief 内部で使用するリソースを作成する。
+     * @param w w に設定する値。
+     * @param h h に設定する値。
+     * @return 対象リソースの作成が完了した場合は true。
      */
     bool CreateResource(uint32_t w, uint32_t h);
 

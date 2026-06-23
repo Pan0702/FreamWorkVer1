@@ -8,53 +8,53 @@ class CommandList
 {
 public:
     /**
-     * @brief CommandListを初期化するコンストラクタ。
+     * @brief インスタンスの初期状態を整える。
      */
     CommandList();
     /**
-     * @brief CommandListの終了処理を行うデストラクタ。
+     * @brief 保持している登録やリソースを解放する。
      */
     ~CommandList();
 
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param device DirectX 12 デバイス。
-     * @return 条件を満たす場合は true。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param device 使用する D3D12 デバイス。
+     * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(ID3D12Device* device);
     /**
-     * @brief 再利用できるように状態をリセットする関数。
-     * @return 条件を満たす場合は true。
+     * @brief 再利用できるように内部状態を初期位置へ戻す。
+     * @return 内部状態を再利用できる状態へ戻せた場合は true。
      */
     bool Reset();
     /**
-     * @brief Closeを行う関数。
-     * @return 条件を満たす場合は true。
+     * @brief 記録中のコマンドリストを閉じて実行可能にする。
+     * @return コマンドリストを実行可能な状態で閉じられた場合は true。
      */
     bool Close();
 
     /**
-     * @brief CommandListを取得する関数。
-     * @return 戻り値。
+     * @brief D3D12 コマンドリスト を取得する。
+     * @return 保持している D3D12 コマンドリスト。未作成なら nullptr。
      */
     ID3D12GraphicsCommandList* GetCommandList() const;
     /**
-     * @brief CommandAllocatorを取得する関数。
-     * @return 戻り値。
+     * @brief D3D12 コマンドアロケータ を取得する。
+     * @return 保持している D3D12 コマンドアロケータ。未作成なら nullptr。
      */
     ID3D12CommandAllocator* GetCommandAllocator() const;
 
 private:
     /**
-     * @brief CreateCommandAllocatorを行う関数。
-     * @param device DirectX 12 デバイス。
-     * @return 条件を満たす場合は true。
+     * @brief 内部で使用するリソースを作成する。
+     * @param device 使用する D3D12 デバイス。
+     * @return 対象リソースの作成が完了した場合は true。
      */
     bool CreateCommandAllocator(ID3D12Device* device);
     /**
-     * @brief CreateCommandListを行う関数。
-     * @param device DirectX 12 デバイス。
-     * @return 条件を満たす場合は true。
+     * @brief 内部で使用するリソースを作成する。
+     * @param device 使用する D3D12 デバイス。
+     * @return 対象リソースの作成が完了した場合は true。
      */
     bool CreateCommandList(ID3D12Device* device);
 

@@ -12,37 +12,43 @@ class MeshRenderer;
 class StaticMeshComponent : public Component
 {
 public:
+    /**
+     * @brief インスタンスの初期状態を整える。
+     */
     StaticMeshComponent() = default;
     /**
-     * @brief StaticMeshComponentを初期化するコンストラクタ。
-     * @param mesh 引数。
-     * @param material_slot 引数。
+     * @brief インスタンスの初期状態を整える。
+     * @param mesh 読み込み、描画、または判定に使用するメッシュ。
+     * @param material_slot 描画に使用するマテリアル。
      */
     StaticMeshComponent(Mesh* mesh, MaterialSlot* material_slot);
+    /**
+     * @brief 保持している登録やリソースを解放する。
+     */
     ~StaticMeshComponent() override;
 
     /**
-     * @brief OnAttachを行う関数。
-     * @param context 共有コンテキスト。
+     * @brief 共有コンテキストへ登録し、システム側で扱える状態にする。
+     * @param context 描画や登録に使う共有コンテキスト。
      */
     void OnAttach(const AttachContext& context) override;
     /**
-     * @brief OnDetachを行う関数。
+     * @brief 共有コンテキストから登録を外し、システム側の参照を切る。
      */
     void OnDetach() override;
     /**
-     * @brief Meshを設定する関数。
-     * @param mesh 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param mesh 読み込み、描画、または判定に使用するメッシュ。
      */
     void SetMesh(Mesh* mesh);
     /**
-     * @brief Meshを取得する関数。
-     * @return 戻り値。
+     * @brief メッシュ を取得する。
+     * @return メッシュ。見つからない、または未作成の場合は nullptr。
      */
     Mesh* GetMesh() const;
     /**
-     * @brief MaterialSlotを取得する関数。
-     * @return 戻り値。
+     * @brief マテリアルスロット を取得する。
+     * @return マテリアルスロット。見つからない、または未作成の場合は nullptr。
      */
     MaterialSlot* GetMaterialSlot() const;
 

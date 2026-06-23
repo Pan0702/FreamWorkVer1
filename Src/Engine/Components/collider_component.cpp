@@ -1,4 +1,4 @@
-﻿#include <cmath>
+#include <cmath>
 #include "collider_component.h"
 #include "../actor.h"
 #include "transform_component.h"

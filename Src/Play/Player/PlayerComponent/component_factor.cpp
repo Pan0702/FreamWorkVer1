@@ -1,6 +1,6 @@
 #include "component_factor.h"
 
-#include "Jump.h"
+#include "jump.h"
 #include "state_component.h"
 #include "../player.h"
 #include "movement.h"

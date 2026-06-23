@@ -8,27 +8,27 @@ class Texture2D
 {
 public:
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param device DirectX 12 デバイス。
-     * @param cmd_list DirectX 12 コマンドリスト。
-     * @param image テクスチャ化する読み込み済み画像。
-     * @return 条件を満たす場合は true。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param device 使用する D3D12 デバイス。
+     * @param cmd_list cmd_list に設定する値。
+     * @param image image に設定する値。
+     * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* cmd_list, const LoadedImage& image);
     /**
-     * @brief テクスチャ用のシェーダーリソースビューを作成する関数。
-     * @param device DirectX 12 デバイス。
-     * @param srv_handle 引数。
+     * @brief 内部で使用するリソースを作成する。
+     * @param device 使用する D3D12 デバイス。
+     * @param srv_handle srv_handle に設定する値。
      */
     void CreateSrv(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE srv_handle);
     /**
-     * @brief シェーダーリソースビューのディスクリプタ番号を設定する関数。
-     * @param srv_index 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param srv_index srv_index に設定する値。
      */
     void SetSrvIndex(uint32_t srv_index);
     /**
-     * @brief シェーダーリソースビューのディスクリプタ番号を取得する関数。
-     * @return 戻り値。
+     * @brief SRV ヒープ上のインデックスを取得する。
+     * @return テクスチャ SRV が配置されているヒープ内インデックス。
      */
     uint32_t GetSrvIndex() const;
 

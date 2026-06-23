@@ -18,61 +18,61 @@ class AnimationComponent : public Component
 {
 public:
     /**
-     * @brief OnAttachを行う関数。
-     * @param context 共有コンテキスト。
+     * @brief 共有コンテキストへ登録し、システム側で扱える状態にする。
+     * @param context 描画や登録に使う共有コンテキスト。
      */
     void OnAttach(const AttachContext& context) override;
     /**
-     * @brief Tickを行う関数。
-     * @param dt 引数。
+     * @brief 1 フレーム分の状態更新を進める。
+     * @param dt 前フレームからの経過秒数。
      */
     void Tick(float dt) override;
     /**
-     * @brief AddAnimationを行う関数。
-     * @param name 検索または識別に使う名前。
-     * @param clip 引数。
-     * @param loop 引数。
+     * @brief 再生候補のアニメーションを登録する。
+     * @param name name に設定する値。
+     * @param clip clip に設定する値。
+     * @param loop loop に設定する値。
      */
     void AddAnimation(const std::string& name, Animation* clip, bool loop);
     /**
-     * @brief Playを行う関数。
-     * @param name 検索または識別に使う名前。
+     * @brief 指定したアニメーションの再生を開始する。
+     * @param name name に設定する値。
      */
     void Play(const std::string& name);
     /**
-     * @brief CrossFadeを行う関数。
-     * @param name 検索または識別に使う名前。
-     * @param fade_time 引数。
+     * @brief 数学計算の結果を求める。
+     * @param name name に設定する値。
+     * @param fade_time fade_time に設定する値。
      */
     void CrossFade(const std::string& name, float fade_time);
     /**
-     * @brief Stopを行う関数。
+     * @brief 再生中のアニメーションを停止する。
      */
     void Stop();
     /**
-     * @brief CurrentFrameを取得する関数。
-     * @return 戻り値。
+     * @brief 現在の再生フレームを取得する。
+     * @return アニメーション再生位置を表す現在フレーム。
      */
     float GetCurrentFrame() const;
     /**
-     * @brief PlaySpeedを設定する関数。
-     * @param speed 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param speed speed に設定する値。
      */
     void SetPlaySpeed(float speed);
     /**
-     * @brief BonePaletteを取得する関数。
-     * @return 戻り値。
+     * @brief Bone Palette を取得する。
+     * @return 保持している Bone Palette への参照。
      */
     const std::vector<Mat>& GetBonePalette() const;
     /**
-     * @brief Playingかどうかを確認する関数。
-     * @return 条件を満たす場合は true。
+     * @brief 現在の状態が条件を満たしているか調べる。
+     * @return 音声またはアニメーションが再生中の場合は true。
      */
     bool IsPlaying() const;
 
 private:
     /**
-     * @brief RebuildChannelsを行う関数。
+     * @brief アニメーション再生用のチャンネル対応を作り直す。
      */
     void RebuildChannels();
 

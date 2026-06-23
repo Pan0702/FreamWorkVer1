@@ -9,8 +9,8 @@ class TransformComponent : public Component
 {
 public:
     /**
-     * @brief Matrixを行う関数。
-     * @return 戻り値。
+     * @brief Transform の位置・回転・スケールから行列を作成する。
+     * @return Transform の位置・回転・スケールを合成したワールド行列。
      */
     Mat Matrix() const;
 

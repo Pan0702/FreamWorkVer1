@@ -16,29 +16,33 @@ class TextureManager
 {
 public:
     /**
-     * @brief TextureManagerの終了処理を行うデストラクタ。
+     * @brief 保持している登録やリソースを解放する。
      */
     ~TextureManager();
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param device DirectX 12 デバイス。
-     * @param srv_heap 引数。
-     * @param queue コマンド実行に使うキュー。
-     * @param cmd コマンドリスト管理オブジェクト。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param device 使用する D3D12 デバイス。
+     * @param srv_heap SRV/CBV/UAV などを保持するディスクリプタヒープ。
+     * @param queue GPU コマンドを実行するキュー。
+     * @param cmd cmd に設定する値。
      */
     void Initialize(ID3D12Device* device, DescriptorHeap* srv_heap,
                     CommandQueue* queue, CommandList* cmd);
     /**
-     * @brief 保持しているリソースを解放する関数。
+     * @brief 保持しているリソースと登録状態を解放する。
      */
     void Shutdown();
     /**
-     * @brief 指定されたリソースを読み込む関数。
-     * @param path 読み込むファイルパスまたは検索キー。
-     * @return 戻り値。
+     * @brief ファイルや外部データを読み込んで内部表現へ変換する。
+     * @param path 読み書きするファイルパス。
+     * @return 指定リソースの読み込みが完了した場合は true。
      */
     Texture2D* Load(const wchar_t* path);
 
+    /**
+     * @brief TextureManager の共有インスタンスを取得する。
+     * @return テクスチャキャッシュを管理する TextureManager への参照。
+     */
     static TextureManager& Get()
     {
         static TextureManager instance;

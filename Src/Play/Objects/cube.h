@@ -1,13 +1,17 @@
-ï»¿#pragma once
+#pragma once
 #include <memory>
 
 #include "../../Engine/actor.h"
 
 class MaterialSlot;
 
+// Cube ‚ÉŠÖŒW‚·‚éó‘Ô‚ÆU‚é•‘‚¢‚ğ‚Ü‚Æ‚ß‚éŒ^B
 class Cube : public Actor
 {
 public:
+    /**
+     * @brief ƒCƒ“ƒXƒ^ƒ“ƒX‚Ì‰Šúó‘Ô‚ğ®‚¦‚éB
+     */
     Cube();
     
 private:

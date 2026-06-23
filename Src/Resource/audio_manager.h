@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include <memory>
 #include <string>
 #include <unordered_map>
@@ -8,27 +8,69 @@
 
 class AudioPlayer;
 
+// AudioData ‚ÉŠÖŒW‚·‚éó‘Ô‚ÆU‚é•‘‚¢‚ğ‚Ü‚Æ‚ß‚éŒ^B
 struct AudioData
 {
     std::unique_ptr<AudioPlayer> player = nullptr;
     bool loop = false;
 };
 
+// AudioManager ‚ªˆµ‚¤ƒŠƒ\[ƒX‚Ì¶¬‚Æ‹¤—L‚ğŠÇ—‚·‚éB
 class AudioManager
 {
 public:
+    /**
+     * @brief ƒCƒ“ƒXƒ^ƒ“ƒX‚Ì‰Šúó‘Ô‚ğ®‚¦‚éB
+     */
     AudioManager() = default;
+    /**
+     * @brief •Û‚µ‚Ä‚¢‚é“o˜^‚âƒŠƒ\[ƒX‚ğ‰ğ•ú‚·‚éB
+     */
     ~AudioManager();
 
+    /**
+     * @brief ƒCƒ“ƒXƒ^ƒ“ƒX‚Ì‰Šúó‘Ô‚ğ®‚¦‚éB
+     */
     AudioManager(const AudioManager&) = delete;
+    /**
+     * @brief ‰‰Zq operator= ‚Å’l‚ğˆµ‚¤B
+     * @return ‰‰ZŒ‹‰Ê‚ğ”½‰f‚µ‚½©•ª©gB
+     */
     AudioManager& operator=(const AudioManager&) = delete;
 
+    /**
+     * @brief ƒtƒ@ƒCƒ‹‚âŠO•”ƒf[ƒ^‚ğ“Ç‚İ‚ñ‚Å“à•”•\Œ»‚Ö•ÏŠ·‚·‚éB
+     * @param filename “Ç‚İ‘‚«‚·‚éƒtƒ@ƒCƒ‹ƒpƒXB
+     * @param name name ‚Éİ’è‚·‚é’lB
+     * @param loop loop ‚Éİ’è‚·‚é’lB
+     */
     void LoadWaveFile(const char* filename, const char* name, bool loop);
+    /**
+     * @brief w’è‚µ‚½ƒAƒjƒ[ƒVƒ‡ƒ“‚ÌÄ¶‚ğŠJn‚·‚éB
+     * @param name name ‚Éİ’è‚·‚é’lB
+     */
     void Play(const char* name);
+    /**
+     * @brief Ä¶’†‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚ğ’â~‚·‚éB
+     * @param name name ‚Éİ’è‚·‚é’lB
+     */
     void Stop(const char* name);
+    /**
+     * @brief w’è‚³‚ê‚½’l‚ğ“à•”ó‘Ô‚É”½‰f‚·‚éB
+     * @param name name ‚Éİ’è‚·‚é’lB
+     * @param volume volume ‚Éİ’è‚·‚é’lB
+     */
     void SetVolume(const char* name, float volume);
+    /**
+     * @brief Win32 ƒCƒ“ƒXƒ^ƒ“ƒXƒnƒ“ƒhƒ‹ ‚ğæ“¾‚·‚éB
+     * @return ƒVƒ“ƒOƒ‹ƒgƒ“‚Æ‚µ‚Ä•Û‚µ‚Ä‚¢‚éƒCƒ“ƒXƒ^ƒ“ƒXB
+     */
     static AudioManager& GetInstance();
 private:
+    /**
+     * @brief —˜—p‘O‚É•K—v‚ÈQÆ‚ÆƒŠƒ\[ƒX‚ğ‰Šú‰»‚·‚éB
+     * @return •K—v‚ÈƒŠƒ\[ƒX‚ğì¬‚µAg—p‰Â”\‚Èó‘Ô‚É‚Å‚«‚½ê‡‚Í trueB
+     */
     bool Initialize();
 
     ComPtr<IXAudio2> xaudio2_;

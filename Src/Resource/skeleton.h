@@ -23,25 +23,25 @@ class Skeleton
 {
 public:
     /**
-     * @brief Nodesを設定する関数。
-     * @param nodes 引数。
-     * @param skin_count 引数。
+     * @brief 指定された値を内部状態に反映する。
+     * @param nodes nodes に設定する値。
+     * @param skin_count skin_count に設定する値。
      */
     void SetNodes(std::vector<SkeletonNode> nodes, uint32 skin_count);
     /**
-     * @brief SkinCountを取得する関数。
-     * @return 戻り値。
+     * @brief スキン数を取得する。
+     * @return スケルトンが保持しているスキン数。
      */
     uint32 GetSkinCount() const ;
     /**
-     * @brief NodeIndexを取得する関数。
-     * @param name 検索または識別に使う名前。
-     * @return 戻り値。
+     * @brief 名前に対応するノード番号を取得する。
+     * @param name name に設定する値。
+     * @return 指定名に一致するノード番号。見つからない場合は -1。
      */
     int32 GetNodeIndex(const std::string& name) const;
     /**
-     * @brief Nodesを取得する関数。
-     * @return 戻り値。
+     * @brief Nodes を取得する。
+     * @return 保持している Nodes への参照。
      */
     const std::vector<SkeletonNode>& GetNodes() const;
 private:
@@ -49,5 +49,3 @@ private:
     std::unordered_map<std::string, int32> name_to_index_; 
     uint32 skin_count_ = 0;
 };
-
-

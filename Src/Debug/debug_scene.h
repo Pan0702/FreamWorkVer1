@@ -9,12 +9,12 @@ class DebugComponent : public Component
 {
 public:
     /**
-     * @brief Tickを行う関数。
-     * @param dt 引数。
+     * @brief 1 フレーム分の状態更新を進める。
+     * @param dt 前フレームからの経過秒数。
      */
     void Tick(float dt) override;
     /**
-     * @brief 登録済みの描画対象を描画する関数。
+     * @brief 現在の状態をもとに描画コマンドを積む。
      */
     void Render();
     

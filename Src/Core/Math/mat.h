@@ -10,11 +10,14 @@ using namespace DirectX;
  */
 struct Mat : public XMFLOAT4X4
 {
+    /**
+     * @brief インスタンスの初期状態を整える。
+     */
     Mat() = default;
 
     /**
-     * @brief Matを初期化するコンストラクタ。
-     * @param other 引数。
+     * @brief インスタンスの初期状態を整える。
+     * @param other other に設定する値。
      */
     Mat(const XMMATRIX& other)
     {
@@ -22,23 +25,23 @@ struct Mat : public XMFLOAT4X4
     }
 
     /**
-     * @brief Matを初期化するコンストラクタ。
-     * @param in_11 引数。
-     * @param in_12 引数。
-     * @param in_13 引数。
-     * @param in_14 引数。
-     * @param in_21 引数。
-     * @param in_22 引数。
-     * @param in_23 引数。
-     * @param in_24 引数。
-     * @param in_31 引数。
-     * @param in_32 引数。
-     * @param in_33 引数。
-     * @param in_34 引数。
-     * @param in_41 引数。
-     * @param in_42 引数。
-     * @param in_43 引数。
-     * @param in_44 引数。
+     * @brief インスタンスの初期状態を整える。
+     * @param in_11 in_11 に設定する値。
+     * @param in_12 in_12 に設定する値。
+     * @param in_13 in_13 に設定する値。
+     * @param in_14 in_14 に設定する値。
+     * @param in_21 in_21 に設定する値。
+     * @param in_22 in_22 に設定する値。
+     * @param in_23 in_23 に設定する値。
+     * @param in_24 in_24 に設定する値。
+     * @param in_31 in_31 に設定する値。
+     * @param in_32 in_32 に設定する値。
+     * @param in_33 in_33 に設定する値。
+     * @param in_34 in_34 に設定する値。
+     * @param in_41 in_41 に設定する値。
+     * @param in_42 in_42 に設定する値。
+     * @param in_43 in_43 に設定する値。
+     * @param in_44 in_44 に設定する値。
      */
     Mat(float in_11, float in_12, float in_13, float in_14,
         float in_21, float in_22, float in_23, float in_24,
@@ -51,13 +54,19 @@ struct Mat : public XMFLOAT4X4
         _41 = in_41; _42 = in_42; _43 = in_43; _44 = in_44;
     }
 
-    // 戻り値: DirectXMath の計算用行列。
+    /**
+     * @brief インスタンスの初期状態を整える。
+     */
     operator XMMATRIX() const
     {
         return XMLoadFloat4x4((this));
     }
 
-    // 四則演算。
+    /**
+     * @brief 演算子 operator+= で値を扱う。
+     * @param rhs 計算に使用する行列または値。
+     * @return 演算結果を反映した自分自身。
+     */
     Mat& operator+=(const Mat& rhs)
     {
         for (int i = 0; i < 4; ++i)
@@ -66,6 +75,11 @@ struct Mat : public XMFLOAT4X4
         return *this;
     }
 
+    /**
+     * @brief 演算子 operator-= で値を扱う。
+     * @param rhs 計算に使用する行列または値。
+     * @return 演算結果を反映した自分自身。
+     */
     Mat& operator-=(const Mat& rhs)
     {
         for (int i = 0; i < 4; ++i)
@@ -74,12 +88,22 @@ struct Mat : public XMFLOAT4X4
         return *this;
     }
 
+    /**
+     * @brief 演算子 operator*= で値を扱う。
+     * @param rhs 計算に使用する行列または値。
+     * @return 演算結果を反映した自分自身。
+     */
     Mat& operator*=(const Mat& rhs)
     {
         *this = static_cast<Mat>(static_cast<XMMATRIX>(*this) * (rhs));
         return *this;
     }
 
+    /**
+     * @brief 演算子 operator*= で値を扱う。
+     * @param s s に設定する値。
+     * @return 演算結果を反映した自分自身。
+     */
     Mat& operator*=(float s)
     {
         for (auto& i : m)
@@ -88,6 +112,11 @@ struct Mat : public XMFLOAT4X4
         return *this;
     }
 
+    /**
+     * @brief 演算子 operator/= で値を扱う。
+     * @param s s に設定する値。
+     * @return 演算結果を反映した自分自身。
+     */
     Mat& operator/=(float s)
     {
         const float inv = 1.0f / s;
@@ -98,15 +127,45 @@ struct Mat : public XMFLOAT4X4
     }
 };
 
-// 四則演算。
+/**
+ * @brief 演算子 operator+ で値を扱う。
+ * @param lhs 計算に使用する行列または値。
+ * @param rhs 計算に使用する行列または値。
+ * @return 演算結果として作成した新しい値。
+ */
 inline Mat operator+(Mat lhs, const Mat& rhs) { return lhs += rhs; }
-// 四則演算。
+/**
+ * @brief 演算子 operator- で値を扱う。
+ * @param lhs 計算に使用する行列または値。
+ * @param rhs 計算に使用する行列または値。
+ * @return 演算結果として作成した新しい値。
+ */
 inline Mat operator-(Mat lhs, const Mat& rhs) { return lhs -= rhs; }
-// 四則演算。
+/**
+ * @brief 演算子 operator* で値を扱う。
+ * @param lhs 計算に使用する行列または値。
+ * @param rhs 計算に使用する行列または値。
+ * @return 演算結果として作成した新しい値。
+ */
 inline Mat operator*(Mat lhs, const Mat& rhs) { return lhs *= rhs; }
-// 四則演算。
+/**
+ * @brief 演算子 operator* で値を扱う。
+ * @param lhs 計算に使用する行列または値。
+ * @param s s に設定する値。
+ * @return 演算結果として作成した新しい値。
+ */
 inline Mat operator*(Mat lhs, float s) { return lhs *= s; }
-// 四則演算。
+/**
+ * @brief 演算子 operator* で値を扱う。
+ * @param s s に設定する値。
+ * @param rhs 計算に使用する行列または値。
+ * @return 演算結果として作成した新しい値。
+ */
 inline Mat operator*(float s, Mat rhs) { return rhs *= s; }
-// 四則演算。
+/**
+ * @brief 演算子 operator/ で値を扱う。
+ * @param lhs 計算に使用する行列または値。
+ * @param s s に設定する値。
+ * @return 演算結果として作成した新しい値。
+ */
 inline Mat operator/(Mat lhs, float s) { return lhs /= s; }

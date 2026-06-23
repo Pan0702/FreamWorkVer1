@@ -9,46 +9,46 @@ class Input
 {
 public:
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param hwnd Win32 ウィンドウハンドル。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param hwnd 描画対象の Win32 ウィンドウハンドル。
      */
     void Initialize(HWND hwnd);
     /**
-     * @brief 1 フレーム分の状態を更新する関数。
+     * @brief 1 フレーム分の状態更新を進める。
      */
     void Update();
     /**
-     * @brief CheckKeyを行う関数。
-     * @param keycode 引数。
-     * @param key 引数。
-     * @return 条件を満たす場合は true。
+     * @brief キーの現在状態と直前状態から入力状態を判定する。
+     * @param keycode keycode に設定する値。
+     * @param key key に設定する値。
+     * @return 指定したキーが押されている場合は true。
      */
     bool CheckKey(uint8_t keycode, KeyState key) const;
     /**
-     * @brief CheckMouseButtonを行う関数。
-     * @param button 引数。
-     * @param key 引数。
-     * @return 条件を満たす場合は true。
+     * @brief マウスボタンの現在状態と直前状態から入力状態を判定する。
+     * @param button button に設定する値。
+     * @param key key に設定する値。
+     * @return 指定したマウスボタンが押されている場合は true。
      */
     bool CheckMouseButton(uint8_t button, KeyState key) const;
     /**
-     * @brief MouseXを取得する関数。
-     * @return 戻り値。
+     * @brief マウス X 座標 を取得する。
+     * @return 現在保持している マウス X 座標。
      */
     int GetMouseX() const;
     /**
-     * @brief MouseYを取得する関数。
-     * @return 戻り値。
+     * @brief マウス Y 座標 を取得する。
+     * @return 現在保持している マウス Y 座標。
      */
     int GetMouseY() const;
     /**
-     * @brief MouseDeltaXを取得する関数。
-     * @return 戻り値。
+     * @brief マウスの X 方向移動量を取得する。
+     * @return 前回更新からのマウス X 方向移動量。
      */
     int GetMouseDeltaX() const;
     /**
-     * @brief MouseDeltaYを取得する関数。
-     * @return 戻り値。
+     * @brief マウスの Y 方向移動量を取得する。
+     * @return 前回更新からのマウス Y 方向移動量。
      */
     int GetMouseDeltaY() const;
 

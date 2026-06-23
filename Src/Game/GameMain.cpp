@@ -37,7 +37,7 @@ namespace
         float t = static_cast<float>(current.QuadPart - last.QuadPart) / freq.QuadPart;
         float t2 = t;
         
-        // deltaTimeï¿½ÍAï¿½ï¿½ï¿½Ïƒtï¿½ï¿½ï¿½[ï¿½ï¿½ï¿½ï¿½ï¿½[ï¿½gï¿½ï¿½3ï¿½{ï¿½ð’´‚ï¿½ï¿½È‚ï¿½ï¿½æ‚¤ï¿½Éï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½iï¿½Xï¿½pï¿½Cï¿½Nï¿½Îï¿½j
+        // deltaTime ‚ÍƒXƒpƒCƒN‘Îô‚Æ‚µ‚Ä‘å‚«‚­‚È‚è‚·‚¬‚È‚¢‚æ‚¤‚É—}‚¦‚éB
         if (recCount >= REC_SIZE)
         {
             float sum = 0;
@@ -219,4 +219,3 @@ void GameMain::ClacFPS()
         frame = 0;
     }
 }
-

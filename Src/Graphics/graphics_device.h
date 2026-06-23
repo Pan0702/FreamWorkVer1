@@ -8,36 +8,36 @@ class GraphicsDevice
 {
 public:
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param enable_debug_layer 引数。
-     * @return 条件を満たす場合は true。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param enable_debug_layer D3D12 デバッグレイヤーを有効にするかどうか。
+     * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(bool enable_debug_layer);
 
     /**
-     * @brief Deviceを取得する関数。
-     * @return 戻り値。
+     * @brief D3D12 デバイス を取得する。
+     * @return 保持している D3D12 デバイス。未初期化なら nullptr。
      */
     ID3D12Device* GetDevice() const;
     /**
-     * @brief Factoryを取得する関数。
-     * @return 戻り値。
+     * @brief DXGI ファクトリ を取得する。
+     * @return 保持している DXGI ファクトリ。未初期化なら nullptr。
      */
     IDXGIFactory6* GetFactory() const;
     /**
-     * @brief CreateFactoryを行う関数。
-     * @param enable_debug_layer 引数。
-     * @return 条件を満たす場合は true。
+     * @brief DXGI ファクトリを作成する。
+     * @param enable_debug_layer D3D12 デバッグレイヤーを有効にするかどうか。
+     * @return 対象リソースの作成が完了した場合は true。
      */
     bool CreateFactory(bool enable_debug_layer);
     /**
-     * @brief CreateAdapterを行う関数。
-     * @return 条件を満たす場合は true。
+     * @brief 描画に使用する GPU アダプタを選択する。
+     * @return 対象リソースの作成が完了した場合は true。
      */
     bool CreateAdapter();
     /**
-     * @brief CreateDeviceを行う関数。
-     * @return 条件を満たす場合は true。
+     * @brief D3D12 デバイスを作成する。
+     * @return 対象リソースの作成が完了した場合は true。
      */
     bool CreateDevice();
 

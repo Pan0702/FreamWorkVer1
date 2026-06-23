@@ -14,27 +14,27 @@ class SkyRenderer
 {
 public:
     /**
-     * @brief SkyRendererを初期化するコンストラクタ。
+     * @brief インスタンスの初期状態を整える。
      */
     SkyRenderer();
     /**
-     * @brief SkyRendererの終了処理を行うデストラクタ。
+     * @brief 保持している登録やリソースを解放する。
      */
     ~SkyRenderer();
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param device DirectX 12 デバイス。
-     * @return 条件を満たす場合は true。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param device 使用する D3D12 デバイス。
+     * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(ID3D12Device* device);
     /**
-     * @brief Textureを設定する関数。
-     * @param texture 描画に使うテクスチャ。
+     * @brief 指定された値を内部状態に反映する。
+     * @param texture 使用するテクスチャ。
      */
     void SetTexture(Texture2D* texture);
     /**
-     * @brief 登録済みの描画対象を描画する関数。
-     * @param context 共有コンテキスト。
+     * @brief 現在の状態をもとに描画コマンドを積む。
+     * @param context 描画や登録に使う共有コンテキスト。
      */
     void Render(const RenderContext& context) const;
 private:

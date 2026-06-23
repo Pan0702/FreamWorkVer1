@@ -8,21 +8,21 @@ class ConstantBuffer
 {
 public:
     /**
-     * @brief 初期化に必要な参照とリソースを設定する関数。
-     * @param device DirectX 12 デバイス。
-     * @param size サイズ情報。
-     * @return 条件を満たす場合は true。
+     * @brief 利用前に必要な参照とリソースを初期化する。
+     * @param device 使用する D3D12 デバイス。
+     * @param size size に設定する値。
+     * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(ID3D12Device* device, uint32_t size);
     /**
-     * @brief 1 フレーム分の状態を更新する関数。
-     * @param data コピー元データ。
-     * @param size サイズ情報。
+     * @brief 1 フレーム分の状態更新を進める。
+     * @param data data に設定する値。
+     * @param size size に設定する値。
      */
     void Update(const void* data, uint32_t size);
     /**
-     * @brief 定数バッファのグラフィックス処理装置側アドレスを取得する関数。
-     * @return 戻り値。
+     * @brief Gpu Address を取得する。
+     * @return 現在保持している Gpu Address。
      */
     D3D12_GPU_VIRTUAL_ADDRESS GetGpuAddress() const;
 
