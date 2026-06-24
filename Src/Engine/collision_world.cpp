@@ -6,6 +6,7 @@
 
 #include "../Core/Math/intersect.h"
 #include "Components/box_collider_component.h"
+#include "Components/capsule_collider_comp.h"
 #include "Components/collider_component.h"
 #include "Components/mesh_collider_component.h"
 #include "Components/sphere_collider_componet.h"
@@ -25,6 +26,11 @@ namespace
     const MeshColliderComponent* MeshOf(ColliderComponent* c)
     {
         return static_cast<MeshColliderComponent*>(c);
+    }
+    
+    Capsule CapsuleData(ColliderComponent* c)
+    {
+        return static_cast<CapsuleColliderComponent*>(c)->GetColliderCapsuleData();
     }
 }
 

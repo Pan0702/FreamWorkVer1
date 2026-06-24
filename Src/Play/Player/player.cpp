@@ -35,6 +35,7 @@ Player::Player()
     sphere->SetOnHit(this, &Player::OnHit);
     sphere->SetRadius(1.0f);
     sphere->SetUseTransform(false);
+    sphere->SetDraw(true);
     transform_.scale = Vec3(0.01f, 0.01f, 0.01f);
     std::vector<PlayerState> states = {PlayerState::kJump, PlayerState::kWalk};
     states_ = factor_.GetComponents(states);

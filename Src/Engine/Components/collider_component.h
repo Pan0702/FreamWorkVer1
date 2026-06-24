@@ -13,6 +13,7 @@ enum class ColliderShape : uint8_t
     kSphere,
     kBox,
     kMesh,
+    kCapsule,
 };
 
 // Actor ‚É’Ç‰Á‚µ‚Äg‚¤ ColliderComponent ‚Ìó‘Ô‚Æˆ—‚ğ‚Ü‚Æ‚ß‚éB

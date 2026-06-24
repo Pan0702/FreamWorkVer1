@@ -29,6 +29,13 @@ struct Ray
     Vec3 direction;
     float distance;
 };
+
+struct Capsule
+{
+    Vec3 center;
+    float radius;
+    float height;
+};
 /**
  * @brief 形状同士の判定を行い、必要な接触情報を組み立てる。
  * @param s1 s1 に設定する値。

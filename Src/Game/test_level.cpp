@@ -19,6 +19,7 @@
 #include "../Engine/Components/sphere_collider_componet.h"
 #include "../Engine/Components/box_collider_component.h"
 #include "../Engine/Components/mesh_collider_component.h"
+#include "../Play/Objects/goal_flag.h"
 
 TestLevel::TestLevel() = default;
 TestLevel::~TestLevel() = default;
@@ -41,7 +42,7 @@ void TestLevel::OnEnter()
     
     Actor* a2 = SpawnActor();
     auto* t2 = &a2->GetTransform();
-    a2->AddComponent<StaticMeshComponent>(mesh, material_slot_2_.get());
+    a2->AddComponent<StaticMeshComponent>(mesh2, material_slot_2_.get());
     t2->position = Vec3(3, 2, 0);
     
     SkeletalMesh* sk = SkeletalMeshManager::Get().Load("Assets/Mesh/remy.skmesh");
@@ -115,6 +116,7 @@ void TestLevel::OnEnter()
         });
     }
 
+    SpawnActor<GoalFlag>();
     LevelBase::OnEnter();
 }
 

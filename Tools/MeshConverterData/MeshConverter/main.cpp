@@ -315,7 +315,7 @@ namespace
                 continue;
             }
 
-            const uint32_t start = static_cast<uint32_t>(vertices.size());
+            const uint32_t start = static_cast<uint32_t>(indices.size());
 
             if (!AppendMesh(*mesh, vertices, indices)) return false;
 
