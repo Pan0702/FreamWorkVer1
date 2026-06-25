@@ -33,6 +33,7 @@ struct Ray
 struct Capsule
 {
     Vec3 center;
+    Vec3 dir;
     float radius;
     float height;
 };
@@ -91,6 +92,8 @@ bool Contact(const Box& box, const Vec3& a, const Vec3& b, const Vec3& c, Contac
  */
 bool Contact(const Ray& ray, const Vec3& a, const Vec3& b, const Vec3& c, ContactInfo& out);
 
+bool Contact(const Capsule& capsule,const Vec3& a, const Vec3& b, const Vec3& c, ContactInfo& out);
+
 /**
  * @brief 点から AABB 上の最近接点を求める。
  * @param p 計算に使用するベクトルまたは点。
@@ -107,3 +110,9 @@ Vec3 ClosestPointOnBox(const Vec3& p, const Box& box);
  * @return 三角形上で point に最も近い点。
  */
 Vec3 ClosestPointOnTriangle(const Vec3& p, const Vec3& a, const Vec3& b, const Vec3& c);
+
+bool  Intersect(const Vec3& capsule_pos, const Vec3& a, const Vec3& b, float radius, Vec3& out);
+bool HitCheck(const Vec3& capsule_pos,const Vec3& a, const Vec3& b, const Vec3& c,float radius, Vec3& out);
+bool HitCheck2(const Vec3& capsule_pos,const Vec3& a, const Vec3& b, const Vec3& c,float radius, Vec3& out);
+bool SegmentToSegment();
+

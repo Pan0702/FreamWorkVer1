@@ -63,6 +63,7 @@ Vec3 ClosestPointOnTriangle(const Vec3& p, const Vec3& a, const Vec3& b, const V
     return a + ab * v + ac * w;
 }
 
+
 // ============================================================
 // 接触判定（貫通法線・深さを出力）
 // out.normal は第1引数を第2引数から押し出す単位ベクトル、out.depth は正の貫通量
@@ -320,6 +321,81 @@ bool Contact(const Ray& ray, const Vec3& a, const Vec3& b, const Vec3& c, Contac
         {
             out.normal = -out.normal;
         }
+        return true;
+    }
+    return false;
+}
+
+bool Contact(const Capsule& capsule, const Vec3& a, const Vec3& b, const Vec3& c, ContactInfo& out)
+{
+    const Vec3 A = capsule.center - capsule.dir * capsule.height;
+    const Vec3 B = capsule.center + capsule.dir * capsule.height;
+    Ray ray;
+    ray.origin = A;
+    ray.direction = (B - A).Normalized();
+    ray.distance = capsule.height;
+    if (Contact(ray, a, b, c, out))
+    {
+    }
+    Vec3 tmp = {};
+    if (HitCheck(A, a, b, c, capsule.radius, tmp))
+    {
+    }
+    if (HitCheck(B, a, b, c, capsule.radius, tmp))
+    {
+    }
+    if (HitCheck(A, a, b, c, capsule.radius, tmp))
+    {
+    }
+    if (HitCheck2(A, a, b, c, capsule.radius, tmp))
+    {
+    }
+}
+
+bool HitCheck2(const Vec3& capsule_pos, const Vec3& a, const Vec3& b, const Vec3& c, float radius, Vec3& out)
+{
+    const float radius_sq = radius * radius;
+    float dis_sq = (capsule_pos - a).LengthSquared();
+    if (dis_sq <= radius_sq)
+    {
+    }
+    dis_sq = (capsule_pos - b).LengthSquared();
+    if (dis_sq <= radius_sq)
+    {
+    }
+    dis_sq = (capsule_pos - c).LengthSquared();
+    if (dis_sq <= radius_sq)
+    {
+    }
+    return false;
+}
+
+
+bool HitCheck(const Vec3& capsule_pos, const Vec3& a, const Vec3& b, const Vec3& c, float radius, Vec3& out)
+{
+    if (Intersect(capsule_pos, a, b, radius, out))
+    {
+    }
+    if (Intersect(capsule_pos, b, c, radius, out))
+    {
+    }
+    if (Intersect(capsule_pos, c, a, radius, out))
+    {
+    }
+}
+
+
+bool Intersect(const Vec3& capsule_pos, const Vec3& a, const Vec3& b, float radius, Vec3& out)
+{
+    const Vec3 AC = capsule_pos - a;
+    const Vec3 AB = b - a;
+    float t = Dot(AC, AB) / Dot(AB, AB);
+    t = std::clamp(t, 0.0f, 1.0f);
+    const Vec3 q = a + AB * t;
+    const Vec3 diff = capsule_pos - q;
+    const float dis_sq = diff.LengthSquared();
+    if (dis_sq <= radius * radius)
+    {
         return true;
     }
     return false;

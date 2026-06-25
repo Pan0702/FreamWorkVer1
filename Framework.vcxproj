@@ -78,6 +78,7 @@
     <ClInclude Include="Src\Platform\window.h" />
     <ClInclude Include="Src\Play\Objects\cube.h" />
     <ClInclude Include="Src\Play\Objects\goal_flag.h" />
+    <ClInclude Include="Src\Play\Objects\start_cube.h" />
     <ClInclude Include="Src\Play\Player\PlayerComponent\component_factor.h" />
     <ClInclude Include="Src\Play\Player\PlayerComponent\jump.h" />
     <ClInclude Include="Src\Play\Player\PlayerComponent\state_component.h" />
@@ -121,6 +122,7 @@
     <ClCompile Include="Src\Engine\Components\capsule_collider_comp.cpp" />
     <ClCompile Include="Src\Play\Objects\cube.cpp" />
     <ClCompile Include="Src\Play\Objects\goal_flag.cpp" />
+    <ClCompile Include="Src\Play\Objects\start_cube.cpp" />
     <ClCompile Include="Src\Play\Player\player.cpp">
       <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>

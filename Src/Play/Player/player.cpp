@@ -55,7 +55,7 @@ void Player::Tick(float dt)
         constexpr float kProbeMargin = 0.2f; // 接地とみなす許容ギャップ
         Ray ray;
         ray.origin = transform_.position;
-        ray.direction = Vec3(0.0f, -1.0f, 0.0f);
+        ray.dir = Vec3(0.0f, -1.0f, 0.0f);
         ray.distance = kProbeRadius + kProbeMargin;
         ContactInfo hit;
         is_grounded_ = GetWorld()->GetCollisionWorld().Raycast(ray, hit);
