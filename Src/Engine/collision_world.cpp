@@ -32,6 +32,8 @@ namespace
     {
         return static_cast<CapsuleColliderComponent*>(c)->GetColliderCapsuleData();
     }
+    
+    constexpr int kVertsPerTriangle = 3;
 }
 
 void CollisionWorld::Collect()
@@ -50,6 +52,7 @@ void CollisionWorld::Collect()
                 continue;
             }
             ContactInfo info;
+            // 当たってるか
             if (ComputeContact(coll1, coll2, info))
             {
                 cur_pairs.emplace(HitPair(coll1, coll2)); // Overlap //
@@ -165,6 +168,10 @@ bool CollisionWorld::ComputeContact(ColliderComponent* coll1, ColliderComponent*
     {
         hit = ContactMeshBox(MeshOf(coll2), BoxData(coll1), out);
     }
+    else if (s1 == ColliderShape::kCapsule && s2 == ColliderShape::kMesh)
+    {
+        hit = ContactMeshCapsule(MeshOf(coll2), CapsuleData(coll1), out);
+    }
     // kMesh × kMeshは重たいので書かない//
 
     if (hit && flipped)
@@ -174,7 +181,7 @@ bool CollisionWorld::ComputeContact(ColliderComponent* coll1, ColliderComponent*
     return hit;
 }
 
-bool CollisionWorld::Raycast(const Ray& ray, ContactInfo& out, const ColliderComponent* ignore)
+bool CollisionWorld::Raycast(const Ray& ray, ContactInfo& out, const ColliderComponent* ignore) const
 {
     bool hit = false;
     float best_t = ray.distance; // これより近いヒットだけ採用。初期値は最大距離。//
@@ -193,7 +200,7 @@ bool CollisionWorld::Raycast(const Ray& ray, ContactInfo& out, const ColliderCom
         const std::vector<Vec3>& vertices = mesh->GetVertices();
         const std::vector<uint32>& indices = mesh->GetIndices();
         const Mat world = mesh->GetWorldMatrix();
-        for (int i = 0; i + 2 < indices.size(); i += 3)
+        for (int i = 0; i + 2 < indices.size(); i += kVertsPerTriangle)
         {
             const Vec3 a = TransformPoint(world, vertices[indices[i]]);
             const Vec3 b = TransformPoint(world, vertices[indices[i + 1]]);
@@ -238,13 +245,15 @@ static bool ContactMeshBox(const MeshColliderComponent* mesh, const Box& box, Co
     bool hit = false;
     float best_depth = 0.0f;
     ContactInfo contact;
-    for (int i = 0; i + 2 < indices.size(); i += 3)
+    //　１つの三角形を１ループで
+    for (int i = 0; i + 2 < indices.size(); i += kVertsPerTriangle)
     {
         const Vec3 a = TransformPoint(world, vertices[indices[i]]);
         const Vec3 b = TransformPoint(world, vertices[indices[i + 1]]);
         const Vec3 c = TransformPoint(world, vertices[indices[i + 2]]);
         if (Contact(box, a, b, c, contact))
         {
+            // info.depth はレイの距離 t。一番近い三角形を採用。
             if (contact.depth > best_depth)
             {
                 best_depth = contact.depth;
@@ -256,6 +265,7 @@ static bool ContactMeshBox(const MeshColliderComponent* mesh, const Box& box, Co
     return hit;
 }
 
+
 bool ContactMeshSphere(const MeshColliderComponent* mesh, const Sphere& sphere1, ContactInfo& out)
 {
     const std::vector<Vec3>& vertices = mesh->GetVertices();
@@ -264,13 +274,44 @@ bool ContactMeshSphere(const MeshColliderComponent* mesh, const Sphere& sphere1,
     bool hit = false;
     float best_depth = 0.0f;
     ContactInfo contact;
-    for (int i = 0; i + 2 < indices.size(); i += 3)
+    //　１つの三角形を１ループで
+    for (int i = 0; i + 2 < indices.size(); i += kVertsPerTriangle)
     {
         const Vec3 a = TransformPoint(world, vertices[indices[i]]);
         const Vec3 b = TransformPoint(world, vertices[indices[i + 1]]);
         const Vec3 c = TransformPoint(world, vertices[indices[i + 2]]);
         if (Contact(sphere1, a, b, c, contact))
         {
+            // info.depth はレイの距離 t。一番近い三角形を採用。
+            if (contact.depth > best_depth)
+            {
+                best_depth = contact.depth;
+                hit = true;
+                out = contact;
+            }
+        }
+    }
+    return hit;
+}
+
+bool ContactMeshCapsule(const MeshColliderComponent* mesh, const Capsule& capsule, ContactInfo& out)
+{
+    const std::vector<Vec3>& vertices = mesh->GetVertices();
+    const std::vector<uint32>& indices = mesh->GetIndices();
+    const Mat world = mesh->GetWorldMatrix();
+    bool hit = false;
+    float best_depth = 0.0f;
+    ContactInfo contact;
+    //　１つの三角形を１ループで
+    for (int i = 0; i + 2 < indices.size(); i += kVertsPerTriangle)
+    {
+        const Vec3 a = TransformPoint(world, vertices[indices[i]]);
+        const Vec3 b = TransformPoint(world, vertices[indices[i + 1]]);
+        const Vec3 c = TransformPoint(world, vertices[indices[i + 2]]);
+        // 
+        if (Contact(capsule, a, b, c, contact))
+        {
+            // info.depth はレイの距離 t。一番近い三角形を採用。
             if (contact.depth > best_depth)
             {
                 best_depth = contact.depth;

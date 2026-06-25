@@ -3,6 +3,7 @@
 #include <set>
 #include <vector>
 
+#include "../Core/Math/intersect.h"
 #include "Components/collider_component.h"
 #include "Components/mesh_collider_component.h"
 
@@ -83,7 +84,7 @@ public:
      * @param ignore 判定対象から除外するコライダー。
      * @return レイがコライダーに当たり、ヒット情報を書き込めた場合は true。
      */
-    bool Raycast(const Ray& ray, ContactInfo& out, const ColliderComponent* ignore = nullptr);
+    bool Raycast(const Ray& ray, ContactInfo& out, const ColliderComponent* ignore = nullptr) const;
     /**
      * @brief 現在の状態をもとに描画コマンドを積む。
      */
@@ -114,3 +115,12 @@ static bool ContactMeshSphere(const MeshColliderComponent* mesh, const Sphere& s
  * @return 形状同士の判定を行い、必要な接触情報を組み立てる 場合は true。
  */
 static bool ContactMeshBox(const MeshColliderComponent* mesh, const Box& box, ContactInfo& out);
+
+/**
+ * @brief 形状同士の判定を行い、必要な接触情報を組み立てる。
+ * @param mesh 読み込み、描画、または判定に使用するメッシュ。
+ * @param box box に設定する値。
+ * @param out 計算結果を書き込む情報。
+ * @return 形状同士の判定を行い、必要な接触情報を組み立てる 場合は true。
+ */
+static bool ContactMeshCapsule(const MeshColliderComponent* mesh,const Capsule& capsule, ContactInfo& out);
