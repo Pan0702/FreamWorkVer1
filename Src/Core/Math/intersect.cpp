@@ -330,73 +330,117 @@ bool Contact(const Capsule& capsule, const Vec3& a, const Vec3& b, const Vec3& c
 {
     const Vec3 A = capsule.center - capsule.dir * capsule.height;
     const Vec3 B = capsule.center + capsule.dir * capsule.height;
-    Ray ray;
-    ray.origin = A;
-    ray.direction = (B - A).Normalized();
-    ray.distance = capsule.height;
-    if (Contact(ray, a, b, c, out))
+
+    if (PointToSurface(A, a, b, c, out.normal))
     {
     }
-    Vec3 tmp = {};
-    if (HitCheck(A, a, b, c, capsule.radius, tmp))
-    {
-    }
-    if (HitCheck(B, a, b, c, capsule.radius, tmp))
-    {
-    }
-    if (HitCheck(A, a, b, c, capsule.radius, tmp))
-    {
-    }
-    if (HitCheck2(A, a, b, c, capsule.radius, tmp))
+    if (PointToSurface(B, a, b, c, out.normal))
     {
     }
 }
 
-bool HitCheck2(const Vec3& capsule_pos, const Vec3& a, const Vec3& b, const Vec3& c, float radius, Vec3& out)
+float SegmentToSegment(const Vec3& start, const Vec3& end, const Vec3& tri_start, const Vec3& tri_end,
+                       Vec3& closest1, Vec3& closest2)
 {
-    const float radius_sq = radius * radius;
-    float dis_sq = (capsule_pos - a).LengthSquared();
-    if (dis_sq <= radius_sq)
+    const Vec3 cap_dir = (end - start);
+    const Vec3 tri_dir = (tri_end - tri_start);
+    const Vec3 diff = start - tri_start;
+
+    const float a = Dot(cap_dir, cap_dir);
+    const float b = Dot(cap_dir, tri_dir);
+    const float c = Dot(tri_dir, tri_dir);
+    const float e = Dot(diff, cap_dir);
+    const float f = Dot(diff, tri_dir);
+
+    const float denom = a * c - b * b;
+
+    float t;
+    float s;
+    if (denom < 1e-6f)
     {
+        t = 0.0f;
     }
-    dis_sq = (capsule_pos - b).LengthSquared();
-    if (dis_sq <= radius_sq)
+    else
     {
+        t = (b * f - c * e) / denom;
+        if (t < 0.0f) t = 0.0f;
+        else if (t > 1.0f) t = 1.0f;
     }
-    dis_sq = (capsule_pos - c).LengthSquared();
-    if (dis_sq <= radius_sq)
+
+    if (c > 1e-6f)
     {
+        s = (t * b + f) / c;
+        if (s < 0.0f) s = 0.0f;
+        else if (s > 1.0f) s = 1.0f;
     }
-    return false;
+    else
+    {
+        s = 0.0f;
+    }
+
+    if (a > 1e-6f)
+    {
+        t = (s * b - e) / a;
+        if (t < 0.0f) t = 0.0f;
+        else if (t > 1.0f) t = 1.0f;
+    }
+    else
+    {
+        t = 0.0f;
+    }
+
+    closest1 = start + t * cap_dir;
+    closest2 = tri_start + s * tri_dir;
+
+    const Vec3 d = closest1 - closest2;
+    return Dot(d, d);
 }
 
-
-bool HitCheck(const Vec3& capsule_pos, const Vec3& a, const Vec3& b, const Vec3& c, float radius, Vec3& out)
+bool PointToSurface(const Vec3& end, const Vec3& a, const Vec3& b, const Vec3& c, Vec3& q)
 {
-    if (Intersect(capsule_pos, a, b, radius, out))
-    {
-    }
-    if (Intersect(capsule_pos, b, c, radius, out))
-    {
-    }
-    if (Intersect(capsule_pos, c, a, radius, out))
-    {
-    }
-}
+    // ñ@ê¸ÇÃå¸Ç´ //
+    const Vec3 n = Cross(b - a, c - a).Normalized();
 
+    // ì_ÇéOäpå`Ç…éÀâe //
+    const float d = Dot(end - a, n);
+    Vec3 p = end - d * n;
 
-bool Intersect(const Vec3& capsule_pos, const Vec3& a, const Vec3& b, float radius, Vec3& out)
-{
-    const Vec3 AC = capsule_pos - a;
-    const Vec3 AB = b - a;
-    float t = Dot(AC, AB) / Dot(AB, AB);
-    t = std::clamp(t, 0.0f, 1.0f);
-    const Vec3 q = a + AB * t;
-    const Vec3 diff = capsule_pos - q;
-    const float dis_sq = diff.LengthSquared();
-    if (dis_sq <= radius * radius)
+    if (IsInTriangle(p, a, b, c))
     {
+        q = p;
         return true;
     }
     return false;
+}
+
+bool IsInTriangle(const Vec3& p, const Vec3& a, const Vec3& b, const Vec3& c)
+{
+    // éÀâeÇµÇΩì_ÇÃîªíË 
+    // ÉNÉâÉÅÉãÇÃåˆéÆÇ≈âÇ≠ //
+    Vec3 v0 = b - a;
+    Vec3 v1 = c - a;
+    Vec3 v2 = p - a;
+    float d00 = Dot(v0, v0);
+    float d01 = Dot(v0, v1);
+    float d11 = Dot(v1, v1);
+    float d20 = Dot(v2, v0);
+    float d21 = Dot(v2, v1);
+
+    // äeç¿ïW(u,v,w)ÇãÅÇﬂÇÈ//
+    float denom = d00 * d11 - d01 * d01;
+    // É[ÉçäÑÇËéZâÒî //
+    if (std::fabs(denom) < 1e-6f)
+    {
+        return false;
+    }
+    float v = (d11 * d20 - d01 * d21) / denom;
+    float w = (d00 * d21 - d01 * d20) / denom;
+    float u = 1.0f - v - w;
+
+    // 0à»â∫ÇæÇ¡ÇΩÇÁéOäpå`ÇÃäOë§ //
+    if (u < 0.0f || v < 0.0f || w < 0.0f)
+    {
+        return false;
+    }
+    return true;
 }

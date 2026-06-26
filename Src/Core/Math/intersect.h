@@ -112,7 +112,7 @@ Vec3 ClosestPointOnBox(const Vec3& p, const Box& box);
 Vec3 ClosestPointOnTriangle(const Vec3& p, const Vec3& a, const Vec3& b, const Vec3& c);
 
 bool  Intersect(const Vec3& capsule_pos, const Vec3& a, const Vec3& b, float radius, Vec3& out);
-bool HitCheck(const Vec3& capsule_pos,const Vec3& a, const Vec3& b, const Vec3& c,float radius, Vec3& out);
-bool HitCheck2(const Vec3& capsule_pos,const Vec3& a, const Vec3& b, const Vec3& c,float radius, Vec3& out);
-bool SegmentToSegment();
-
+float SegmentToSegment(const Vec3& start, const Vec3& end, const Vec3& tri_start, const Vec3& tri_end, Vec3& closest1,
+                       Vec3& closest2);
+bool IsInTriangle(const Vec3& p, const Vec3& a, const Vec3& b, const Vec3& c);
+bool PointToSurface(const Vec3& end, const Vec3& a, const Vec3& b, const Vec3& c, Vec3& q);
