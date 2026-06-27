@@ -46,7 +46,7 @@ public:
      * @param size size に設定する値。
      * @param color 設定する色。
      */
-    void DrawSprite(Texture2D* texture, const Vec2& position, const Vec2& size, const Vec4& color);
+    void DrawSprite(Texture2D* texture, const Vec2& position, const Vec2& size, const Vec4& color) const;
     /**
      * @brief 現在の状態をもとに描画コマンドを積む。
      * @param position position に設定する値。
@@ -54,28 +54,28 @@ public:
      * @param color 設定する色。
      * @param rotation rotation に設定する値。
      */
-    void DrawBox(const Vec2& position, const Vec2& size, const Vec4& color, float rotation = 0.0f);
+    void DrawBox(const Vec2& position, const Vec2& size, const Vec4& color, float rotation = 0.0f) const;
     /**
      * @brief 現在の状態をもとに描画コマンドを積む。
      * @param start start に設定する値。
      * @param end end に設定する値。
      * @param color 設定する色。
      */
-    void DrawLine(const Vec2& start, const Vec2& end, const Vec4& color);
+    void DrawLine(const Vec2& start, const Vec2& end, const Vec4& color) const;
     /**
      * @brief 現在の状態をもとに描画コマンドを積む。
      * @param center center に設定する値。
      * @param radius radius に設定する値。
      * @param color 設定する色。
      */
-    void DrawCircle(const Vec2& center, float radius, const Vec4& color);
+    void DrawCircle(const Vec2& center, float radius, const Vec4& color) const;
     /**
      * @brief 現在の状態をもとに描画コマンドを積む。
      * @param start start に設定する値。
      * @param end end に設定する値。
      * @param color 設定する色。
      */
-    void DrawLine3D(const Vec3& start, const Vec3& end, const Vec4& color);
+    void DrawLine3D(const Vec3& start, const Vec3& end, const Vec4& color) const;
     /**
      * @brief 現在の状態をもとに描画コマンドを積む。
      * @param center center に設定する値。
@@ -84,14 +84,14 @@ public:
      * @param rotation rotation に設定する値。
      * @param fill fill に設定する値。
      */
-    void DrawBox3D(const Vec3& center, const Vec3& size, const Vec4& color, const Vec3& rotation, bool fill = true);
+    void DrawBox3D(const Vec3& center, const Vec3& size, const Vec4& color, const Vec3& rotation, bool fill = true) const;
     /**
      * @brief 現在の状態をもとに描画コマンドを積む。
      * @param center center に設定する値。
      * @param radius radius に設定する値。
      * @param color 設定する色。
      */
-    void DrawSphere3D(const Vec3& center, float radius, const Vec4& color);
+    void DrawSphere3D(const Vec3& center, float radius, const Vec4& color) const;
     /**
      * @brief 現在の状態をもとに描画コマンドを積む。
      * @param texture 使用するテクスチャ。
@@ -113,7 +113,7 @@ public:
      * @param src_size src_size に設定する値。
      * @param alpha alpha に設定する値。
      */
-    void DrawSprite3D(Texture2D* texture,const Mat& mat,const Vec2& size, const Vec2& src_pos, const Vec2& src_size, float alpha);
+    void DrawSprite3D(Texture2D* texture,const Mat& mat,const Vec2& size, const Vec2& src_pos, const Vec2& src_size, float alpha) const;
     /**
      * @brief 監視したい値をデバッグ表示へ登録する。
      * @param name name に設定する値。

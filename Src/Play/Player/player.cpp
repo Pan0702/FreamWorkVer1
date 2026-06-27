@@ -9,6 +9,7 @@
 #include "../../Core/Math/intersect.h"
 #include "PlayerComponent/state_component.h"
 #include "player_common.h"
+#include "../../Engine/Components/capsule_collider_comp.h"
 
 namespace
 {
@@ -23,7 +24,6 @@ Player::Player()
     SkeletalMesh* sk = SkeletalMeshManager::Get().Load("Assets/Mesh/remy.skmesh");
     materials_ = std::make_unique<MaterialSlot>(sk->GetMaterialDecs());
     AddComponent<SkeletalMeshComponent>(sk, materials_.get());
-
     animation_ = AddComponent<AnimationComponent>();
 
     animation_->AddAnimation(gangnam, AnimatorManager::Get().Load("Assets/Animation/gangnam.anim"), true);
@@ -31,11 +31,14 @@ Player::Player()
     animation_->AddAnimation(idle, AnimatorManager::Get().Load("Assets/Animation/idle.anim"), true);
     animation_->AddAnimation(jump, AnimatorManager::Get().Load("Assets/Animation/jump.anim"), false);
     animation_->Play(idle);
-    auto sphere = AddComponent<SphereColliderComponent>();
-    sphere->SetOnHit(this, &Player::OnHit);
-    sphere->SetRadius(1.0f);
-    sphere->SetUseTransform(false);
-    sphere->SetDraw(true);
+    auto capsule = AddComponent<CapsuleColliderComponent>(sk);
+    Vec3 t = (sk->GetBounds().max - sk->GetBounds().min) * 0.5f;
+    char buf[128];
+    sprintf_s(buf, "half_size = %.3f, %.3f, %.3f\n", t.x, t.y, t.z);
+    OutputDebugStringA(buf);
+    capsule->SetOnHit(this, &Player::OnHit);
+    capsule->SetUseTransform(true);
+    capsule->SetDraw(true);
     transform_.scale = Vec3(0.01f, 0.01f, 0.01f);
     std::vector<PlayerState> states = {PlayerState::kJump, PlayerState::kWalk};
     states_ = factor_.GetComponents(states);
@@ -55,7 +58,7 @@ void Player::Tick(float dt)
         constexpr float kProbeMargin = 0.2f; // 接地とみなす許容ギャップ
         Ray ray;
         ray.origin = transform_.position;
-        ray.dir = Vec3(0.0f, -1.0f, 0.0f);
+        ray.direction = Vec3(0.0f, -1.0f, 0.0f);
         ray.distance = kProbeRadius + kProbeMargin;
         ContactInfo hit;
         is_grounded_ = GetWorld()->GetCollisionWorld().Raycast(ray, hit);
@@ -65,7 +68,7 @@ void Player::Tick(float dt)
     SetState(BuildWantedState(pl_input_));
     for (auto& [state, comp] : states_)
     {
-        if (IsSet(state_bit_,state))
+        if (IsSet(state_bit_, state))
         {
             comp->Tick(dt, pl_input_);
         }
@@ -74,17 +77,14 @@ void Player::Tick(float dt)
     {
         vel_.y -= kGravityUp * kFallMul * dt;
         pl_input_.move_amount += vel_ * dt;
-    }else
+    }
+    else
     {
         vel_.y = 0.0f;
     }
     transform_.position += pl_input_.move_amount;
     transform_.rotation.y = pl_input_.yaw;
-    
-    ImGui::Begin("Player");
-    ImGui::Text("Position: %f, %f, %f", transform_.position.x, transform_.position.y, transform_.position.z);
-    ImGui::Text("State: %d", state_bit_);
-    ImGui::End();
+
 
     Actor::Tick(dt);
 }
@@ -92,9 +92,9 @@ void Player::Tick(float dt)
 PlayerInput Player::Input(float dt)
 {
     PlayerInput input;
-    input.move_dir.y = pl_input_.yaw;    
+    input.move_dir.y = pl_input_.yaw;
     constexpr float move_speed = 10.0f;
-    
+
     if (game_main->GetInput().CheckKey(InputKey::kA, KeyState::kDown))
     {
         input.move_amount.x -= move_speed * dt;
@@ -111,25 +111,31 @@ PlayerInput Player::Input(float dt)
     {
         input.move_amount.z -= move_speed * dt;
     }
-    if (game_main->GetInput().CheckKey(InputKey::kSpace, KeyState::kDown) && !input.jump)
+    const bool space = game_main->GetInput().CheckKey(InputKey::kSpace, KeyState::kDown);
+    if (is_grounded_ && space)
     {
-        input.jump = true;
+        input.jump = true;        
+    }
+    else if (is_grounded_)
+    {
+        input.jump = false;
     }
     else
     {
         input.jump = pl_input_.jump;
     }
-    
+
     return input;
 }
 
-uint32_t Player::BuildWantedState(const PlayerInput& in) const
+uint32 Player::BuildWantedState(const PlayerInput& in) const
 {
-    uint32_t next_state = 0;
+    uint32 next_state = 0;
     if (in.move_dir.LengthSquared() > 1e-6f)
     {
         next_state |= static_cast<int>(PlayerState::kWalk);
-    }else
+    }
+    else
     {
         next_state |= static_cast<int>(PlayerState::kIdle);
     }
@@ -140,10 +146,10 @@ uint32_t Player::BuildWantedState(const PlayerInput& in) const
     return next_state;
 }
 
-void Player::SetState(uint32_t new_bits)
+void Player::SetState(uint32 new_bits)
 {
-    const uint32_t enter_bits = new_bits & ~state_bit_;
-    const uint32_t exit_bits = ~new_bits & state_bit_;
+    const uint32 enter_bits = new_bits & ~state_bit_;
+    const uint32 exit_bits = ~new_bits & state_bit_;
     for (auto& [state, comp] : states_)
     {
         if (enter_bits & Bit(state))

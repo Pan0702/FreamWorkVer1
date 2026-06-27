@@ -3,6 +3,12 @@
 #include <algorithm>
 #include <cfloat>
 #include <cmath>
+#include <vector>
+
+namespace
+{
+    constexpr float kEpsilon = 1e-6f;
+}
 
 // ============================================================
 // 最近接点ヘルパ
@@ -78,7 +84,7 @@ bool Contact(const Sphere& s1, const Sphere& s2, ContactInfo& out)
     {
         return false;
     }
-    out.normal = (l > 1e-6f) ? d / l : Vec3(0, 1, 0);
+    out.normal = (l > kEpsilon) ? d / l : Vec3(0, 1, 0);
     out.depth = r - l;
     return true;
 }
@@ -194,7 +200,7 @@ bool Contact(const Sphere& s, const Vec3& a, const Vec3& b, const Vec3& c, Conta
         return false;
     }
     float dist = sqrtf(dist2);
-    if (dist > 1e-6f)
+    if (dist > kEpsilon)
     {
         out.normal = d / dist;
     }
@@ -288,7 +294,7 @@ bool Contact(const Ray& ray, const Vec3& a, const Vec3& b, const Vec3& c, Contac
     Vec3 h = Cross(ray.direction, e2);
     float det = Dot(e1, h);
     // 0チェック //
-    if (det > -1e-6f && det < 1e-6f)
+    if (det > -kEpsilon && det < kEpsilon)
     {
         return false;
     }
@@ -313,7 +319,7 @@ bool Contact(const Ray& ray, const Vec3& a, const Vec3& b, const Vec3& c, Contac
 
     float t = f * Dot(e2, q); // レイの距離tを計算//
 
-    if (t > 1e-6f && t <= ray.distance)
+    if (t > kEpsilon && t <= ray.distance)
     {
         out.depth = t;
         out.normal = Cross(e1, e2).Normalized();
@@ -331,13 +337,97 @@ bool Contact(const Capsule& capsule, const Vec3& a, const Vec3& b, const Vec3& c
     const Vec3 A = capsule.center - capsule.dir * capsule.height;
     const Vec3 B = capsule.center + capsule.dir * capsule.height;
 
-    if (PointToSurface(A, a, b, c, out.normal))
+    Triangle t;
+    t.a = a;
+    t.b = b;
+    t.c = c;
+    Vec3 q;
+    if (PointToSurface(A, t, capsule.radius, q))
     {
+        Vec3 d = A - q;
+        float dist = d.Length();
+
+        out.normal = (dist > kEpsilon) ? d / dist : Cross(b - a, c - a).Normalized();
+        out.depth = capsule.radius - dist;
+        return true;
     }
-    if (PointToSurface(B, a, b, c, out.normal))
+    if (PointToSurface(B, t, capsule.radius, q))
     {
+        Vec3 d = B - q;
+        float dist = d.Length();
+        out.normal = (dist > kEpsilon) ? d / dist : Cross(b - a, c - a).Normalized();
+        out.depth = capsule.radius - dist;
+        return true;
     }
+    if (SegmentIntersect(A, B, t, capsule.radius, out))
+    {
+        return true;
+    }
+
+    if (capsule.height < kEpsilon)
+    {
+        return false;
+    }
+    Ray ray;
+    ray.origin = A;
+    ray.direction = (B - A).Normalized();
+    ray.distance = capsule.height * 2.0f;
+    if (Contact(ray, a, b, c, out))
+    {
+        Vec3 n = Cross(b - a, c - a).Normalized();
+        if (Dot(n, capsule.center - a) < 0.0f)
+        {
+            n = -n;
+        }
+        out.normal = n;
+        out.depth = capsule.radius;
+        return true;
+    }
+    return false;
 }
+
+bool SegmentIntersect(const Vec3& start, const Vec3& end, const Triangle& t, float r, ContactInfo& out)
+{
+    bool hit = false;
+    float best_dist2 = r * r;
+    Vec3 cap;
+    Vec3 tri;
+
+    auto TestEdge = [&](const Vec3& edge, const Vec3& tri_edge)
+    {
+        Vec3 cap_pos;
+        Vec3 tri_pos;
+        const float dist_pow2 = SegmentToSegment(start, end, edge, tri_edge, cap_pos, tri_pos);
+        if (dist_pow2 <= best_dist2)
+        {
+            best_dist2 = dist_pow2;
+            cap = cap_pos;
+            tri = tri_pos;
+            hit = true;
+        }
+    };
+    TestEdge(t.a, t.b);
+    TestEdge(t.b, t.c);
+    TestEdge(t.c, t.a);
+    if (!hit)
+    {
+        return false;
+    }
+
+    const Vec3 d = cap - tri;
+    const float dist = std::sqrt(best_dist2);
+    if (dist > kEpsilon)
+    {
+        out.normal = d / dist;
+    }
+    else
+    {
+        out.normal = Cross(t.b - t.a, t.c - t.a).Normalized();
+    }
+    out.depth = r - dist;
+    return true;
+}
+
 
 float SegmentToSegment(const Vec3& start, const Vec3& end, const Vec3& tri_start, const Vec3& tri_end,
                        Vec3& closest1, Vec3& closest2)
@@ -346,6 +436,7 @@ float SegmentToSegment(const Vec3& start, const Vec3& end, const Vec3& tri_start
     const Vec3 tri_dir = (tri_end - tri_start);
     const Vec3 diff = start - tri_start;
 
+    // クラメルの公式で解く //
     const float a = Dot(cap_dir, cap_dir);
     const float b = Dot(cap_dir, tri_dir);
     const float c = Dot(tri_dir, tri_dir);
@@ -356,56 +447,56 @@ float SegmentToSegment(const Vec3& start, const Vec3& end, const Vec3& tri_start
 
     float t;
     float s;
-    if (denom < 1e-6f)
+    if (denom < kEpsilon)
     {
         t = 0.0f;
     }
     else
     {
         t = (b * f - c * e) / denom;
-        if (t < 0.0f) t = 0.0f;
-        else if (t > 1.0f) t = 1.0f;
+        t = std::clamp(t, 0.0f, 1.0f);
     }
 
-    if (c > 1e-6f)
+    // ｔを固定にしてｓを求める
+    if (c > kEpsilon)
     {
         s = (t * b + f) / c;
-        if (s < 0.0f) s = 0.0f;
-        else if (s > 1.0f) s = 1.0f;
+        s = std::clamp(s, 0.0f, 1.0f);
     }
     else
     {
         s = 0.0f;
     }
 
-    if (a > 1e-6f)
+    // ｓを固定にしてtを求める
+    if (a > kEpsilon)
     {
         t = (s * b - e) / a;
-        if (t < 0.0f) t = 0.0f;
-        else if (t > 1.0f) t = 1.0f;
+        t = std::clamp(t, 0.0f, 1.0f);
     }
     else
     {
         t = 0.0f;
     }
 
+    // 線分上の最近点 //
     closest1 = start + t * cap_dir;
     closest2 = tri_start + s * tri_dir;
 
     const Vec3 d = closest1 - closest2;
-    return Dot(d, d);
+    return d.LengthSquared();
 }
 
-bool PointToSurface(const Vec3& end, const Vec3& a, const Vec3& b, const Vec3& c, Vec3& q)
+bool PointToSurface(const Vec3& end, const Triangle& t, float r, Vec3& q)
 {
     // 法線の向き //
-    const Vec3 n = Cross(b - a, c - a).Normalized();
+    const Vec3 n = Cross(t.b - t.a, t.c - t.a).Normalized();
 
     // 点を三角形に射影 //
-    const float d = Dot(end - a, n);
+    const float d = Dot(end - t.a, n);
     Vec3 p = end - d * n;
 
-    if (IsInTriangle(p, a, b, c))
+    if (IsInTriangle(p, t) && std::fabs(d) <= r)
     {
         q = p;
         return true;
@@ -413,13 +504,13 @@ bool PointToSurface(const Vec3& end, const Vec3& a, const Vec3& b, const Vec3& c
     return false;
 }
 
-bool IsInTriangle(const Vec3& p, const Vec3& a, const Vec3& b, const Vec3& c)
+bool IsInTriangle(const Vec3& p, const Triangle& t)
 {
     // 射影した点の判定 
     // クラメルの公式で解く //
-    Vec3 v0 = b - a;
-    Vec3 v1 = c - a;
-    Vec3 v2 = p - a;
+    Vec3 v0 = t.b - t.a;
+    Vec3 v1 = t.c - t.a;
+    Vec3 v2 = p - t.a;
     float d00 = Dot(v0, v0);
     float d01 = Dot(v0, v1);
     float d11 = Dot(v1, v1);
@@ -429,7 +520,7 @@ bool IsInTriangle(const Vec3& p, const Vec3& a, const Vec3& b, const Vec3& c)
     // 各座標(u,v,w)を求める//
     float denom = d00 * d11 - d01 * d01;
     // ゼロ割り算回避 //
-    if (std::fabs(denom) < 1e-6f)
+    if (std::fabs(denom) < kEpsilon)
     {
         return false;
     }
@@ -438,9 +529,5 @@ bool IsInTriangle(const Vec3& p, const Vec3& a, const Vec3& b, const Vec3& c)
     float u = 1.0f - v - w;
 
     // 0以下だったら三角形の外側 //
-    if (u < 0.0f || v < 0.0f || w < 0.0f)
-    {
-        return false;
-    }
-    return true;
+    return u >= -kEpsilon && v >= -kEpsilon && w >= -kEpsilon;
 }

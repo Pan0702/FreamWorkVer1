@@ -223,6 +223,8 @@ bool CollisionWorld::Raycast(const Ray& ray, ContactInfo& out, const ColliderCom
 
 void CollisionWorld::DrawDebug()
 {
+    debug_objects_.clear();
+    
     for (ColliderComponent* coll : colliders_)
     {
         if (coll->IsDraw())

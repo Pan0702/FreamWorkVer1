@@ -67,7 +67,7 @@ void Debug::Print(const char* format, ...)
     Log("%s", buffer);
 }
 
-void Debug::DrawSprite(Texture2D* texture, const Vec2& position, const Vec2& size, const Vec4& color)
+void Debug::DrawSprite(Texture2D* texture, const Vec2& position, const Vec2& size, const Vec4& color) const
 {
     if (ui_renderer_ == nullptr || texture == nullptr)
     {
@@ -91,7 +91,7 @@ void Debug::DrawSprite(Texture2D* texture, const Vec2& position, const Vec2& siz
     ui_renderer_->DrawImmediate(command);
 }
 
-void Debug::DrawBox(const Vec2& position, const Vec2& size, const Vec4& color, float rotation)
+void Debug::DrawBox(const Vec2& position, const Vec2& size, const Vec4& color, float rotation) const
 {
     if (ui_renderer_ == nullptr)
     {
@@ -115,7 +115,7 @@ void Debug::DrawBox(const Vec2& position, const Vec2& size, const Vec4& color, f
     ui_renderer_->DrawImmediate(command);
 }
 
-void Debug::DrawLine(const Vec2& start, const Vec2& end, const Vec4& color)
+void Debug::DrawLine(const Vec2& start, const Vec2& end, const Vec4& color) const
 {
     if (ui_renderer_ == nullptr)
     {
@@ -142,7 +142,7 @@ void Debug::DrawLine(const Vec2& start, const Vec2& end, const Vec4& color)
     ui_renderer_->DrawImmediate(command);
 }
 
-void Debug::DrawCircle(const Vec2& center, float radius, const Vec4& color)
+void Debug::DrawCircle(const Vec2& center, float radius, const Vec4& color) const
 {
     constexpr int kSegments = 32;
     for (int i = 0; i < kSegments; ++i)
@@ -155,7 +155,7 @@ void Debug::DrawCircle(const Vec2& center, float radius, const Vec4& color)
     }
 }
 
-void Debug::DrawLine3D(const Vec3& start, const Vec3& end, const Vec4& color)
+void Debug::DrawLine3D(const Vec3& start, const Vec3& end, const Vec4& color) const
 {
     if (line_renderer_ == nullptr)
         return;
@@ -163,7 +163,7 @@ void Debug::DrawLine3D(const Vec3& start, const Vec3& end, const Vec4& color)
     line_renderer_->AddLine(start, end, color);
 }
 
-void Debug::DrawBox3D(const Vec3& center, const Vec3& size, const Vec4& color, const Vec3& rotation, bool fill)
+void Debug::DrawBox3D(const Vec3& center, const Vec3& size, const Vec4& color, const Vec3& rotation, bool fill) const
 {
     if (line_renderer_ == nullptr)
         return;
@@ -213,9 +213,9 @@ void Debug::DrawBox3D(const Vec3& center, const Vec3& size, const Vec4& color, c
     }
 }
 
-void Debug::DrawSphere3D(const Vec3& center, float radius, const Vec4& color)
+void Debug::DrawSphere3D(const Vec3& center, float radius, const Vec4& color) const
 {
-    if (sprite_renderer_ == nullptr)
+    if (line_renderer_ == nullptr)
         return;
 
     constexpr int kSegments = 32;
@@ -235,7 +235,7 @@ void Debug::DrawSphere3D(const Vec3& center, float radius, const Vec4& color)
 }
 
 void Debug::DrawSprite3D(Texture2D* texture, const Mat& mat, const Vec2& size, const Vec2& src_pos,
-                         const Vec2& src_size, float alpha)
+                         const Vec2& src_size, float alpha) const
 {
     if (sprite_renderer_ == nullptr)
     {

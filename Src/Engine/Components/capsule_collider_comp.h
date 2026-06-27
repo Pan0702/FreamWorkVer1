@@ -1,10 +1,12 @@
 ﻿#pragma once
 #include "collider_component.h"
 
+class SkeletalMesh;
 struct Capsule;
 class CapsuleColliderComponent : public ColliderComponent
 {
 public:
+    explicit CapsuleColliderComponent(SkeletalMesh* mesh = nullptr);
     /**
   * @brief 指定された値を内部状態に反映する。
   * @param size size に設定する値。
@@ -32,4 +34,5 @@ private:
      */
     void DrawDebug() const override;
     Vec3 half_size = {0,0,0};
+    Vec3 center_offset_ = {0,0,0};
 };

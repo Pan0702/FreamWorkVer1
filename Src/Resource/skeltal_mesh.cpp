@@ -9,6 +9,26 @@ SkeletalMesh::~SkeletalMesh() = default;
 bool SkeletalMesh::Create(ID3D12Device* device, VertexData vertex_data, IndexData index_data,
                           std::span<const D3D12_INPUT_ELEMENT_DESC> layout)
 {
+    // AABBÇçÏê¨ //
+    const auto* base = static_cast<const uint8*>(vertex_data.data);
+    uint32 vertex_count;
+    if (vertex_data.stride > 0)
+    {
+        vertex_count = vertex_data.total_size / vertex_data.stride;
+    }else
+    {
+        vertex_count = 0;
+    }
+    Vec3 bounds_min = Vec3(FLT_MAX,FLT_MAX,FLT_MAX);
+    Vec3 bounds_max = Vec3(-FLT_MAX,-FLT_MAX,-FLT_MAX);
+    for (uint32 i = 0;i < vertex_count; ++i)
+    {
+        const float* p = reinterpret_cast<const float*>(base + i * vertex_data.stride);
+        bounds_max = Vec3(std::max(bounds_max.x,p[0]),std::max(bounds_max.y,p[1]),std::max(bounds_max.z,p[2]));
+        bounds_min = Vec3(std::min(bounds_min.x,p[0]),std::min(bounds_min.y,p[1]),std::min(bounds_min.z,p[2]));
+    }
+    bounds_ = AABB(bounds_min,bounds_max);
+    
     vertex_buffer_ = std::make_unique<VertexBuffer>();
     if (!vertex_buffer_->Initialize(device, vertex_data.data, vertex_data.total_size, vertex_data.stride))
     {
@@ -25,17 +45,17 @@ bool SkeletalMesh::Create(ID3D12Device* device, VertexData vertex_data, IndexDat
     return true;
 }
 
-D3D12_VERTEX_BUFFER_VIEW SkeletalMesh::GetVertexBufferView()
+D3D12_VERTEX_BUFFER_VIEW SkeletalMesh::GetVertexBufferView() const
 {
     return vertex_buffer_->GetVertexBufferView();
 }
 
-D3D12_INDEX_BUFFER_VIEW SkeletalMesh::GetIndexBufferView()
+D3D12_INDEX_BUFFER_VIEW SkeletalMesh::GetIndexBufferView() const
 {
     return index_buffer_->GetIndexBufferView();
 }
 
-uint32_t SkeletalMesh::GetIndexCount()
+uint32_t SkeletalMesh::GetIndexCount() const
 {
     return index_count_;
 }
@@ -60,7 +80,7 @@ void SkeletalMesh::SetSkeleton(std::unique_ptr<Skeleton> sk)
     Skeleton_ = std::move(sk);
 }
 
-Skeleton* SkeletalMesh::GetSkeleton()
+Skeleton* SkeletalMesh::GetSkeleton() const
 {
     return Skeleton_.get();
 }
@@ -74,3 +94,9 @@ const std::vector<SubMesh>& SkeletalMesh::GetSubMeshes()
 {
     return sub_meshes_;
 }
+
+const AABB& SkeletalMesh::GetBounds() const
+{
+    return bounds_; 
+}
+

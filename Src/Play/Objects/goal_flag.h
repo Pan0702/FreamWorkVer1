@@ -1,6 +1,7 @@
 ﻿#pragma once
+#include "../../Engine/actor.h"
 
-class GoalFlag
+class GoalFlag : public Actor
 {
 public:
     GoalFlag();

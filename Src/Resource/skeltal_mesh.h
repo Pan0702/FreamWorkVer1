@@ -6,10 +6,11 @@
 #include "../Core/common.h"
 #include "../Graphics/index_buffer.h"
 #include "../Graphics/vertex_buffer.h"
-#include "../Core/Math/vec4.h"
 #include "mesh_data.h"
+#include "../Core/Math/intersect.h"
 
 struct SkeletonNode;
+
 class Skeleton;
 /**
  * @brief SkeletalMeshのデータと処理をまとめる型。
@@ -20,7 +21,7 @@ public:
     /**
      * @brief インスタンスの初期状態を整える。
      */
-    SkeletalMesh() ;
+    SkeletalMesh();
     /**
      * @brief 保持している登録やリソースを解放する。
      */
@@ -32,24 +33,23 @@ public:
      * @param index_data index_data に設定する値。
      * @return 対象リソースの作成が完了した場合は true。
      */
-    bool Create(ID3D12Device* device,
-        
-    VertexData vertex_data, IndexData index_data, std::span<const D3D12_INPUT_ELEMENT_DESC>);
+    bool Create(ID3D12Device* device, VertexData vertex_data, IndexData index_data,
+                std::span<const D3D12_INPUT_ELEMENT_DESC>);
     /**
      * @brief 頂点バッファビュー を取得する。
      * @return 現在保持している 頂点バッファビュー。
      */
-    D3D12_VERTEX_BUFFER_VIEW GetVertexBufferView();
+    D3D12_VERTEX_BUFFER_VIEW GetVertexBufferView() const;
     /**
      * @brief インデックスバッファビュー を取得する。
      * @return 現在保持している インデックスバッファビュー。
      */
-    D3D12_INDEX_BUFFER_VIEW GetIndexBufferView();
+    D3D12_INDEX_BUFFER_VIEW GetIndexBufferView() const;
     /**
      * @brief インデックス数を取得する。
      * @return 描画に使うインデックス数。
      */
-    uint32_t GetIndexCount();
+    uint32_t GetIndexCount() const;
     /**
      * @brief Input Layout を取得する。
      * @return 保持している Input Layout への参照。
@@ -74,7 +74,7 @@ public:
      * @brief スケルトン を取得する。
      * @return スケルトン。見つからない、または未作成の場合は nullptr。
      */
-    Skeleton* GetSkeleton();
+    Skeleton* GetSkeleton() const;
     /**
      * @brief Material Decs を取得する。
      * @return 保持している Material Decs への参照。
@@ -86,6 +86,8 @@ public:
      */
     const std::vector<SubMesh>& GetSubMeshes();
 
+    const AABB& GetBounds() const;
+
 private:
     std::unique_ptr<VertexBuffer> vertex_buffer_;
     std::unique_ptr<IndexBuffer> index_buffer_;
@@ -94,4 +96,5 @@ private:
     std::vector<SubMesh> sub_meshes_;
     uint32_t index_count_ = 0;
     std::unique_ptr<Skeleton> Skeleton_;
+    AABB bounds_;
 };

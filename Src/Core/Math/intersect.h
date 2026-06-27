@@ -37,6 +37,19 @@ struct Capsule
     float radius;
     float height;
 };
+
+struct Triangle
+{
+    Vec3 a;
+    Vec3 b;
+    Vec3 c;
+};
+
+struct AABB
+{
+    Vec3 min;
+    Vec3 max;
+};
 /**
  * @brief 形状同士の判定を行い、必要な接触情報を組み立てる。
  * @param s1 s1 に設定する値。
@@ -112,7 +125,8 @@ Vec3 ClosestPointOnBox(const Vec3& p, const Box& box);
 Vec3 ClosestPointOnTriangle(const Vec3& p, const Vec3& a, const Vec3& b, const Vec3& c);
 
 bool  Intersect(const Vec3& capsule_pos, const Vec3& a, const Vec3& b, float radius, Vec3& out);
-float SegmentToSegment(const Vec3& start, const Vec3& end, const Vec3& tri_start, const Vec3& tri_end, Vec3& closest1,
-                       Vec3& closest2);
-bool IsInTriangle(const Vec3& p, const Vec3& a, const Vec3& b, const Vec3& c);
-bool PointToSurface(const Vec3& end, const Vec3& a, const Vec3& b, const Vec3& c, Vec3& q);
+bool SegmentIntersect(const Vec3& start, const Vec3& end, const Triangle& t,float r,ContactInfo& out);
+float SegmentToSegment(const Vec3& start, const Vec3& end, const Vec3& tri_start, const Vec3& tri_end,
+                       Vec3& closest1, Vec3& closest2);
+bool IsInTriangle(const Vec3& p, const Triangle& t);
+bool PointToSurface(const Vec3& end, const Triangle& t, float r,Vec3& q);

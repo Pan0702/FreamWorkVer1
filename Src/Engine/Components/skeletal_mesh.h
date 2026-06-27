@@ -24,6 +24,8 @@ public:
      * @brief 保持している登録やリソースを解放する。
      */
     ~SkeletalMeshComponent() override;
+    
+    void Tick(float dt) override;
 
     /**
      * @brief 共有コンテキストへ登録し、システム側で扱える状態にする。
@@ -46,6 +48,8 @@ public:
      * @param animation animation に設定する値。
      */
     void SetAnimation(const std::string& name, Animation* animation);
+    
+    void DebugDraw() const;
     /**
      * @brief Skeltal Mesh を取得する。
      * @return Skeltal Mesh。見つからない、または未作成の場合は nullptr。
@@ -56,9 +60,12 @@ public:
      * @return マテリアルスロット。見つからない、または未作成の場合は nullptr。
      */
     MaterialSlot* GetMaterialSlot() const;
+
+    void SetDraw(bool is_draw);
 private:
     std::unordered_map<std::string, Animation*> animations_;
     SkeletalMesh* skeltal_mesh_ = nullptr;
     MaterialSlot* material_slot_ = nullptr;
     SkinnedMeshRenderer* renderer_ = nullptr;
+    bool is_draw_ = false;
 };
