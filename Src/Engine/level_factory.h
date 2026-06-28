@@ -4,6 +4,12 @@
 #include <string>
 #include "level_base.h"
 
+namespace LevelName
+{
+    inline constexpr std::string_view kPlay = "Play";
+    inline constexpr std::string_view kTest = "Test";
+}
+
 /**
  * @brief LevelFactoryのデータと処理をまとめる型。
  */

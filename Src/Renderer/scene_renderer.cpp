@@ -83,14 +83,14 @@ void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* ca
     sprite_renderer_->Collect();
     sprite_renderer_->Sort();
     sprite_renderer_->Submit(context);
-
-    ui_renderer_->Collect();
-    ui_renderer_->Sort();
-    ui_renderer_->Submit(context);
     
     skinned_mesh_renderer_->Collect();
     skinned_mesh_renderer_->Sort();
     skinned_mesh_renderer_->Submit(context);
+    
+    ui_renderer_->Collect();
+    ui_renderer_->Sort();
+    ui_renderer_->Submit(context);
 
 
     imgui_manager_.EndFrame(context.command_list);

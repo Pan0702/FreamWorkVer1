@@ -87,6 +87,7 @@ bool GameMain::Initialize(const wchar_t* title, int32_t width, int32_t height)
         render_system_->GetSwapChain()->Resize(w, h);
         render_system_->GetDepthStencil()->Resize(w, h);
         camera_.SetAspect(static_cast<float>(w) / static_cast<float>(h));
+        return true;
     });
     game_instance_.Initialize();
     window_.Show();

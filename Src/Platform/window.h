@@ -100,14 +100,14 @@ public:
      * @brief タイトルバーへ FPS を表示する。
      * @param title title に設定する値。
      */
-    void DispFPS(const wchar_t* title);
+    void DispFPS(const wchar_t* title) const;
 
     using ResizeCallback = std::function<void(uint32_t, uint32_t)>;
     /**
      * @brief 指定された値を内部状態に反映する。
      * @param callback 通知時に呼び出すコールバック。
      */
-    void SetResizeCallback(ResizeCallback callback);
+    void SetResizeCallback(const ResizeCallback& callback);
 
 private:
     /**

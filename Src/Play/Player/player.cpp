@@ -32,10 +32,6 @@ Player::Player()
     animation_->AddAnimation(jump, AnimatorManager::Get().Load("Assets/Animation/jump.anim"), false);
     animation_->Play(idle);
     auto capsule = AddComponent<CapsuleColliderComponent>(sk);
-    Vec3 t = (sk->GetBounds().max - sk->GetBounds().min) * 0.5f;
-    char buf[128];
-    sprintf_s(buf, "half_size = %.3f, %.3f, %.3f\n", t.x, t.y, t.z);
-    OutputDebugStringA(buf);
     capsule->SetOnHit(this, &Player::OnHit);
     capsule->SetUseTransform(true);
     capsule->SetDraw(true);

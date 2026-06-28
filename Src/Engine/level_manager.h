@@ -4,6 +4,8 @@
 
 #include "level_base.h"
 #include "level_factory.h"
+#include "level_transition.h"
+
 /**
  * @brief LevelManagerのデータと処理をまとめる型。
  */
@@ -32,7 +34,7 @@ public:
      * @brief 次に開く Level を予約する。
      * @param name name に設定する値。
      */
-    void OpenLevel(const std::string& name);
+    void OpenLevel(std::string_view name);
 private:
     /**
      * @brief 予約された Level へ切り替える。
@@ -43,4 +45,5 @@ private:
     World* world_ = nullptr;
     std::unique_ptr<LevelBase> current_level_ = nullptr;
     LevelFactory level_factory_;
+    LevelTransition transition_;
 };

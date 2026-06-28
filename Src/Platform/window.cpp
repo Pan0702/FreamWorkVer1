@@ -122,12 +122,12 @@ uint32_t Window::GetLastKeyMessageCount() const
     return last_key_message_count_;
 }
 
-void Window::DispFPS(const wchar_t* title)
+void Window::DispFPS(const wchar_t* title) const
 {
     SetWindowText(hwnd_, title);
 }
 
-void Window::SetResizeCallback(ResizeCallback callback)
+void Window::SetResizeCallback(const ResizeCallback& callback)
 {
     resize_callback_ = std::move(callback);
 }
