@@ -90,7 +90,8 @@ void Player::Tick(float dt)
     
     const bool just_landed = is_grounded_ && !was_grounded_;
     const bool landing_playing = (animation_name_ == kLanding && animation_->IsPlaying());
-    std::string anim_name ;
+    std::string anim_name;
+    
     {
         // ジャンプ中はジャンプアニメーションを選ぶ。//
         if (pl_input_.jump)            anim_name = kJump;
@@ -114,7 +115,7 @@ void Player::Tick(float dt)
 PlayerInput Player::Input(float dt)
 {
     PlayerInput input;
-    input.move_dir.y = pl_input_.yaw;
+    input.yaw = pl_input_.yaw;
     constexpr float move_speed = 10.0f;
 
     // A キー入力を左方向の移動量へ変換する。//
@@ -153,7 +154,7 @@ PlayerInput Player::Input(float dt)
         // 空中では前フレームのジャンプ状態を引き継ぎ、ジャンプ中か落下中かを保つ。//
         input.jump = pl_input_.jump;
     }
-
+    input.move_dir = input.move_amount;
     return input;
 }
 

@@ -20,12 +20,12 @@ void PlayerMovement::Tick(float dt, PlayerInput& input)
 
     if (std::abs(delta) > step)
     {
-        input.move_dir.y += delta > 0.0f ? step : -step;
-        input.move_dir.y = NormalizeAngleRad(input.move_dir.y);
+        input.yaw += delta > 0.0f ? step : -step;
+        input.yaw = NormalizeAngleRad(input.yaw);
     }
     else
     {
-        input.move_dir.y = NormalizeAngleRad(input.move_dir.y + delta);
+        input.yaw = NormalizeAngleRad(input.yaw + delta);
     }
 }
 
