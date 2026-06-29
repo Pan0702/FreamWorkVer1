@@ -1,4 +1,4 @@
-﻿#include "level_transition.h"
+#include "level_transition.h"
 
 #include <algorithm>
 

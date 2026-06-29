@@ -10,23 +10,23 @@ using namespace DirectX;
 struct Quat : public XMFLOAT4
 {
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     Quat() : XMFLOAT4(0.0f, 0.0f, 0.0f, 1.0f){}
     /**
-     * @brief インスタンスの初期状態を整える。
-     * @param x x に設定する値。
-     * @param y y に設定する値。
-     * @param z z に設定する値。
-     * @param y y に設定する値。
-     * @param z z に設定する値。
-     * @param w w に設定する値。
+     * @brief 値を初期化する。
+     * @param x X 成分。
+     * @param y Y 成分。
+     * @param z Z 成分。
+     * @param y Y 成分。
+     * @param z Z 成分。
+     * @param w W 成分。
      */
     Quat(float x, float y, float z, float w) : XMFLOAT4(x, y, z, w){}
 
     /**
-     * @brief インスタンスの初期状態を整える。
-     * @param v 計算に使用するベクトルまたは点。
+     * @brief 値を初期化する。
+     * @param v 演算に使うベクトル。
      */
     Quat(const XMVECTOR& v)
     {
@@ -40,7 +40,7 @@ struct Quat : public XMFLOAT4
     Quat& operator=(const Quat&) = default;
     /**
      * @brief 演算子 operator= で値を扱う。
-     * @param v 計算に使用するベクトルまたは点。
+     * @param v 演算に使うベクトル。
      * @return 演算結果を反映した自分自身。
      */
     Quat& operator=(const XMVECTOR& v)
@@ -50,7 +50,7 @@ struct Quat : public XMFLOAT4
     }
 
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     operator XMVECTOR() const
     {
@@ -118,8 +118,7 @@ struct Quat : public XMFLOAT4
         return Quat(XMQuaternionNormalize(*this));
     }
     /**
-     * @brief 数学計算の結果を求める。
-     * @param this this に設定する値。
+     * @brief ベクトルや角度の補助計算を行う。
      */
     void Normalize() { *this = Normalized(); }
     /**

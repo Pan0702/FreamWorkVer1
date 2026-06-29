@@ -10,25 +10,25 @@ using namespace DirectX;
 struct Vec3 : public XMFLOAT3
 {
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     Vec3() : XMFLOAT3(0.0f, 0.0f, 0.0f)
     {
     }
 
     /**
-     * @brief インスタンスの初期状態を整える。
-     * @param x x に設定する値。
-     * @param y y に設定する値。
-     * @param y y に設定する値。
-     * @param z z に設定する値。
+     * @brief 値を初期化する。
+     * @param x X 成分。
+     * @param y Y 成分。
+     * @param y Y 成分。
+     * @param z Z 成分。
      */
     Vec3(float x, float y, float z) : XMFLOAT3(x, y, z)
     {
     }
     /**
-     * @brief インスタンスの初期状態を整える。
-     * @param v 計算に使用するベクトルまたは点。
+     * @brief 値を初期化する。
+     * @param v 演算に使うベクトル。
      */
     Vec3(const XMVECTOR& v)
     {
@@ -57,40 +57,40 @@ struct Vec3 : public XMFLOAT3
     Vec3 operator/(const Vec3& v) const { return Vec3(x / v.x, y / v.y, z / v.z); }
     /**
      * @brief 演算子 operator+ で値を扱う。
-     * @param n n に設定する値。
-     * @param n n に設定する値。
-     * @param n n に設定する値。
+     * @param n 各成分に適用するスカラー値。
+     * @param n 各成分に適用するスカラー値。
+     * @param n 各成分に適用するスカラー値。
      * @return 演算結果として作成した新しい値。
      */
     Vec3 operator+(float n) const { return Vec3(x + n, y + n, z + n); }
     /**
      * @brief 演算子 operator- で値を扱う。
-     * @param n n に設定する値。
-     * @param n n に設定する値。
-     * @param n n に設定する値。
+     * @param n 各成分に適用するスカラー値。
+     * @param n 各成分に適用するスカラー値。
+     * @param n 各成分に適用するスカラー値。
      * @return 演算結果として作成した新しい値。
      */
     Vec3 operator-(float n) const { return Vec3(x - n, y - n, z - n); }
     /**
      * @brief 演算子 operator* で値を扱う。
-     * @param n n に設定する値。
-     * @param n n に設定する値。
-     * @param n n に設定する値。
+     * @param n 各成分に適用するスカラー値。
+     * @param n 各成分に適用するスカラー値。
+     * @param n 各成分に適用するスカラー値。
      * @return 演算結果として作成した新しい値。
      */
     Vec3 operator*(float n) const { return Vec3(x * n, y * n, z * n); }
     /**
      * @brief 演算子 operator/ で値を扱う。
-     * @param n n に設定する値。
-     * @param n n に設定する値。
-     * @param n n に設定する値。
+     * @param n 各成分に適用するスカラー値。
+     * @param n 各成分に適用するスカラー値。
+     * @param n 各成分に適用するスカラー値。
      * @return 演算結果として作成した新しい値。
      */
     Vec3 operator/(float n) const { return Vec3(x / n, y / n, z / n); }
 
     /**
      * @brief 演算子 operator+= で値を扱う。
-     * @param v 計算に使用するベクトルまたは点。
+     * @param v 演算に使うベクトル。
      * @return 演算結果を反映した自分自身。
      */
     Vec3& operator+=(const Vec3& v)
@@ -103,7 +103,7 @@ struct Vec3 : public XMFLOAT3
 
     /**
      * @brief 演算子 operator-= で値を扱う。
-     * @param v 計算に使用するベクトルまたは点。
+     * @param v 演算に使うベクトル。
      * @return 演算結果を反映した自分自身。
      */
     Vec3& operator-=(const Vec3& v)
@@ -116,7 +116,7 @@ struct Vec3 : public XMFLOAT3
 
     /**
      * @brief 演算子 operator*= で値を扱う。
-     * @param v 計算に使用するベクトルまたは点。
+     * @param v 演算に使うベクトル。
      * @return 演算結果を反映した自分自身。
      */
     Vec3& operator*=(const Vec3& v)
@@ -129,7 +129,7 @@ struct Vec3 : public XMFLOAT3
 
     /**
      * @brief 演算子 operator/= で値を扱う。
-     * @param v 計算に使用するベクトルまたは点。
+     * @param v 演算に使うベクトル。
      * @return 演算結果を反映した自分自身。
      */
     Vec3& operator/=(const Vec3& v)
@@ -142,7 +142,7 @@ struct Vec3 : public XMFLOAT3
 
     /**
      * @brief 演算子 operator+= で値を扱う。
-     * @param n n に設定する値。
+     * @param n 各成分に適用するスカラー値。
      * @return 演算結果を反映した自分自身。
      */
     Vec3& operator+=(float n)
@@ -155,7 +155,7 @@ struct Vec3 : public XMFLOAT3
 
     /**
      * @brief 演算子 operator-= で値を扱う。
-     * @param n n に設定する値。
+     * @param n 各成分に適用するスカラー値。
      * @return 演算結果を反映した自分自身。
      */
     Vec3& operator-=(float n)
@@ -168,7 +168,7 @@ struct Vec3 : public XMFLOAT3
 
     /**
      * @brief 演算子 operator*= で値を扱う。
-     * @param n n に設定する値。
+     * @param n 各成分に適用するスカラー値。
      * @return 演算結果を反映した自分自身。
      */
     Vec3& operator*=(float n)
@@ -181,7 +181,7 @@ struct Vec3 : public XMFLOAT3
 
     /**
      * @brief 演算子 operator/= で値を扱う。
-     * @param n n に設定する値。
+     * @param n 各成分に適用するスカラー値。
      * @return 演算結果を反映した自分自身。
      */
     Vec3& operator/=(float n)
@@ -201,8 +201,8 @@ struct Vec3 : public XMFLOAT3
 
     /**
      * @brief 演算子 operator+ で値を扱う。
-     * @param y y に設定する値。
-     * @param z z に設定する値。
+     * @param y Y 成分。
+     * @param z Z 成分。
      * @return 演算結果として作成した新しい値。
      */
     Vec3 operator+() const { return Vec3(x, y, z); }
@@ -214,14 +214,14 @@ struct Vec3 : public XMFLOAT3
 
     /**
      * @brief 演算子 operator= で値を扱う。
-     * @param v 計算に使用するベクトルまたは点。
+     * @param v 演算に使うベクトル。
      * @return 演算結果を反映した自分自身。
      */
     Vec3& operator=(const Vec3& v) = default;
 
     /**
      * @brief 演算子 operator= で値を扱う。
-     * @param v 計算に使用するベクトルまたは点。
+     * @param v 演算に使うベクトル。
      * @return 演算結果を反映した自分自身。
      */
     Vec3& operator=(const XMVECTOR& v)
@@ -231,7 +231,7 @@ struct Vec3 : public XMFLOAT3
     }
 
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     operator XMVECTOR() const
     {
@@ -240,7 +240,7 @@ struct Vec3 : public XMFLOAT3
     }
 
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     operator XMFLOAT3() const
     {
@@ -259,7 +259,7 @@ struct Vec3 : public XMFLOAT3
     float Length() const { return std::sqrt(LengthSquared()); }
 
     /**
-     * @brief 数学計算の結果を求める。
+     * @brief ベクトルや角度の補助計算を行う。
      * @return 長さを 1 にそろえた Vec3。
      */
     Vec3 Normalized() const
@@ -268,23 +268,22 @@ struct Vec3 : public XMFLOAT3
         return len > 0 ? Vec3(x / len, y / len, z / len) : Vec3(0, 0, 0);
     }
     /**
-     * @brief 数学計算の結果を求める。
-     * @param this this に設定する値。
+     * @brief ベクトルや角度の補助計算を行う。
      */
     void Normalize() { *this = Normalized(); }
 };
 /**
  * @brief 演算子 operator* で値を扱う。
- * @param n n に設定する値。
- * @param v 計算に使用するベクトルまたは点。
+ * @param n 各成分に適用するスカラー値。
+ * @param v 演算に使うベクトル。
  * @return 演算結果として作成した新しい値。
  */
 inline Vec3 operator*(float n, const Vec3& v) { return v * n; }
 
 /**
- * @brief 数学計算の結果を求める。
- * @param a 計算に使用するベクトルまたは点。
- * @param b 計算に使用するベクトルまたは点。
+ * @brief ベクトルや角度の補助計算を行う。
+ * @param a 1 つ目のベクトルまたは点。
+ * @param b 2 つ目のベクトルまたは点。
  * @return 2 つのベクトルの内積。
  */
 inline float Dot(const Vec3& a, const Vec3& b)
@@ -293,9 +292,9 @@ inline float Dot(const Vec3& a, const Vec3& b)
 }
 
 /**
- * @brief 数学計算の結果を求める。
- * @param a 計算に使用するベクトルまたは点。
- * @param b 計算に使用するベクトルまたは点。
+ * @brief ベクトルや角度の補助計算を行う。
+ * @param a 1 つ目のベクトルまたは点。
+ * @param b 2 つ目のベクトルまたは点。
  * @return 2 つのベクトルの外積。
  */
 inline Vec3 Cross(const Vec3& a, const Vec3& b)
@@ -305,28 +304,28 @@ inline Vec3 Cross(const Vec3& a, const Vec3& b)
                 a.x * b.y - a.y * b.x);
 }
 /**
- * @brief 数学計算の結果を求める。
- * @param a 計算に使用するベクトルまたは点。
- * @return 保持している Vec3 値 への参照。
+ * @brief ベクトルや角度の補助計算を行う。
+ * @param a 1 つ目のベクトルまたは点。
+ * @return 2 点間の距離の二乗。
  */
 inline float DistanceSquared(const Vec3& a, const Vec3& b) { return (a - b).LengthSquared(); }
 /**
- * @brief 数学計算の結果を求める。
- * @param a 計算に使用するベクトルまたは点。
+ * @brief ベクトルや角度の補助計算を行う。
+ * @param a 1 つ目のベクトルまたは点。
  * @return ベクトルの長さ。
  */
 inline float Distance(const Vec3& a, const Vec3& b) { return (a - b).Length(); }
 /**
- * @brief 数学計算の結果を求める。
- * @param a 計算に使用するベクトルまたは点。
- * @param b 計算に使用するベクトルまたは点。
- * @param a 計算に使用するベクトルまたは点。
+ * @brief ベクトルや角度の補助計算を行う。
+ * @param a 1 つ目のベクトルまたは点。
+ * @param b 2 つ目のベクトルまたは点。
+ * @param a 1 つ目のベクトルまたは点。
  * @return a から b へ t だけ線形補間した値。
  */
 inline Vec3 Lerp(const Vec3& a, const Vec3& b, float t) { return a + (b - a) * t; }
 /**
  * @brief 現在の状態が条件を満たしているか調べる。
- * @param v 計算に使用するベクトルまたは点。
+ * @param v 演算に使うベクトル。
  */
 inline void IsZeroVec(Vec3& v)
 {
@@ -337,8 +336,8 @@ inline void IsZeroVec(Vec3& v)
 }
 
 /**
- * @brief 数学計算の結果を求める。
- * @param v 計算に使用するベクトルまたは点。
+ * @brief ベクトルや角度の補助計算を行う。
+ * @param v 演算に使うベクトル。
  * @return 各成分を絶対値にした値。
  */
 inline Vec3 Abs(const Vec3& v)

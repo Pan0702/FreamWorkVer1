@@ -22,13 +22,13 @@ class SpriteComponent : public Component
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     SpriteComponent() = default;
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      * @param texture 使用するテクスチャ。
-     * @param space space に設定する値。
+     * @param space スプライトを描画する座標空間。
      */
     SpriteComponent(Texture2D* texture, SpriteSpace space);
     /**

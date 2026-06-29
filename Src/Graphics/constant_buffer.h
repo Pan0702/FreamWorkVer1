@@ -10,14 +10,14 @@ public:
     /**
      * @brief 利用前に必要な参照とリソースを初期化する。
      * @param device 使用する D3D12 デバイス。
-     * @param size size に設定する値。
+     * @param size 設定するサイズ。
      * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(ID3D12Device* device, uint32_t size);
     /**
      * @brief 1 フレーム分の状態更新を進める。
-     * @param data data に設定する値。
-     * @param size size に設定する値。
+     * @param data 転送するデータの先頭アドレス。
+     * @param size 設定するサイズ。
      */
     void Update(const void* data, uint32_t size);
     /**

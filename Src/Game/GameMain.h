@@ -12,7 +12,7 @@ class GameMain
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     GameMain();
     /**
@@ -21,7 +21,7 @@ public:
     ~GameMain();
     /**
      * @brief 利用前に必要な参照とリソースを初期化する。
-     * @param title title に設定する値。
+     * @param title ウィンドウや表示に使うタイトル。
      * @param width 作成または変更後の幅。
      * @param height 作成または変更後の高さ。
      * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。

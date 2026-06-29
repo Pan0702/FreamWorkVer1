@@ -41,13 +41,13 @@ public:
      * @param device 使用する D3D12 デバイス。
      * @param hwnd 描画対象の Win32 ウィンドウハンドル。
      * @param command_queue GPU コマンドを実行するキュー。
-     * @param frame_count frame_count に設定する値。
+     * @param frame_count 用意するフレームリソース数。
      * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQueue* command_queue, uint32_t frame_count);
  /**
   * @brief 現在の状態をもとに描画コマンドを積む。
-  * @param renderer_data renderer_data に設定する値。
+  * @param renderer_data レンダラー初期化に使う共有データ。
   * @param world Actor や描画対象を管理する World。
   * @param camera ビュー行列と射影行列を提供するカメラ。
   */
@@ -91,12 +91,12 @@ public:
 private:
     /**
      * @brief 描画先をバックバッファと深度バッファへ切り替える。
-     * @param renderer_data renderer_data に設定する値。
+     * @param renderer_data レンダラー初期化に使う共有データ。
      */
     void BeginRenderTarget(const RendererData& renderer_data);
     /**
      * @brief 描画先のバックバッファを Present 可能な状態へ戻す。
-     * @param renderer_data renderer_data に設定する値。
+     * @param renderer_data レンダラー初期化に使う共有データ。
      */
     void EndRenderTarget(const RendererData& renderer_data);
 

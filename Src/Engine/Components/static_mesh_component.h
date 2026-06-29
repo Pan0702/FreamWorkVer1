@@ -13,11 +13,11 @@ class StaticMeshComponent : public Component
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     StaticMeshComponent() = default;
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      * @param mesh 読み込み、描画、または判定に使用するメッシュ。
      * @param material_slot 描画に使用するマテリアル。
      */

@@ -15,8 +15,8 @@ class SkeletalMeshComponent : public Component
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
-     * @param skeletal_mesh skeletal_mesh に設定する値。
+     * @brief 値を初期化する。
+     * @param skeletal_mesh 描画に使うスケルタルメッシュ。
      * @param material_slot 描画に使用するマテリアル。
      */
     SkeletalMeshComponent(SkeletalMesh* skeletal_mesh, MaterialSlot* material_slot);
@@ -38,14 +38,14 @@ public:
     void OnDetach() override;
     /**
      * @brief アニメーション を取得する。
-     * @param name name に設定する値。
+     * @param name 対象の名前。
      * @return アニメーション。見つからない、または未作成の場合は nullptr。
      */
     Animation* GetAnimation(const std::string& name);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param name name に設定する値。
-     * @param animation animation に設定する値。
+     * @param name 対象の名前。
+     * @param animation 追加または再生するアニメーション。
      */
     void SetAnimation(const std::string& name, Animation* animation);
     

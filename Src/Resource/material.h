@@ -17,20 +17,20 @@ class Material
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     Material();
     /**
-     * @brief インスタンスの初期状態を整える。
-     * @param desc desc に設定する値。
+     * @brief 値を初期化する。
+     * @param desc マテリアル作成に使う設定。
      */
     Material(const MeshMaterialDesc& desc);
     /**
      * @brief 内部で使用するリソースを作成する。
      * @param device 使用する D3D12 デバイス。
-     * @param vs_path vs_path に設定する値。
-     * @param ps_path ps_path に設定する値。
-     * @param input_layout input_layout に設定する値。
+     * @param vs_path 頂点シェーダーファイルのパス。
+     * @param ps_path ピクセルシェーダーファイルのパス。
+     * @param input_layout 頂点入力レイアウト。
      * @return 対象リソースの作成が完了した場合は true。
      */
     bool Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_t* ps_path,
@@ -43,17 +43,17 @@ public:
     void Apply(ID3D12GraphicsCommandList* command_list, DescriptorHeap* descriptor_heap);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param diffuse diffuse に設定する値。
+     * @param diffuse ディフューズテクスチャ。
      */
     void SetDiffuse(Texture2D* diffuse);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param normal normal に設定する値。
+     * @param normal 法線テクスチャ。
      */
     void SetNormal(Texture2D* normal);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param specular specular に設定する値。
+     * @param specular スペキュラテクスチャ。
      */
     void SetSpecular(Texture2D* specular);
     /**
@@ -98,12 +98,12 @@ public:
     float GetSpecularIntensity() const;
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param power power に設定する値。
+     * @param power 掛け合わせる回数。
      */
     void SetSpecularPower(float power);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param intensity intensity に設定する値。
+     * @param intensity 反射や発光に使う強さ。
      */
     void SetSpecularIntensity(float intensity);
     /**

@@ -7,12 +7,12 @@ class BoxColliderComponent : public ColliderComponent
 public:
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param size size に設定する値。
+     * @param size 設定するサイズ。
      */
     void SetHalfSize(const Vec3& size);
     /**
      * @brief Vec3 値 を取得する。
-     * @return 保持している Vec3 値 への参照。
+     * @return 2 点間の距離の二乗。
      */
     const Vec3& GetHalfSize() const;
     /**

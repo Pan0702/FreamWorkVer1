@@ -25,7 +25,7 @@ public:
     /**
      * @brief 現在の状態をもとに描画コマンドを積む。
      * @param command_list 描画コマンドを書き込むコマンドリスト。
-     * @param render_objects render_objects に設定する値。
+     * @param render_objects 描画対象のオブジェクト配列。
      * @param camera ビュー行列と射影行列を提供するカメラ。
      * @param descriptor_heap SRV/CBV/UAV などを保持するディスクリプタヒープ。
      */

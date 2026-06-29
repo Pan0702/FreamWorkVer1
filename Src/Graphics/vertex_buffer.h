@@ -10,9 +10,9 @@ public:
     /**
      * @brief 利用前に必要な参照とリソースを初期化する。
      * @param device 使用する D3D12 デバイス。
-     * @param vertex_data vertex_data に設定する値。
-     * @param total_size total_size に設定する値。
-     * @param stride stride に設定する値。
+     * @param vertex_data アップロードする頂点データ。
+     * @param total_size アップロードするデータ全体のバイト数。
+     * @param stride 1 頂点あたりのバイト数。
      * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(ID3D12Device* device, const void* vertex_data

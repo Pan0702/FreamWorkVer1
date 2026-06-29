@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include "transition_effect.h"
 #include "../../Debug/debug.h"
 

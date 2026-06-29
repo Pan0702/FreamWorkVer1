@@ -29,20 +29,20 @@ public:
     void Tick(float dt) override;
     /**
      * @brief 再生候補のアニメーションを登録する。
-     * @param name name に設定する値。
-     * @param clip clip に設定する値。
-     * @param loop loop に設定する値。
+     * @param name 対象の名前。
+     * @param clip 再生対象のアニメーションクリップ。
+     * @param loop ループ再生するかどうか。
      */
     void AddAnimation(const std::string& name, Animation* clip, bool loop);
     /**
      * @brief 指定したアニメーションの再生を開始する。
-     * @param name name に設定する値。
+     * @param name 対象の名前。
      */
     void Play(const std::string& name);
     /**
-     * @brief 数学計算の結果を求める。
-     * @param name name に設定する値。
-     * @param fade_time fade_time に設定する値。
+     * @brief ベクトルや角度の補助計算を行う。
+     * @param name 対象の名前。
+     * @param fade_time 切り替えにかけるフェード時間。
      */
     void CrossFade(const std::string& name, float fade_time);
     /**
@@ -56,7 +56,7 @@ public:
     float GetCurrentFrame() const;
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param speed speed に設定する値。
+     * @param speed 再生速度。
      */
     void SetPlaySpeed(float speed);
     /**

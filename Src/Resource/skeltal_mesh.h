@@ -19,7 +19,7 @@ class SkeletalMesh
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     SkeletalMesh();
     /**
@@ -29,8 +29,8 @@ public:
     /**
      * @brief 内部で使用するリソースを作成する。
      * @param device 使用する D3D12 デバイス。
-     * @param vertex_data vertex_data に設定する値。
-     * @param index_data index_data に設定する値。
+     * @param vertex_data アップロードする頂点データ。
+     * @param index_data アップロードするインデックスデータ。
      * @return 対象リソースの作成が完了した場合は true。
      */
     bool Create(ID3D12Device* device, VertexData vertex_data, IndexData index_data,
@@ -62,12 +62,12 @@ public:
     void SetMaterialDescs(std::span<const MeshMaterialDesc> material_descs);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param sub_meshes sub_meshes に設定する値。
+     * @param sub_meshes 描画単位に分割されたサブメッシュ配列。
      */
     void SetSubMeshes(std::span<const SubMesh> sub_meshes);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param sk sk に設定する値。
+     * @param sk 関連付けるスケルトン。
      */
     void SetSkeleton(std::unique_ptr<Skeleton> sk);
     /**

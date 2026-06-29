@@ -10,7 +10,7 @@ class Component
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     Component() = default;
     /**
@@ -19,7 +19,7 @@ public:
     virtual ~Component() = default;
 
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     Component(const Component&) = delete;
     /**
@@ -54,7 +54,7 @@ private:
 
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param owner owner に設定する値。
+     * @param owner このコンポーネントを所有するアクター。
      */
     void SetOwner(Actor* owner);
 

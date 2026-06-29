@@ -11,8 +11,8 @@ public:
     /**
      * @brief ファイルや外部データを読み込んで内部表現へ変換する。
      * @param filename 読み書きするファイルパス。
-     * @param entry_point entry_point に設定する値。
-     * @param target target に設定する値。
+     * @param entry_point シェーダーのエントリーポイント名。
+     * @param target コンパイル対象のシェーダーモデル。
      * @return 指定データの読み込みが完了した場合は true。
      */
     bool LoadFromFile(const wchar_t* filename, const char* entry_point, const char* target);

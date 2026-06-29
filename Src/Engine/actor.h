@@ -22,7 +22,7 @@ class Actor
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     Actor() = default;
     /**
@@ -60,7 +60,7 @@ public:
     const TransformComponent& GetTransform() const { return transform_; }
 
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     Actor(const Actor&) = delete;
     /**

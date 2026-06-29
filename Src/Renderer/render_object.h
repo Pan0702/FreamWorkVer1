@@ -20,12 +20,12 @@ public:
     void SetMaterial(Material* material);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param transform transform に設定する値。
+     * @param transform 描画に使うワールド変換行列。
      */
     void SetTransform(const Mat& transform);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param priority priority に設定する値。
+     * @param priority 描画順の優先度。
      */
     void SetPriority(int priority);
     /**

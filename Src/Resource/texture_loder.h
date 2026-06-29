@@ -19,7 +19,7 @@ public:
     /**
      * @brief ファイルや外部データを読み込んで内部表現へ変換する。
      * @param filename 読み書きするファイルパス。
-     * @param image image に設定する値。
+     * @param image アップロードまたは解放する画像データ。
      * @return 指定データの読み込みが完了した場合は true。
      */
     static bool LoadFromFile(const wchar_t* filename, LoadedImage& image);

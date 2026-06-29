@@ -9,7 +9,7 @@ class SphereColliderComponent : public ColliderComponent
 public:
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param radius radius に設定する値。
+     * @param radius 形状の半径。
      */
     void SetRadius(float radius);
     /**

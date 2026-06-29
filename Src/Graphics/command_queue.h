@@ -8,7 +8,7 @@ class CommandQueue
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     CommandQueue();
     /**
@@ -29,7 +29,7 @@ public:
     uint64_t Signal();
     /**
      * @brief GPU や OS 側へ処理を渡し、必要な同期を進める。
-     * @param fence_value fence_value に設定する値。
+     * @param fence_value 待機するフェンス値。
      */
     void WaitForFence(uint64_t fence_value) const;
     /**

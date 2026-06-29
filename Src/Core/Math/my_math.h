@@ -13,13 +13,13 @@
 Mat Identity();
 /**
  * @brief 行列の行と列を入れ替える。
- * @param m 計算に使用する行列または値。
+ * @param m 変換や分解に使う行列。
  * @return m の行と列を入れ替えた行列。
  */
 Mat Transpose(const Mat& m);
 /**
  * @brief 逆行列を作成する。
- * @param m 計算に使用する行列または値。
+ * @param m 変換や分解に使う行列。
  * @return m の逆行列。
  */
 Mat Inverse(const Mat& m);
@@ -80,36 +80,36 @@ Mat LookAtRH(const XMVECTOR& eye, const XMVECTOR& at, const XMVECTOR& up);
 Mat PerspectiveFovLH(float fov, float aspect, float zNear, float zFar);
 /**
  * @brief 方向ベクトルを行列で変換する。
- * @param m 計算に使用する行列または値。
- * @param v 計算に使用するベクトルまたは点。
+ * @param m 変換や分解に使う行列。
+ * @param v 演算に使うベクトル。
  * @return 行列で変換した方向ベクトル。
  */
 Vec3 TransformDirection(const Mat& m, const Vec3& v);
 /**
  * @brief 座標点を行列で変換する。
- * @param m 計算に使用する行列または値。
- * @param v 計算に使用するベクトルまたは点。
+ * @param m 変換や分解に使う行列。
+ * @param v 演算に使うベクトル。
  * @return 行列で変換した座標点。
  */
 Vec3 TransformPoint(const Mat& m, const Vec3& v);
 /**
  * @brief 法線ベクトルを行列で変換する。
- * @param m 計算に使用する行列または値。
- * @param v 計算に使用するベクトルまたは点。
+ * @param m 変換や分解に使う行列。
+ * @param v 演算に使うベクトル。
  * @return 行列で変換した法線ベクトル。
  */
 Vec3 TransformNormal(const Mat& m, const Vec3& v);
 /**
  * @brief 座標ベクトルを同次除算込みで変換する。
- * @param m 計算に使用する行列または値。
- * @param v 計算に使用するベクトルまたは点。
+ * @param m 変換や分解に使う行列。
+ * @param v 演算に使うベクトル。
  * @return 同次除算まで行った変換後の座標。
  */
 Vec3 TransformCoord(const Mat& m, const Vec3& v);
 /**
  * @brief ベクトルを行列で変換する。
- * @param m 計算に使用する行列または値。
- * @param v 計算に使用するベクトルまたは点。
+ * @param m 変換や分解に使う行列。
+ * @param v 演算に使うベクトル。
  * @return 行列で変換したベクトル。
  */
 Vec3 TransformVector(const Mat& m, const Vec3& v);
@@ -128,14 +128,14 @@ Quat QuatIdentity();
 Quat QuatFromAxisAngle(const Vec3& axis, float angle);
 /**
  * @brief オイラー角から回転クォータニオンを作成する。
- * @param euler euler に設定する値。
+ * @param euler X/Y/Z のオイラー角。
  * @return euler から作成した回転クォータニオン。
  */
 Quat QuatFromEuler(const Vec3& euler);
 /**
  * @brief 2 つの回転を球面線形補間する。
- * @param a 計算に使用するベクトルまたは点。
- * @param b 計算に使用するベクトルまたは点。
+ * @param a 1 つ目のベクトルまたは点。
+ * @param b 2 つ目のベクトルまたは点。
  * @param t 補間率。
  * @return a から b へ t だけ球面補間したクォータニオン。
  */
@@ -143,62 +143,62 @@ Quat Slerp(const Quat& a, const Quat& b, float t);
 
 /**
  * @brief クォータニオンを回転行列へ変換する。
- * @param q q に設定する値。
+ * @param q 変換または回転に使うクォータニオン。
  * @return q を変換した回転行列。
  */
 Mat ToMat(const Quat& q);
 /**
  * @brief 行列から回転クォータニオンを取り出す。
- * @param m 計算に使用する行列または値。
+ * @param m 変換や分解に使う行列。
  * @return m から取り出した回転クォータニオン。
  */
 Quat ToQuat(const Mat& m);
 /**
  * @brief ベクトルへクォータニオン回転を適用する。
- * @param q q に設定する値。
- * @param v 計算に使用するベクトルまたは点。
+ * @param q 変換または回転に使うクォータニオン。
+ * @param v 演算に使うベクトル。
  * @return q で回転させた v。
  */
 Vec3 Rotate(const Quat& q, const Vec3& v);
 /**
  * @brief 行列をスケール・回転・平行移動へ分解する。
- * @param m 計算に使用する行列または値。
- * @param s s に設定する値。
- * @param r r に設定する値。
+ * @param m 変換や分解に使う行列。
+ * @param s スケール値または分解結果のスケール。
+ * @param r 分解結果の回転クォータニオン。
  * @param t 補間率。
  * @return 行列を scale・rotation・translation に分解できた場合は true。
  */
 bool Decompose(const Mat& m, Vec3& s, Quat& r, Vec3& t);
 
 /**
- * @brief 数学計算の結果を求める。
- * @param plane plane に設定する値。
- * @param point 計算に使用するベクトルまたは点。
+ * @brief ベクトルや角度の補助計算を行う。
+ * @param plane 距離計算に使う平面式。
+ * @param point 平面からの距離を測る点。
  * @return plane から point までの符号付き距離。
  */
 float PlaneLength(const Vec4& plane,const Vec3& point);
 /**
- * @brief 数学計算の結果を求める。
+ * @brief ベクトルや角度の補助計算を行う。
  * @param angle 回転角度。
  * @return 0 以上 360 未満に正規化した角度。
  */
 float NormalizeAngleDeg(float angle);
 /**
- * @brief 数学計算の結果を求める。
+ * @brief ベクトルや角度の補助計算を行う。
  * @param angle 回転角度。
  * @return 0 以上 2π 未満に正規化した角度。
  */
 float NormalizeAngleRad(float angle);
 /**
- * @brief 数学計算の結果を求める。
+ * @brief ベクトルや角度の補助計算を行う。
  * @param angle 回転角度。
  * @return -π 以上 π 未満に正規化した角度。
  */
 float NormalizeAngleRadSigned(float angle);
 /**
- * @brief 数学計算の結果を求める。
- * @param num num に設定する値。
- * @param power power に設定する値。
+ * @brief ベクトルや角度の補助計算を行う。
+ * @param num 累乗の底になる値。
+ * @param power 掛け合わせる回数。
  * @return num を power 回掛け合わせた値。
  */
 float PowF(float num,int power);
@@ -210,6 +210,7 @@ constexpr float kHalfPi = kPI * 0.5f;
 constexpr float kDegToRad = kPI / 180.0f;
 constexpr float kRadToDeg = 180.0f / kPI;
 constexpr float kHalfSize = 0.5f;
+constexpr float kEpsilon = 1e-6f;
 
 
 // よく使う整数型の短縮別名。

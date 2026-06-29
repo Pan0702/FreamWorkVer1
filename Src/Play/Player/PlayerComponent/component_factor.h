@@ -10,13 +10,13 @@ class ComponentFactor
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     ComponentFactor();
     using ComponentMap = std::unordered_map<PlayerState,StateComponentBase*>;
     /**
      * @brief Components を取得する。
-     * @param names names に設定する値。
+     * @param names 作成する状態コンポーネントの一覧。
      * @return 現在保持している Components。
      */
     ComponentMap GetComponents(const std::vector<PlayerState>& names) const; 

@@ -5,7 +5,7 @@ class PlayLevel : public LevelBase
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     PlayLevel();
     /**

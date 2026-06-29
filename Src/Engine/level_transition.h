@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 #include <memory>
 #include "../Core/Math/my_math.h"
 #include "Transition/fade.h"

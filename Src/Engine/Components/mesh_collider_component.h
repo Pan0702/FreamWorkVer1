@@ -8,7 +8,7 @@ class MeshColliderComponent : public ColliderComponent
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      * @param mesh 読み込み、描画、または判定に使用するメッシュ。
      */
     explicit MeshColliderComponent(const Mesh* mesh = nullptr);
@@ -29,13 +29,13 @@ public:
     void OnAttach(const AttachContext& context) override;
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param vertices vertices に設定する値。
-     * @param indices indices に設定する値。
+     * @param vertices メッシュを構成する頂点配列。
+     * @param indices メッシュを構成するインデックス配列。
      */
     void SetTriangles(std::vector<Vec3> vertices,std::vector<uint32> indices);
     /**
      * @brief Vec3 値 を取得する。
-     * @return 保持している Vec3 値 への参照。
+     * @return 2 点間の距離の二乗。
      */
     const std::vector<Vec3>& GetVertices() const;
     /**

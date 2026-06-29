@@ -20,7 +20,7 @@ class AudioManager
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     AudioManager() = default;
     /**
@@ -29,7 +29,7 @@ public:
     ~AudioManager();
 
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     AudioManager(const AudioManager&) = delete;
     /**
@@ -41,24 +41,24 @@ public:
     /**
      * @brief ファイルや外部データを読み込んで内部表現へ変換する。
      * @param filename 読み書きするファイルパス。
-     * @param name name に設定する値。
-     * @param loop loop に設定する値。
+     * @param name 対象の名前。
+     * @param loop ループ再生するかどうか。
      */
     void LoadWaveFile(const char* filename, const char* name, bool loop);
     /**
      * @brief 指定したアニメーションの再生を開始する。
-     * @param name name に設定する値。
+     * @param name 対象の名前。
      */
     void Play(const char* name);
     /**
      * @brief 再生中のアニメーションを停止する。
-     * @param name name に設定する値。
+     * @param name 対象の名前。
      */
     void Stop(const char* name);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param name name に設定する値。
-     * @param volume volume に設定する値。
+     * @param name 対象の名前。
+     * @param volume 処理対象の値。
      */
     void SetVolume(const char* name, float volume);
     /**

@@ -4,6 +4,7 @@
 #include "PlayerComponent/component_factor.h"
 class StateComponentBase;
 
+// プレイヤーが同時に持てる行動状態のビット。//
 enum class PlayerState : uint8_t
 {
     kIdle = 1 << 0,
@@ -12,9 +13,9 @@ enum class PlayerState : uint8_t
 };
 
 /**
- * @brief 入力フラグ用のビット値を作る。
- * @param state state に設定する値。
- * @return state に対応する入力フラグのビット値。
+ * @brief PlayerState を状態管理用のビット値へ変換する。
+ * @param state ビットへ変換するプレイヤー状態。
+ * @return state に対応するビット値。
  */
 inline uint32_t Bit(const PlayerState& state)
 {
@@ -22,17 +23,17 @@ inline uint32_t Bit(const PlayerState& state)
 }
 
 /**
- * @brief 指定した状態ビットが含まれるか調べる。
- * @param bit bit に設定する値。
- * @param state state に設定する値。
- * @return state に bit が含まれている場合は true。
+ * @brief 状態ビット集合に指定したプレイヤー状態が含まれるか調べる。
+ * @param bit 複数の PlayerState を OR した状態ビット集合。
+ * @param state 含まれているか調べるプレイヤー状態。
+ * @return bit に state が含まれている場合は true。
  */
 inline bool IsSet(uint32_t bit, const PlayerState& state)
 {
     return (bit & Bit(state)) != 0;
 }
 
-// PlayerInput に関係する状態と振る舞いをまとめる型。
+// 1 フレーム分のプレイヤー入力と、そこから計算した移動量をまとめる。//
 struct PlayerInput
 {
     Vec3 move_amount = {0.0f, 0.0f, 0.0f};
@@ -42,48 +43,48 @@ struct PlayerInput
 };
 
 
-// Player に関係する状態と振る舞いをまとめる型。
+// プレイヤー本体の描画、入力、状態遷移、当たり判定反応をまとめる。//
 class Player : public Actor
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief プレイヤーのメッシュ、アニメーション、カプセルコライダーを準備する。
      */
     Player();
 
 private:
     /**
-     * @brief 生成または遷移直後に必要な初期処理を行う。
+     * @brief アクター生成直後の開始処理を行う。
      */
     void Begin() override;
     /**
-     * @brief 1 フレーム分の状態更新を進める。
+     * @brief 入力、状態コンポーネント、重力、姿勢を 1 フレーム分更新する。
      * @param dt 前フレームからの経過秒数。
      */
     void Tick(float dt) override;
     /**
-     * @brief プレイヤー操作を読み取り移動状態へ反映する。
+     * @brief キー入力と接地状態から移動量とジャンプ入力を作る。
      * @param dt 前フレームからの経過秒数。
-     * @return 入力から組み立てた移動方向とアクション状態。
+     * @return このフレームの移動量、向き、ジャンプ状態。
      */
     PlayerInput Input(float dt);
     /**
-     * @brief 入力内容から希望する状態ビットを組み立てる。
-     * @param in in に設定する値。
+     * @brief 入力内容から実行したいプレイヤー状態ビットを組み立てる。
+     * @param in このフレームの入力内容。
      * @return 入力内容から作成した PlayerState のビット集合。
      */
     uint32_t BuildWantedState(const PlayerInput& in) const;
     /**
-     * @brief 指定された値を内部状態に反映する。
-     * @param new_bits new_bits に設定する値。
+     * @brief 前フレームとの差分を見て状態コンポーネントの開始・終了を呼び分ける。
+     * @param new_bits 次に有効にする PlayerState のビット集合。
      */
     void SetState(uint32_t new_bits);
     /**
-     * @brief 接触結果をプレイヤー側の反応へ変換する。
-     * @param self self に設定する値。
-     * @param other_actor other_actor に設定する値。
-     * @param other_coll 判定または通知に使用するコライダー。
-     * @param info 計算結果を書き込む情報。
+     * @brief コライダー接触時にプレイヤーを接触法線方向へ押し戻す。
+     * @param self 接触したプレイヤー側のコライダー。
+     * @param other_actor 接触相手のアクター。
+     * @param other_coll 接触相手のコライダー。
+     * @param info 接触法線と貫通量。
      */
     void OnHit(ColliderComponent* self, Actor* other_actor, ColliderComponent* other_coll, const ContactInfo& info);
     std::unique_ptr<MaterialSlot> materials_;
@@ -91,9 +92,11 @@ private:
 
     Vec3 vel_;
     uint32_t state_bit_ = 0;
-    bool is_moving_ = false;
-    bool is_grounded_ = true;
-    PlayerInput pl_input_;
     ComponentFactor factor_;
     std::unordered_map<PlayerState, StateComponentBase*> states_;
+    PlayerInput pl_input_;
+    bool is_moving_ = false;
+    bool is_grounded_ = true;
+    bool was_grounded_ = true;
+    std::string animation_name_;
 };

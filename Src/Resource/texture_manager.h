@@ -24,7 +24,7 @@ public:
      * @param device 使用する D3D12 デバイス。
      * @param srv_heap SRV/CBV/UAV などを保持するディスクリプタヒープ。
      * @param queue GPU コマンドを実行するキュー。
-     * @param cmd cmd に設定する値。
+     * @param cmd テクスチャ転送に使うコマンドリスト。
      */
     void Initialize(ID3D12Device* device, DescriptorHeap* srv_heap,
                     CommandQueue* queue, CommandList* cmd);

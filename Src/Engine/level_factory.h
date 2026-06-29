@@ -24,7 +24,7 @@ public:
 
     /**
      * @brief 対象を管理リストへ登録する。
-     * @param name name に設定する値。
+     * @param name 対象の名前。
      */
     template<class T>
     void Register(const std::string& name)
@@ -34,7 +34,7 @@ public:
     }
     /**
      * @brief 内部で使用するリソースを作成する。
-     * @param name name に設定する値。
+     * @param name 対象の名前。
      * @return 対象リソースの作成が完了した場合は true。
      */
     std::unique_ptr<LevelBase> Create(const std::string& name);

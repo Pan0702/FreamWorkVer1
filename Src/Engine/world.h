@@ -11,11 +11,11 @@ class World
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     World() = default;
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     World(const World&) = delete;
     /**
@@ -24,7 +24,7 @@ public:
      */
     World& operator=(const World&) = delete;
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     World(World&&) = delete;
     /**

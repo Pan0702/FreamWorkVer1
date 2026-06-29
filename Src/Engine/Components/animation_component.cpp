@@ -79,7 +79,7 @@ namespace
         LocalPose lp;
         lp.t = SampleVec3(ch->position_keys, time, bt);
         lp.r = SampleQuat(ch->rotation_keys, time, br);
-        lp.s = SampleVec3(ch->scale_keys, time, bs);
+        lp.s = bs;
         return lp;
     }
 
@@ -127,17 +127,19 @@ void AnimationComponent::Tick(float dt)
     if (playing_ && clip_ && clip_->GetTicksPerSecond() > 0.0f)
     {
         time_ += dt * clip_->GetTicksPerSecond() * play_speed_;
-        const float dur = clip_->GetDuration();
-        if (dur > 0.0f)
+        const float prev_dur = clip_->GetDuration();
+        if (prev_dur > 0.0f)
         {
             if (loop_)
             {
-                time_ = std::fmod(time_, dur);
+                time_ = std::fmod(time_, prev_dur);
             }
-            else if (time_ >= dur)
+            else if (time_ >= prev_dur)
             {
-                time_ = dur; // 末尾でクランプ
-                playing_ = false; // 再生終了
+                // 末尾でクランプ //
+                time_ = prev_dur; 
+                // 再生終了 //
+                playing_ = false; 
             }
         }
     }
@@ -146,8 +148,18 @@ void AnimationComponent::Tick(float dt)
     if (fading_ && prev_clip_ && prev_clip_->GetTicksPerSecond() > 0.0f)
     {
         prev_time_ += dt * prev_clip_->GetTicksPerSecond() * play_speed_;
-        const float pdur = prev_clip_->GetDuration();
-        if (pdur > 0.0f) prev_time_ = std::fmod(prev_time_, pdur);
+        const float prev_dur = prev_clip_->GetDuration();
+        if (prev_dur > 0.0f)
+        {
+            if (prev_clip_->IsLooping())
+            {
+                prev_time_ = std::fmod(prev_time_, prev_dur);
+            }
+            else
+            {
+                prev_time_ = (std::min)(prev_time_, prev_dur);
+            }
+        }
     }
 
     // フェード進行（weight: 0=前, 1=現在）
@@ -158,7 +170,7 @@ void AnimationComponent::Tick(float dt)
         w = fade_elapsed_ / fade_duration_;
         if (w >= 1.0f)
         {
-            // フェード完了 
+            // フェード完了 //
             w = 1.0f;
             fading_ = false;
             prev_clip_ = nullptr;

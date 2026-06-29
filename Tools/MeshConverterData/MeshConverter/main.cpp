@@ -222,9 +222,22 @@ namespace
         return true;
     }
 
+    //　埋め込みテクスチャを実際に書き出す先。out_pathを基準にする。
     std::filesystem::path BuildTextureDir(const char* out_path, const std::string& tex_folder)
     {
         std::filesystem::path base = std::filesystem::path(out_path).parent_path().parent_path() / "Texture";
+        if (!tex_folder.empty())
+        {
+            base /= tex_folder;
+        }
+        return base;
+    }
+
+    // .mesh内部に書くコムテクスチャパス。
+    // Assets/Texture基準//
+    std::filesystem::path BuildTextureRefDir(const std::string& tex_folder)
+    {
+        std::filesystem::path base = std::filesystem::path("Assets") / "Texture";
         if (!tex_folder.empty())
         {
             base /= tex_folder;
@@ -248,7 +261,7 @@ namespace
             src.filename();
         if (filename.empty())
         {
-            return std::wstring();
+            return {};
         }
         return (tex_dir / filename).generic_wstring();
     }
@@ -299,6 +312,7 @@ namespace
             return false;
         }
         {
+            //埋め込みテクスチャはout_path基準の絶対パスに書き出す
             // マテリアルパスが指す場所に合わせて埋め込みテクスチャを書き出す。 //
             const std::filesystem::path tex_dir = BuildTextureDir(out_path, tex_folder);
             ExtractEmbeddedTextures(scene, tex_dir.string());
@@ -340,7 +354,7 @@ namespace
                 data.base_color = Vec4(color.r, color.g, color.b, color.a);
             }
             aiString tex;
-            const std::filesystem::path tex_dir = BuildTextureDir(out_path, tex_folder);
+            const std::filesystem::path tex_dir = BuildTextureRefDir( tex_folder);
             if (material->GetTexture(aiTextureType_DIFFUSE, 0, &tex) == AI_SUCCESS)
             {
                 data.diffuse_path = BuildTexturePathResolved(scene, tex, tex_dir);
@@ -821,14 +835,14 @@ namespace
         }
         return best;
     }
-    
+
     /**
      * @brief Assimp の1つのアニメーションクリップを .anim ファイルへ書き出す。
      * @param out_path 書き出し先 .anim ファイルのパス。
      * @param anim 書き出す Assimp アニメーション。
      * @return 書き出しに成功したら true。
      */
-    bool WriteAnim(const std::string& out_path, const aiAnimation& anim,bool in_place,const std::string& root_node)
+    bool WriteAnim(const std::string& out_path, const aiAnimation& anim, bool in_place, const std::string& root_node)
     {
         SkAnimFileHeader header = {};
         std::memcpy(header.magic, kSkAnimMagic, 4);
@@ -908,7 +922,7 @@ namespace
                 const aiVectorKey& src = ch->mScalingKeys[k];
                 ScaleKey key = {};
                 key.time = static_cast<float>(src.mTime);
-                key.value = Vec3(lock ? lock_x : src.mValue.x,src.mValue.y,lock ? lock_z : src.mValue.z);
+                key.value = Vec3(src.mValue.x, src.mValue.y, src.mValue.z);
                 ofs.write(reinterpret_cast<const char*>(&key), sizeof(key));
             }
         }
@@ -957,7 +971,7 @@ namespace
             }
             out += ".anim";
             const std::string root_node = FindRootMotionNode(scene.mRootNode, *anim);
-            if (!WriteAnim(out, *anim,in_place,root_node))
+            if (!WriteAnim(out, *anim, in_place, root_node))
             {
                 all_ok = false;
             }
@@ -972,7 +986,7 @@ namespace
      * @param tex_folder テクスチャ用サブフォルダー名。
      * @return メッシュ変換に成功したら true。
      */
-    bool ConvertSkMesh(const char* in_path, const char* out_path, const std::string& tex_folder,bool in_place)
+    bool ConvertSkMesh(const char* in_path, const char* out_path, const std::string& tex_folder, bool in_place)
     {
         Assimp::Importer importer;
         // スキンド用フラグの方針:
@@ -1050,7 +1064,7 @@ namespace
                 data.base_color = Vec4(color.r, color.g, color.b, color.a);
             }
             aiString tex;
-            const std::filesystem::path tex_dir = BuildTextureDir(out_path, tex_folder);
+            const std::filesystem::path tex_dir = BuildTextureRefDir(tex_folder);
             if (material->GetTexture(aiTextureType_DIFFUSE, 0, &tex) == AI_SUCCESS)
             {
                 data.diffuse_path = BuildTexturePathResolved(scene, tex, tex_dir);
@@ -1071,14 +1085,14 @@ namespace
 
         // アニメ用ファイル(.anim)も出力する。メッシュ変換は成功扱いにするが、
         // アニメの書き出しに失敗したときは警告だけ出して処理を続ける。
-        if (!WriteAnimations(out_path, *scene,in_place))
+        if (!WriteAnimations(out_path, *scene, in_place))
         {
             std::printf("warn: some animations failed to write\n");
         }
         return true;
     }
 
-    bool ConvertAnim(const char* in_path, const char* out_path,bool in_place)
+    bool ConvertAnim(const char* in_path, const char* out_path, bool in_place)
     {
         Assimp::Importer importer;
         const unsigned int flags = aiProcess_Triangulate |
@@ -1092,7 +1106,7 @@ namespace
             std::printf("assimp: %s\n", importer.GetErrorString());
             return false;
         }
-        return WriteAnimations(out_path, *scene,in_place);
+        return WriteAnimations(out_path, *scene, in_place);
     }
 
     /**
@@ -1142,11 +1156,12 @@ int main(int argc, char** argv)
         const std::filesystem::path ext =
             std::filesystem::path(out_path).extension();
         bool in_place = false;
-        
+
         const bool ok =
             ext == ".anim"
-                ? ConvertAnim(in_path.c_str(), out_path.c_str(),in_place) : ext == ".skmesh"
-                ? ConvertSkMesh(in_path.c_str(), out_path.c_str(),tex_folder,in_place) 
+                ? ConvertAnim(in_path.c_str(), out_path.c_str(), in_place)
+                : ext == ".skmesh"
+                ? ConvertSkMesh(in_path.c_str(), out_path.c_str(), tex_folder, in_place)
                 : ConvertMesh(in_path.c_str(), out_path.c_str(),
                               tex_folder);
         std::printf(ok ? "[OK] %s -> %s\n" : "[FAILED] %s\n", in_path.c_str(), out_path.c_str());
@@ -1195,7 +1210,8 @@ int main(int argc, char** argv)
 
             const bool ok =
                 ext == ".anim"
-                    ? ConvertAnim(in_path.c_str(), out_path.c_str(),in_place) : ext == ".skmesh"
+                    ? ConvertAnim(in_path.c_str(), out_path.c_str(), in_place)
+                    : ext == ".skmesh"
                     ? ConvertSkMesh(in_path.c_str(), out_path.c_str(), tex_folder, in_place)
                     : ConvertMesh(in_path.c_str(), out_path.c_str(), tex_folder);
             std::printf(ok ? "[OK] %s -> %s\n" : "[FAILED] %s\n",

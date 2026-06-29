@@ -18,7 +18,7 @@ class ConstantBufferAllocator
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     ConstantBufferAllocator() = default;
     /**
@@ -27,7 +27,7 @@ public:
     ~ConstantBufferAllocator();
 
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     ConstantBufferAllocator(const ConstantBufferAllocator&) = delete;
     /**
@@ -39,14 +39,14 @@ public:
     /**
      * @brief 利用前に必要な参照とリソースを初期化する。
      * @param device 使用する D3D12 デバイス。
-     * @param capacity capacity に設定する値。
+     * @param capacity 確保する要素数。
      * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(ID3D12Device* device, uint32_t capacity);
     /**
      * @brief アラインメントを考慮してバッファ領域を切り出す。
-     * @param size size に設定する値。
-     * @param out_allocation out_allocation に設定する値。
+     * @param size 設定するサイズ。
+     * @param out_allocation 確保した定数バッファ領域を書き込む値。
      * @return アラインメントを考慮してバッファ領域を切り出す 場合は true。
      */
     bool Allocate(uint32_t size, ConstantBufferAllocation* out_allocation);
@@ -69,7 +69,7 @@ public:
 private:
     /**
      * @brief Constant Buffer の 256 バイト境界にサイズを丸める。
-     * @param size size に設定する値。
+     * @param size 設定するサイズ。
      * @return 256 バイト境界に切り上げたサイズ。
      */
     static uint32_t AlignConstantBufferSize(uint32_t size);

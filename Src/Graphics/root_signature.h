@@ -29,17 +29,17 @@ class RootSignatureBuilder
 public:
     /**
      * @brief RootSignature に CBV ルートパラメータを追加する。
-     * @param shader_register shader_register に設定する値。
-     * @param visibility visibility に設定する値。
+     * @param shader_register バインド先のシェーダーレジスタ番号。
+     * @param visibility 参照できるシェーダーステージ。
      * @return 保持している Cbv への参照。
      */
     RootSignatureBuilder& AddCbv(UINT shader_register, D3D12_SHADER_VISIBILITY visibility);
 
     /**
      * @brief RootSignature に SRV テーブルを追加する。
-     * @param shader_register shader_register に設定する値。
-     * @param descriptor_count descriptor_count に設定する値。
-     * @param visibility visibility に設定する値。
+     * @param shader_register バインド先のシェーダーレジスタ番号。
+     * @param descriptor_count ディスクリプタテーブルに含める数。
+     * @param visibility 参照できるシェーダーステージ。
      * @return 保持している Srv Table への参照。
      */
     RootSignatureBuilder& AddSrvTable(UINT shader_register, UINT descriptor_count,
@@ -47,9 +47,9 @@ public:
 
     /**
      * @brief RootSignature に静的サンプラを追加する。
-     * @param shader_register shader_register に設定する値。
-     * @param visibility visibility に設定する値。
-     * @param address_mode address_mode に設定する値。
+     * @param shader_register バインド先のシェーダーレジスタ番号。
+     * @param visibility 参照できるシェーダーステージ。
+     * @param address_mode サンプラーのアドレスモード。
      * @return 保持している Static Sampler への参照。
      */
     RootSignatureBuilder& AddStaticSampler(UINT shader_register, D3D12_SHADER_VISIBILITY visibility,
@@ -58,7 +58,7 @@ public:
     /**
      * @brief 後続処理で使いやすい形にデータを組み立てる。
      * @param device 使用する D3D12 デバイス。
-     * @param out_root_signature out_root_signature に設定する値。
+     * @param out_root_signature 作成したルートシグネチャを書き込む値。
      * @return 後続処理で使いやすい形にデータを組み立てる 場合は true。
      */
     bool Build(ID3D12Device* device,

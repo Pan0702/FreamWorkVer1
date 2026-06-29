@@ -17,8 +17,8 @@ public:
     /**
      * @brief 内部で使用するリソースを作成する。
      * @param device 使用する D3D12 デバイス。
-     * @param vertex_data vertex_data に設定する値。
-     * @param index_data index_data に設定する値。
+     * @param vertex_data アップロードする頂点データ。
+     * @param index_data アップロードするインデックスデータ。
      * @return 対象リソースの作成が完了した場合は true。
      */
     bool Create(ID3D12Device* device, VertexData vertex_data, IndexData index_data,
@@ -50,7 +50,7 @@ public:
     void SetMaterialDescs(std::span<const MeshMaterialDesc> material_descs);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param sub_meshes sub_meshes に設定する値。
+     * @param sub_meshes 描画単位に分割されたサブメッシュ配列。
      */
     void SetSubMeshes(std::span<const SubMesh> sub_meshes);
     /**
@@ -66,7 +66,7 @@ public:
 
     /**
      * @brief Vec3 値 を取得する。
-     * @return 保持している Vec3 値 への参照。
+     * @return 2 点間の距離の二乗。
      */
     const std::vector<Vec3>& GetCollisionPositions() const;
 
@@ -78,8 +78,8 @@ public:
 
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param positions positions に設定する値。
-     * @param indices indices に設定する値。
+     * @param positions 頂点位置の配列。
+     * @param indices メッシュを構成するインデックス配列。
      */
     void SetCollisionMesh(std::vector<Vec3> positions, std::vector<uint32> indices);
 private:

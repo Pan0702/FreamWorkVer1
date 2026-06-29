@@ -19,15 +19,15 @@ public:
     void Update();
     /**
      * @brief キーの現在状態と直前状態から入力状態を判定する。
-     * @param keycode keycode に設定する値。
-     * @param key key に設定する値。
+     * @param keycode 対応付ける入力キーコード。
+     * @param key 入力状態を確認するキー。
      * @return 指定したキーが押されている場合は true。
      */
     bool CheckKey(uint8_t keycode, KeyState key) const;
     /**
      * @brief マウスボタンの現在状態と直前状態から入力状態を判定する。
-     * @param button button に設定する値。
-     * @param key key に設定する値。
+     * @param button 入力状態を確認するマウスボタン。
+     * @param key 入力状態を確認するキー。
      * @return 指定したマウスボタンが押されている場合は true。
      */
     bool CheckMouseButton(uint8_t button, KeyState key) const;

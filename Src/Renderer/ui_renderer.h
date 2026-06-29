@@ -54,7 +54,7 @@ public:
     void Unregister(SpriteComponent* component);
     /**
      * @brief 現在の状態をもとに描画コマンドを積む。
-     * @param command command に設定する値。
+     * @param command 描画キューへ積むスプライトコマンド。
      */
     void DrawImmediate(const SpriteDrawCommand& command);
     /**
@@ -75,7 +75,7 @@ private:
     /**
      * @brief 1 件分の描画コマンドを GPU コマンドリストへ書き込む。
      * @param context 描画や登録に使う共有コンテキスト。
-     * @param command command に設定する値。
+     * @param command 描画キューへ積むスプライトコマンド。
      */
     void SubmitCommand(RenderContext& context, const SpriteDrawCommand& command);
 

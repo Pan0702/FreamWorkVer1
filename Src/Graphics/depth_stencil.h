@@ -24,8 +24,8 @@ public:
     static constexpr DXGI_FORMAT kFORMAT = DXGI_FORMAT_D32_FLOAT;
     /**
      * @brief サイズ変更に合わせて GPU リソースを作り直す。
-     * @param w w に設定する値。
-     * @param h h に設定する値。
+     * @param w W 成分。
+     * @param h 処理対象の値。
      * @return 新しいサイズでリソースを作り直せた場合は true。
      */
     bool Resize(uint32_t w, uint32_t h);
@@ -33,8 +33,8 @@ public:
 private:
     /**
      * @brief 内部で使用するリソースを作成する。
-     * @param w w に設定する値。
-     * @param h h に設定する値。
+     * @param w W 成分。
+     * @param h 処理対象の値。
      * @return 対象リソースの作成が完了した場合は true。
      */
     bool CreateResource(uint32_t w, uint32_t h);

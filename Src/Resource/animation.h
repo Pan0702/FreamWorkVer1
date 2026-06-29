@@ -31,15 +31,15 @@ class Animation
 public:
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param duration duration に設定する値。
-     * @param ticks_per_second ticks_per_second に設定する値。
-     * @param node node に設定する値。
+     * @param duration アニメーション全体の長さ。
+     * @param ticks_per_second 1 秒あたりのアニメーション tick 数。
+     * @param node アニメーションを適用するノード情報。
      */
     void SetData(float duration, float ticks_per_second,
                  std::vector<NodeAnimation> node);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param loop loop に設定する値。
+     * @param loop ループ再生するかどうか。
      */
     void SetLooping(bool loop);
     /**

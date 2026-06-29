@@ -24,8 +24,8 @@ class Skeleton
 public:
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param nodes nodes に設定する値。
-     * @param skin_count skin_count に設定する値。
+     * @param nodes スケルトンを構成するノード配列。
+     * @param skin_count スキニング対象のボーン数。
      */
     void SetNodes(std::vector<SkeletonNode> nodes, uint32 skin_count);
     /**
@@ -35,7 +35,7 @@ public:
     uint32 GetSkinCount() const ;
     /**
      * @brief 名前に対応するノード番号を取得する。
-     * @param name name に設定する値。
+     * @param name 対象の名前。
      * @return 指定名に一致するノード番号。見つからない場合は -1。
      */
     int32 GetNodeIndex(const std::string& name) const;

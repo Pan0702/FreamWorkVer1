@@ -16,7 +16,7 @@ public:
     /**
      * @brief 1 フレーム分の状態更新を進める。
      * @param dt 前フレームからの経過秒数。
-     * @param input input に設定する値。
+     * @param input 状態コンポーネントへ渡すプレイヤー入力。
      */
     void Tick(float dt, PlayerInput& input) override;
     /**

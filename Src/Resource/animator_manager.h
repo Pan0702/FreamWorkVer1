@@ -10,7 +10,7 @@ class AnimatorManager
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     AnimatorManager();
     /**
@@ -29,7 +29,7 @@ public:
     Animation* Load(const std::string& path);
     /**
      * @brief アニメーション を取得する。
-     * @param name name に設定する値。
+     * @param name 対象の名前。
      * @return アニメーション。見つからない、または未作成の場合は nullptr。
      */
     Animation* GetAnimation(const std::string& name);

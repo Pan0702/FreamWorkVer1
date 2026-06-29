@@ -22,7 +22,7 @@ class Window
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     Window();
     /**
@@ -30,7 +30,7 @@ public:
      */
     ~Window();
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     Window(const Window&) = delete;
     /**
@@ -39,7 +39,7 @@ public:
      */
     Window& operator=(const Window&) = delete;
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     Window(Window&&) = delete;
     /**
@@ -50,7 +50,7 @@ public:
 
     /**
      * @brief 内部で使用するリソースを作成する。
-     * @param title title に設定する値。
+     * @param title ウィンドウや表示に使うタイトル。
      * @param width 作成または変更後の幅。
      * @param height 作成または変更後の高さ。
      * @return 対象リソースの作成が完了した場合は true。
@@ -98,7 +98,7 @@ public:
     uint32_t GetLastKeyMessageCount() const;
     /**
      * @brief タイトルバーへ FPS を表示する。
-     * @param title title に設定する値。
+     * @param title ウィンドウや表示に使うタイトル。
      */
     void DispFPS(const wchar_t* title) const;
 
@@ -113,17 +113,17 @@ private:
     /**
      * @brief Win32 から届いたメッセージを Window インスタンスへ橋渡しする。
      * @param hwnd 描画対象の Win32 ウィンドウハンドル。
-     * @param msg msg に設定する値。
-     * @param wParam wParam に設定する値。
-     * @param lParam lParam に設定する値。
+     * @param msg 処理する Windows メッセージ。
+     * @param wParam Windows メッセージの WPARAM。
+     * @param lParam Windows メッセージの LPARAM。
      * @return Win32 に返すメッセージ処理結果。
      */
     static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
     /**
      * @brief Window インスタンス側で Win32 メッセージを処理する。
-     * @param msg msg に設定する値。
-     * @param wParam wParam に設定する値。
-     * @param lParam lParam に設定する値。
+     * @param msg 処理する Windows メッセージ。
+     * @param wParam Windows メッセージの WPARAM。
+     * @param lParam Windows メッセージの LPARAM。
      * @return Win32 に返すメッセージ処理結果。
      */
     LRESULT HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam);

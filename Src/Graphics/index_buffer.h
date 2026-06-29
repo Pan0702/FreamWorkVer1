@@ -11,9 +11,9 @@ public:
     /**
      * @brief 利用前に必要な参照とリソースを初期化する。
      * @param device 使用する D3D12 デバイス。
-     * @param index_data index_data に設定する値。
-     * @param total_size total_size に設定する値。
-     * @param format format に設定する値。
+     * @param index_data アップロードするインデックスデータ。
+     * @param total_size アップロードするデータ全体のバイト数。
+     * @param format 表示またはリソース作成に使うフォーマット。
      * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(ID3D12Device* device, const void* index_data, uint32_t total_size, DXGI_FORMAT format);

@@ -95,24 +95,24 @@ public:
     void OnDetach() override;
     /**
      * @brief コライダー判定に使う中心とスケールを取得する。
-     * @param center center に設定する値。
-     * @param abs_scale abs_scale に設定する値。
+     * @param center 形状の中心座標。
+     * @param abs_scale 各軸の絶対スケール。
      * @return コライダー判定に使う中心とスケールを取得できた 場合は true。
      */
     bool TryGetColliderTransform(Vec3* center, Vec3* abs_scale) const;
     /**
      * @brief 重なり始めた通知を登録済みコールバックへ流す。
-     * @param other other に設定する値。
+     * @param other 比較または参照する相手。
      */
     void InvokeBeginOverlap(const ColliderComponent* other) const;
     /**
      * @brief 重なりが終わった通知を登録済みコールバックへ流す。
-     * @param other other に設定する値。
+     * @param other 比較または参照する相手。
      */
     void InvokeEndOverlap(const ColliderComponent* other);
     /**
      * @brief 接触中の通知を登録済みコールバックへ流す。
-     * @param other other に設定する値。
+     * @param other 比較または参照する相手。
      * @param info 計算結果を書き込む情報。
      */
     void InvokeHit(ColliderComponent* other, const ContactInfo& info);

@@ -1,4 +1,4 @@
-﻿#include "goal_flag.h"
+#include "goal_flag.h"
 #include "../../Engine/Components/static_mesh_component.h"
 #include "../../Game/GameMain.h"
 #include "../Player/player.h"

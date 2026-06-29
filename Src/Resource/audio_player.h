@@ -8,7 +8,7 @@ class AudioPlayer
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     AudioPlayer();
     /**
@@ -17,7 +17,7 @@ public:
     ~AudioPlayer();
 
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     AudioPlayer(const AudioPlayer&) = delete;
     /**
@@ -28,20 +28,20 @@ public:
     
     /**
      * @brief 利用前に必要な参照とリソースを初期化する。
-     * @param xaudio2 xaudio2 に設定する値。
+     * @param xaudio2 ボイス作成に使う XAudio2 インスタンス。
      * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(IXAudio2* xaudio2);
     /**
      * @brief ファイルや外部データを読み込んで内部表現へ変換する。
      * @param filename 読み書きするファイルパス。
-     * @param loop loop に設定する値。
+     * @param loop ループ再生するかどうか。
      * @return 指定データの読み込みが完了した場合は true。
      */
     bool LoadWaveFile(const char* filename, bool loop);
     /**
      * @brief 指定したアニメーションの再生を開始する。
-     * @param loop loop に設定する値。
+     * @param loop ループ再生するかどうか。
      * @return 指定したアニメーションの再生を開始できた 場合は true。
      */
     bool Play(bool loop);
@@ -51,7 +51,7 @@ public:
     void Stop();
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param volume volume に設定する値。
+     * @param volume 処理対象の値。
      */
     void SetVolume(float volume);
     /**

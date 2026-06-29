@@ -99,7 +99,14 @@ Quat QuatFromEuler(const Vec3& euler)
 
 Quat Slerp(const Quat& a, const Quat& b, float t)
 {
-    return Quat(XMQuaternionSlerp(a, b, t));
+    XMVECTOR qa = a;
+    XMVECTOR qb = b;
+    
+    if (XMVectorGetX(XMQuaternionDot(qa, qb)) < 0.0f)
+    {
+        qb = XMVectorNegate(qb);
+    }
+    return Quat(XMQuaternionSlerp(qa, qb, t));
 }
 
 Mat ToMat(const Quat& q)

@@ -13,7 +13,7 @@ class LevelManager
 {
 public:
     /**
-     * @brief インスタンスの初期状態を整える。
+     * @brief 値を初期化する。
      */
     LevelManager();
     /**
@@ -32,7 +32,7 @@ public:
     void Tick(float dt);
     /**
      * @brief 次に開く Level を予約する。
-     * @param name name に設定する値。
+     * @param name 対象の名前。
      */
     void OpenLevel(std::string_view name);
 private:

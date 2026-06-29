@@ -27,68 +27,68 @@ class PipelineStateBuilder
 public:
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param root_signature root_signature に設定する値。
+     * @param root_signature パイプラインに設定するルートシグネチャ。
      * @return 保持している Root Signature への参照。
      */
     PipelineStateBuilder& SetRootSignature(ID3D12RootSignature* root_signature);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param bytecode bytecode に設定する値。
+     * @param bytecode 設定するシェーダーバイトコード。
      * @return 保持している Vertex Shader への参照。
      */
     PipelineStateBuilder& SetVertexShader(const D3D12_SHADER_BYTECODE& bytecode);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param bytecode bytecode に設定する値。
+     * @param bytecode 設定するシェーダーバイトコード。
      * @return 保持している Pixel Shader への参照。
      */
     PipelineStateBuilder& SetPixelShader(const D3D12_SHADER_BYTECODE& bytecode);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param input_layout input_layout に設定する値。
+     * @param input_layout 頂点入力レイアウト。
      * @return 保持している Input Layout への参照。
      */
     PipelineStateBuilder& SetInputLayout(const D3D12_INPUT_LAYOUT_DESC& input_layout);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param format format に設定する値。
+     * @param format 表示またはリソース作成に使うフォーマット。
      * @return 保持している Rtv Format への参照。
      */
     PipelineStateBuilder& SetRtvFormat(DXGI_FORMAT format);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param format format に設定する値。
+     * @param format 表示またはリソース作成に使うフォーマット。
      * @return 保持している Dsv Format への参照。
      */
     PipelineStateBuilder& SetDsvFormat(DXGI_FORMAT format);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param enabled enabled に設定する値。
+     * @param enabled 機能を有効にするかどうか。
      * @return 保持している Depth Enabled への参照。
      */
     PipelineStateBuilder& SetDepthEnabled(bool enabled);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param enabled enabled に設定する値。
+     * @param enabled 機能を有効にするかどうか。
      * @return 保持している Alpha Blend Enabled への参照。
      */
     PipelineStateBuilder& SetAlphaBlendEnabled(bool enabled);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param type type に設定する値。
+     * @param type 作成または参照する種類。
      * @return 保持している Primitive Topology Type への参照。
      */
     PipelineStateBuilder& SetPrimitiveTopologyType(D3D12_PRIMITIVE_TOPOLOGY_TYPE type);
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param enabled enabled に設定する値。
+     * @param enabled 機能を有効にするかどうか。
      * @return 保持している Depth Write Enabled への参照。
      */
     PipelineStateBuilder& SetDepthWriteEnabled(bool enabled);
     /**
      * @brief 後続処理で使いやすい形にデータを組み立てる。
      * @param device 使用する D3D12 デバイス。
-     * @param out_pipeline_state out_pipeline_state に設定する値。
+     * @param out_pipeline_state 作成したパイプラインステートを書き込む値。
      * @return 後続処理で使いやすい形にデータを組み立てる 場合は true。
      */
     bool Build(ID3D12Device* device, PipelineState* out_pipeline_state) const;

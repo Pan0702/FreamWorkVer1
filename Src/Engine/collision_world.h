@@ -12,20 +12,20 @@ class MeshColliderComponent;
 struct Sphere;
 struct Ray;
 
-// HitPair に関係する状態と振る舞いをまとめる型。
+// 接触通知済みのコライダーペアを順序付きで保持するキー。//
 struct HitPair
 {
     ColliderComponent* collider1;
     ColliderComponent* collider2;
 
     /**
-     * @brief インスタンスの初期状態を整える。
-     * @param a 計算に使用するベクトルまたは点。
-     * @param b 計算に使用するベクトルまたは点。
+     * @brief 2 つのコライダーを常に同じ順序で保持する。
+     * @param a ペアに含める 1 つ目のコライダー。
+     * @param b ペアに含める 2 つ目のコライダー。
      */
     HitPair(ColliderComponent* a, ColliderComponent* b)
     {
-        // 生ポインタの < は未規定。必ず std::less を通す//
+        // 生ポインタの < は未規定。必ず std::less を通す。//
         if (std::less<ColliderComponent*>{}(a, b))
         {
             collider1 = a;
@@ -39,9 +39,9 @@ struct HitPair
     }
 
     /**
-     * @brief 演算子 operator< で値を扱う。
-     * @param o o に設定する値。
-     * @return 演算結果として作成した新しい値。
+     * @brief std::set に保存するため、コライダーペアを安定した順序で比較する。
+     * @param o 比較相手の接触ペア。
+     * @return 自分のペアが o より前に並ぶ場合は true。
      */
     bool operator<(const HitPair& o) const
     {
@@ -51,76 +51,76 @@ struct HitPair
     }
 };
 
-// CollisionWorld に関係する状態と振る舞いをまとめる型。
+// 登録されたコライダーの接触判定、通知、デバッグ描画をまとめる。//
 class CollisionWorld
 {
 public:
     /**
-     * @brief 登録済みの対象から今回処理する要素を集める。
+     * @brief 追加・削除待ちのコライダーを反映し、判定対象リストを更新する。
      */
     void Collect();
     /**
-     * @brief 対象を管理リストへ登録する。
-     * @param coll 判定または通知に使用するコライダー。
+     * @brief コライダーを接触判定の管理対象へ登録する。
+     * @param coll 登録するコライダー。
      */
     void Register(ColliderComponent* coll);
     /**
-     * @brief 対象を管理リストから外す。
-     * @param coll 判定または通知に使用するコライダー。
+     * @brief コライダーを接触判定の管理対象から外す。
+     * @param coll 登録解除するコライダー。
      */
     void Unregister(ColliderComponent* coll);
     /**
-     * @brief 形状同士の判定を行い、必要な接触情報を組み立てる。
-     * @param coll1 判定または通知に使用するコライダー。
-     * @param coll2 判定または通知に使用するコライダー。
-     * @param out 計算結果を書き込む情報。
-     * @return 接触点と法線を計算できた場合は true。
+     * @brief 2 つのコライダー形状に合わせた接触判定を呼び出す。
+     * @param coll1 押し出し対象になるコライダー。
+     * @param coll2 判定相手になるコライダー。
+     * @param out 接触法線と貫通量を書き込む情報。
+     * @return coll1 と coll2 が接触している場合は true。
      */
     bool ComputeContact(ColliderComponent* coll1, ColliderComponent* coll2, ContactInfo& out);
     /**
-     * @brief 形状同士の判定を行い、必要な接触情報を組み立てる。
+     * @brief 登録済みコライダーに対してレイキャストを行う。
      * @param ray 判定に使用するレイ。
-     * @param out 計算結果を書き込む情報。
+     * @param out ヒット距離と法線を書き込む情報。
      * @param ignore 判定対象から除外するコライダー。
-     * @return レイがコライダーに当たり、ヒット情報を書き込めた場合は true。
+     * @return レイがいずれかのコライダーに当たった場合は true。
      */
     bool Raycast(const Ray& ray, ContactInfo& out, const ColliderComponent* ignore = nullptr) const;
     /**
-     * @brief 現在の状態をもとに描画コマンドを積む。
+     * @brief 登録済みコライダーのデバッグ描画を積む。
      */
     void DrawDebug();
     
 private:
-    std::vector<ColliderComponent*> colliders_; //Colliderの配列 //
-    std::set<HitPair> prev_pairs_; //前フレーム重なってたペア //
-    std::vector<ColliderComponent*> pending_add_; //登録用の待機列 //
-    std::vector<ColliderComponent*> pending_remove_; //解除用の待機列 //
+    std::vector<ColliderComponent*> colliders_; // Collider の配列。//
+    std::set<HitPair> prev_pairs_; // 前フレームに重なっていたペア。//
+    std::vector<ColliderComponent*> pending_add_; // 登録用の待機列。//
+    std::vector<ColliderComponent*> pending_remove_; // 解除用の待機列。//
     std::vector<ColliderComponent*> debug_objects_;
-    bool dispatching_ = false; //コールバック呼び出しFlag//
+    bool dispatching_ = false; // コールバック呼び出し中かどうか。//
 };
 
 /**
- * @brief 形状同士の判定を行い、必要な接触情報を組み立てる。
- * @param mesh 読み込み、描画、または判定に使用するメッシュ。
- * @param sphere1 sphere1 に設定する値。
- * @param out 計算結果を書き込む情報。
- * @return 形状同士の判定を行い、必要な接触情報を組み立てる 場合は true。
+ * @brief メッシュと球の当たり判定を行う。
+ * @param mesh 判定相手になるメッシュコライダー。
+ * @param sphere1 押し出し対象になる球。
+ * @param out 接触法線と貫通量を書き込む情報。
+ * @return メッシュ内のいずれかの三角形と球が接触した場合は true。
  */
 static bool ContactMeshSphere(const MeshColliderComponent* mesh, const Sphere& sphere1, ContactInfo& out);
 /**
- * @brief 形状同士の判定を行い、必要な接触情報を組み立てる。
- * @param mesh 読み込み、描画、または判定に使用するメッシュ。
- * @param box box に設定する値。
- * @param out 計算結果を書き込む情報。
- * @return 形状同士の判定を行い、必要な接触情報を組み立てる 場合は true。
+ * @brief メッシュと AABB の当たり判定を行う。
+ * @param mesh 判定相手になるメッシュコライダー。
+ * @param box 押し出し対象になる AABB。
+ * @param out 接触法線と貫通量を書き込む情報。
+ * @return メッシュ内のいずれかの三角形と AABB が接触した場合は true。
  */
 static bool ContactMeshBox(const MeshColliderComponent* mesh, const Box& box, ContactInfo& out);
 
 /**
- * @brief 形状同士の判定を行い、必要な接触情報を組み立てる。
- * @param mesh 読み込み、描画、または判定に使用するメッシュ。
- * @param box box に設定する値。
- * @param out 計算結果を書き込む情報。
- * @return 形状同士の判定を行い、必要な接触情報を組み立てる 場合は true。
+ * @brief メッシュとカプセルの当たり判定を行う。
+ * @param mesh 判定相手になるメッシュコライダー。
+ * @param capsule 押し出し対象になるカプセル。
+ * @param out 接触法線と貫通量を書き込む情報。
+ * @return メッシュ内のいずれかの三角形とカプセルが接触した場合は true。
  */
 static bool ContactMeshCapsule(const MeshColliderComponent* mesh,const Capsule& capsule, ContactInfo& out);

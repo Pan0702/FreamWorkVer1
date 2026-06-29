@@ -26,16 +26,16 @@ public:
     void Shutdown();
     /**
      * @brief デバッグ描画用の線分を追加する。
-     * @param start start に設定する値。
-     * @param end end に設定する値。
+     * @param start 線分または範囲の始点。
+     * @param end 線分または範囲の終点。
      * @param color 設定する色。
      */
     void AddLine(const Vec3& start, const Vec3& end, const Vec4& color);
     /**
      * @brief デバッグ描画用の三角形を線分として追加する。
-     * @param a 計算に使用するベクトルまたは点。
-     * @param b 計算に使用するベクトルまたは点。
-     * @param c 計算に使用するベクトルまたは点。
+     * @param a 1 つ目のベクトルまたは点。
+     * @param b 2 つ目のベクトルまたは点。
+     * @param c 3 つ目のベクトルまたは点。
      * @param color 設定する色。
      */
     void AddTriangle(const Vec3& a, const Vec3& b, const Vec3& c, const Vec4& color);
@@ -61,10 +61,10 @@ private:
     /**
      * @brief 内部で使用するリソースを作成する。
      * @param device 使用する D3D12 デバイス。
-     * @param buffer_size buffer_size に設定する値。
-     * @param out_buffer out_buffer に設定する値。
-     * @param out_mapped out_mapped に設定する値。
-     * @param out_gpu_address out_gpu_address に設定する値。
+     * @param buffer_size 作成するバッファのバイト数。
+     * @param out_buffer 作成したバッファを書き込む値。
+     * @param out_mapped マップした CPU アドレスを書き込む値。
+     * @param out_gpu_address GPU 仮想アドレスを書き込む値。
      * @return 対象リソースの作成が完了した場合は true。
      */
     bool CreateDynamicVertexBuffer(ID3D12Device* device, uint32_t buffer_size,
