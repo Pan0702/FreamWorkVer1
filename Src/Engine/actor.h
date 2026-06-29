@@ -110,11 +110,16 @@ public:
     }
 
     /**
-     * @brief 1 フレーム分の状態更新を進める。
+     * @brief 1フレーム分の状態更新を進める。
      * @param dt 前フレームからの経過秒数。
      */
     virtual void Tick(float dt);
 
+    /**
+     * @brief Tick関数を使うかどうか決める。
+     * @param use 使うかどうか。
+     */
+    void SetUseTick(bool use);
 protected:
     TransformComponent transform_;
 
@@ -132,4 +137,5 @@ private:
     World* world_ = nullptr;
     std::vector<std::unique_ptr<Component>> components_;
     bool attached_ = false;
+    bool use_tick_ = true;
 };

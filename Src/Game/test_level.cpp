@@ -20,7 +20,7 @@
 #include "../Engine/Components/box_collider_component.h"
 #include "../Engine/Components/mesh_collider_component.h"
 #include "../Play/Objects/goal_flag.h"
-
+#include "../Play/UI/clear.h"
 TestLevel::TestLevel() = default;
 TestLevel::~TestLevel() = default;
 
@@ -117,6 +117,7 @@ void TestLevel::OnEnter()
     }
 
     SpawnActor<GoalFlag>();
+    SpawnActor<Clear>();
     LevelBase::OnEnter();
 }
 

@@ -47,14 +47,16 @@ public:
      * @param color 設定する色。
      */
     void DrawSprite(Texture2D* texture, const Vec2& position, const Vec2& size, const Vec4& color) const;
-    /**
+  /**
      * @brief 現在の状態をもとに描画コマンドを積む。
      * @param position 描画または配置に使う座標。
      * @param size 設定するサイズ。
      * @param color 設定する色。
      * @param rotation 回転角度。
+     * @param sort 描画順番。
      */
-    void DrawBox(const Vec2& position, const Vec2& size, const Vec4& color, float rotation = 0.0f) const;
+    void DrawBox(const Vec2& position, const Vec2& size, const Vec4& color, float rotation = 0.0f, uint64 sort = 100.0f) const;
+  
     /**
      * @brief 現在の状態をもとに描画コマンドを積む。
      * @param start 線分または範囲の始点。

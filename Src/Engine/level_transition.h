@@ -16,8 +16,8 @@ public:
     void Start();
     void Tick(float dt);
     void Draw();
-    bool GetJustCovered();
-    bool IsPlaying();
+    bool GetJustCovered() const;
+    bool IsPlaying() const;
 private:
     float time_ = 0.0f; 
     float progress_ = 0.0f;

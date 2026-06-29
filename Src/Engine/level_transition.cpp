@@ -47,12 +47,12 @@ void LevelTransition::Draw()
     effect_->Draw(progress_);
 }
 
-bool LevelTransition::GetJustCovered()
+bool LevelTransition::GetJustCovered() const
 {
     return just_covered_;
 }
 
-bool LevelTransition::IsPlaying()
+bool LevelTransition::IsPlaying() const
 {
     return phase_ != TransitionPhase::kNone;
 }

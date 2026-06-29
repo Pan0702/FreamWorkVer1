@@ -116,7 +116,7 @@ void SpriteRenderer::Collect()
         command.texture = component->texture;
         command.position = component->position;
         command.world = Translate(Vec3(component->position.x, component->position.y, 0.0f));
-        command.size = component->size;
+        command.size = component->size_;
         command.color = component->color;
         command.src_rect = component->src_rect;
         command.use_texture = component->texture != nullptr;

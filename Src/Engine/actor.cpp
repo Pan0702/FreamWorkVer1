@@ -27,7 +27,7 @@ void Actor::OnSpawn(World* world)
 
 World* Actor::GetWorld() const
 {
-    return world_;  
+    return world_;
 }
 
 void Actor::Attach(const AttachContext& context)
@@ -60,8 +60,17 @@ void Actor::Detach()
 
 void Actor::Tick(float dt)
 {
+    if (!use_tick_)
+    {
+        return;
+    }
     for (const auto& component : components_)
     {
-        component->Tick(dt);
+            component->Tick(dt);
     }
+}
+
+void Actor::SetUseTick(bool use)
+{
+    use_tick_ = use;
 }

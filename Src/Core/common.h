@@ -34,5 +34,5 @@ template<typename T>
 using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 // アプリケーション起動時の標準ウィンドウサイズ。
-inline constexpr uint32_t kWindowWidth = 1280;
-inline constexpr uint32_t kWindwoHeight = 720;
+inline constexpr uint32_t kWindowWidth = 1920;
+inline constexpr uint32_t kWindwoHeight = 1080;

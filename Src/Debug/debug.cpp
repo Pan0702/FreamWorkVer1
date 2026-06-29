@@ -9,10 +9,7 @@
 
 #include "../Game/GameMain.h"
 
-namespace
-{
-    constexpr float kHalf = 0.5f;
-}
+
 
 Debug& Debug::Get()
 {
@@ -84,14 +81,14 @@ void Debug::DrawSprite(Texture2D* texture, const Vec2& position, const Vec2& siz
 
     SpriteDrawCommand command = {};
     command.texture = texture;
-    command.position = Vec2(pixcel_pos.x + pixcel_size.x * kHalf, pixcel_pos.y + pixcel_size.y * kHalf);
+    command.position = Vec2(pixcel_pos.x + pixcel_size.x * kHalfSize, pixcel_pos.y + pixcel_size.y * kHalfSize);
     command.size = pixcel_size;
     command.color = color;
     command.use_texture = true;
     ui_renderer_->DrawImmediate(command);
 }
 
-void Debug::DrawBox(const Vec2& position, const Vec2& size, const Vec4& color, float rotation) const
+void Debug::DrawBox(const Vec2& position, const Vec2& size, const Vec4& color, float rotation,uint64 sort) const
 {
     if (ui_renderer_ == nullptr)
     {
@@ -107,10 +104,11 @@ void Debug::DrawBox(const Vec2& position, const Vec2& size, const Vec4& color, f
         , (size.y / kWindwoHeight) * static_cast<float>(game_main->GetWindow().GetSize().width));
 
     SpriteDrawCommand command = {};
-    command.position = Vec2(pixcel_pos.x + pixcel_size.x * kHalf, pixcel_pos.y + pixcel_size.y * kHalf);
+    command.position = Vec2(pixcel_pos.x + pixcel_size.x * kHalfSize, pixcel_pos.y + pixcel_size.y * kHalfSize);
     command.size = pixcel_size;
     command.color = color;
     command.rotation = rotation;
+    command.sort_key = sort;
     command.use_texture = false;
     ui_renderer_->DrawImmediate(command);
 }
@@ -134,7 +132,7 @@ void Debug::DrawLine(const Vec2& start, const Vec2& end, const Vec4& color) cons
     const float dy = end_vec2.y - start_vec2.y;
     const float length = std::sqrt(dx * dx + dy * dy);
     SpriteDrawCommand command = {};
-    command.position = Vec2((start_vec2.x + end_vec2.x) * kHalf, (start_vec2.y + end_vec2.y) * kHalf);
+    command.position = Vec2((start_vec2.x + end_vec2.x) * kHalfSize, (start_vec2.y + end_vec2.y) * kHalfSize);
     command.size = Vec2(length, 2.0f);
     command.color = color;
     command.rotation = std::atan2(dy, dx);

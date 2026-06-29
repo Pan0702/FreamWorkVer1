@@ -52,14 +52,18 @@ void Player::Tick(float dt)
 {
     // 足元から真下へレイを撃って、このフレームの重力処理前に接地状態を確定する。//
     {
-        constexpr float kProbeRadius = 1.0f; // 体の球コライダー半径（ワールド）//
-        constexpr float kProbeMargin = 0.2f; // 接地とみなす許容ギャップ//
+        constexpr float kProbeMargin = 0.1f; // 接地とみなす許容ギャップ//
         Ray ray;
-        ray.origin = transform_.position;
+        constexpr float kProbeUp = 0.5f; 
+        ray.origin = transform_.position + Vec3(0.0f, kProbeUp, 0.0f);
         ray.direction = Vec3(0.0f, -1.0f, 0.0f);
-        ray.distance = kProbeRadius + kProbeMargin;
+        ray.distance = kProbeUp + kProbeMargin;
         ContactInfo hit;
         is_grounded_ = GetWorld()->GetCollisionWorld().Raycast(ray, hit);
+        if (is_grounded_)
+        {
+          vel_.y = ray.origin.y - (hit.normal * hit.depth).y;
+        }
     }
 
     pl_input_ = Input(dt);

@@ -5,9 +5,11 @@
 #include "../Resource/vertex_types.h"
 #include "../Engine/Components/sprite_component.h"
 #include "render_context.h"
+#include "../Game/GameMain.h"
 #include "../Graphics/constant_buffer_allocator.h"
 #include "../Graphics/descriptor_heap.h"
 #include "../Resource/texture2D.h"
+
 bool UIRenderer::Initialize(ID3D12Device* device)
 {
     SpriteVertex vertices[4] = {
@@ -97,22 +99,34 @@ void UIRenderer::DrawImmediate(const SpriteDrawCommand& command)
 
 void UIRenderer::Collect()
 {
-
     draw_commands_.clear();
     for (SpriteComponent* component : registered_)
     {
-        if (component == nullptr || component->texture == nullptr)
+        if (component == nullptr || !component->GetVisible())
         {
             continue;
         }
 
+        Vec2 draw_size = component->size_;
+        Vec2 draw_pos = component->position;
+        if (component->GetRelativeSizeFlag())
+        {
+            draw_size.x = component->GetSize().x * game_main->GetWindow().GetSize().width;
+            draw_size.y = component->GetSize().y * game_main->GetWindow().GetSize().height;
+        }
+        if (component->GetRelativePosFlag())
+        {
+            draw_pos.x = component->GetPos().x * game_main->GetWindow().GetSize().width;
+            draw_pos.y = component->GetPos().y * game_main->GetWindow().GetSize().height;
+        }
         SpriteDrawCommand command = {};
         command.texture = component->texture;
-        command.position = component->position;
-        command.size = component->size;
+        command.size = draw_size;
+        command.position = draw_pos + draw_size * kHalfSize;
         command.color = component->color;
         command.src_rect = component->src_rect;
         command.use_texture = component->texture != nullptr;
+        command.sort_key = component->sort_key;
         draw_commands_.push_back(command);
     }
 
@@ -151,7 +165,6 @@ void UIRenderer::Submit(RenderContext& context)
 
 void UIRenderer::SubmitCommand(RenderContext& context, const SpriteDrawCommand& command)
 {
-    
     struct UISpriteCBData cb_data = {};
     cb_data.sprite_pos = command.position;
     cb_data.sprite_size = command.size;
@@ -171,5 +184,4 @@ void UIRenderer::SubmitCommand(RenderContext& context, const SpriteDrawCommand& 
     const uint32_t srv_index = command.texture != nullptr ? command.texture->GetSrvIndex() : 0;
     context.command_list->SetGraphicsRootDescriptorTable(1, context.srv_heap->GetGpuHandle(srv_index));
     context.command_list->DrawIndexedInstanced(6, 1, 0, 0, 0);
-
 }

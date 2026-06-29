@@ -91,12 +91,13 @@ private:
     class AnimationComponent* animation_ = nullptr;
 
     Vec3 vel_;
+    float radius_ = 0.5f;
     uint32_t state_bit_ = 0;
     ComponentFactor factor_;
     std::unordered_map<PlayerState, StateComponentBase*> states_;
     PlayerInput pl_input_;
+    std::string animation_name_;
     bool is_moving_ = false;
     bool is_grounded_ = true;
     bool was_grounded_ = true;
-    std::string animation_name_;
 };

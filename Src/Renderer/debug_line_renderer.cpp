@@ -1,5 +1,6 @@
 #include "debug_line_renderer.h"
 #include "../Resource/vertex_types.h"
+#include <algorithm>
 #include <cstring>
 #include "../Core/common.h"
 #include "../Graphics/constant_buffer_allocator.h"
@@ -154,7 +155,7 @@ void DebugLineRenderer::AddTriangle(const Vec3& a, const Vec3& b, const Vec3& c,
     tri_vertices_.push_back(v2);
 }
 
-void DebugLineRenderer::Submit(RenderContext& context)
+void DebugLineRenderer::Submit(const RenderContext& context)
 {
     const bool has_lines = !vertices_.empty();
     const bool has_tris = !tri_vertices_.empty();
@@ -180,10 +181,7 @@ void DebugLineRenderer::Submit(RenderContext& context)
     if (has_lines)
     {
         uint32_t count = static_cast<uint32_t>(vertices_.size());
-        if (count > capacity_)
-        {
-            count = capacity_;
-        }
+        count = std::min(count, capacity_);
         memcpy(mapped_, vertices_.data(), count * sizeof(DebugLineVertex));
 
         D3D12_VERTEX_BUFFER_VIEW vbv = {};
@@ -201,10 +199,7 @@ void DebugLineRenderer::Submit(RenderContext& context)
     if (has_tris)
     {
         uint32_t count = static_cast<uint32_t>(tri_vertices_.size());
-        if (count > capacity_)
-        {
-            count = capacity_;
-        }
+        count = std::min(count, capacity_);
         memcpy(tri_mapped_, tri_vertices_.data(), count * sizeof(DebugLineVertex));
 
         D3D12_VERTEX_BUFFER_VIEW vbv = {};

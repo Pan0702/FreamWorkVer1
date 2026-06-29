@@ -4,10 +4,8 @@
 class PlayLevel : public LevelBase
 {
 public:
-    /**
-     * @brief 値を初期化する。
-     */
-    PlayLevel();
+    PlayLevel() = default;
+    ~PlayLevel() override = default;
     /**
      * @brief 生成または遷移直後に必要な初期処理を行う。
      */
