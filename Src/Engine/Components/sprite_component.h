@@ -111,4 +111,5 @@ private:
     bool is_relative_size_ = false;
     bool is_relative_pos_ = false;
     bool visible_ = true;
+    bool allias_ = false;
 };

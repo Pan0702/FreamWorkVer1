@@ -20,5 +20,5 @@ void GoalFlag::OnBeginOverlap(const ColliderComponent* c1, const ColliderCompone
     {
         return;
     }
-    game_main->GetApplication().GetLevelManager().OpenLevel(LevelName::kTest);
+    game_main->GetGameInstance().GetLevelManager().OpenLevel(LevelName::kTest);
 }

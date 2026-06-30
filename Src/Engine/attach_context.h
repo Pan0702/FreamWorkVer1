@@ -7,7 +7,7 @@ class UIRenderer;
 class CollisionWorld;
 
 /**
- * @brief AttachContextのデータと処理をまとめる型。
+ * @brief AttachContextのデータと処理をまとめる型
  */
 struct AttachContext
 {

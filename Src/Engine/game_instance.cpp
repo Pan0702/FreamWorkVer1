@@ -22,7 +22,7 @@ bool GameInstance::Initialize()
     attach_context.skinned_mesh_renderer = scene_renderer->GetSkinnedMeshRenderer();
     world_.SetAttachContext(attach_context);
     option_ = std::make_unique<Option>();
-    option_->OnSpawn(&world_);  
+    option_->OnAttach(attach_context);
     level_manager_.Initialize(&world_);
     level_manager_.OpenLevel("Test");
     return true;
@@ -30,9 +30,10 @@ bool GameInstance::Initialize()
 
 void GameInstance::Tick(float dt)
 {
+    option_->Tick(dt);
+    if (!use_tick_)return;
     level_manager_.Tick(dt);
     world_.Tick(dt);
-
 }
 
 void GameInstance::Render()
@@ -48,4 +49,9 @@ World* GameInstance::GetWorld()
 LevelManager& GameInstance::GetLevelManager()
 {
     return level_manager_;
+}
+
+void GameInstance::SetUseTick(bool use_tick)
+{
+    use_tick_ = !use_tick;
 }

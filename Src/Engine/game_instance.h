@@ -37,8 +37,14 @@ public:
      */
     LevelManager& GetLevelManager();
 
+    /**
+     * TickŠÖ”‚ğg‚¤‚©‚Ç‚¤‚©
+     * @param use_tick Flag‚ğ“n‚·
+     */
+    void SetUseTick(bool use_tick);
 private:
     World world_;
     LevelManager level_manager_;
     std::unique_ptr<Option> option_;
+    bool use_tick_ = true;
 };

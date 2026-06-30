@@ -125,7 +125,7 @@ void TestLevel::Tick(float dt)
 {
     if (game_main->GetInput().CheckKey(InputKey::kEnter, KeyState::kDown))
     {
-        game_main->GetApplication().GetLevelManager().OpenLevel("Play");
+        game_main->GetGameInstance().GetLevelManager().OpenLevel("Play");
     }
     static float num = 0;
     float radius = 5.0f;

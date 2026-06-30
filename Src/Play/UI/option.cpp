@@ -4,6 +4,7 @@
 
 #include "../../Engine/Components/sprite_component.h"
 #include "../../Game/GameMain.h"
+#include "../../Renderer/ui_renderer.h"
 
 namespace
 {
@@ -23,38 +24,64 @@ namespace
 Option::Option()
 {
     Texture2D* tex = TextureManager::Get().Load(L"Assets/Texture/option.png");
-    ui_ = AddComponent<SpriteComponent>(tex, SpriteSpace::kScreen);
+    ui_ = std::make_unique<SpriteComponent>(tex, SpriteSpace::kScreen);
     ui_->SetSize(kWindowWidth, kWindwoHeight);
-    ui_->sort_key = 1;
+    ui_->sort_key = 11;
 
-    overlay_ = AddComponent<SpriteComponent>(nullptr, SpriteSpace::kScreen);
+    overlay_ = std::make_unique<SpriteComponent>(nullptr, SpriteSpace::kScreen);
     overlay_->color = kOverlayColor;
     overlay_->SetSize(kWindowWidth, kWindwoHeight);
-    overlay_->sort_key = 0;
+    overlay_->sort_key = 10;
 
     Texture2D* tex_sele = TextureManager::Get().Load(L"Assets/Texture/select.png");
-    cur_texture_ = AddComponent<SpriteComponent>(tex_sele, SpriteSpace::kScreen);
+    cur_texture_ = std::make_unique<SpriteComponent>(tex_sele, SpriteSpace::kScreen);
     cur_texture_->SetSize(kCursorWidth, kCursorHeight);
     cur_texture_->SetPos(kCursorX, kCursorStartY);
-    cur_texture_->sort_key = 2;
+    cur_texture_->sort_key = 12;
+    
+    ui_->SetVisible(visible_);
+    overlay_->SetVisible(visible_);
+    cur_texture_->SetVisible(visible_);
 }
 
+Option::~Option()
+{
+    OnDetach();
+}
+
+
+void Option::OnAttach(const AttachContext& context) const
+{
+    ui_->OnAttach(context);
+    overlay_->OnAttach(context);
+    cur_texture_->OnAttach(context);
+}
+
+void Option::OnDetach() const
+{
+    ui_->OnDetach();
+    overlay_->OnDetach();
+    cur_texture_->OnDetach();
+}
 
 void Option::Tick(float dt)
 {
     if (game_main->GetInput().CheckKey(InputKey::kEsc, KeyState::kPressed))
     {
         SetVisible(!visible_);
+        game_main->GetGameInstance().SetUseTick(visible_);
+        ui_->SetVisible(visible_);
+        overlay_->SetVisible(visible_);
+        cur_texture_->SetVisible(visible_);
     }
-    ui_->SetVisible(visible_);
-    overlay_->SetVisible(visible_);
-    cur_texture_->SetVisible(visible_);
     if (!visible_)
     {
         return;
     }
+    ui_->Tick(dt);
+    overlay_->Tick(dt);
+    cur_texture_->Tick(dt);
     Input();
-    Actor::Tick(dt);
 }
 
 

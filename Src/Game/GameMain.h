@@ -63,7 +63,7 @@ public:
      * @brief Application を取得する。
      * @return 保持している Application への参照。
      */
-    GameInstance& GetApplication() { return game_instance_; }
+    GameInstance& GetGameInstance() { return game_instance_; }
     /**
      * @brief RenderSystem を取得する。
      * @return GameMain が保持している RenderSystem。未初期化なら nullptr。

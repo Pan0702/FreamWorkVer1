@@ -64,8 +64,8 @@ public:
      */
     CollisionWorld& GetCollisionWorld() { return collision_world_; }
 
-    template<class T = Actor>
-T* FindActor()
+    template <class T = Actor>
+    T* FindActor()
     {
         static_assert(std::is_base_of_v<Actor, T>);
         for (auto& actor : actors_)
@@ -77,6 +77,7 @@ T* FindActor()
         }
         return nullptr;
     }
+
 private:
     std::vector<Actor*> actors_;
     AttachContext attach_context_ = {};
