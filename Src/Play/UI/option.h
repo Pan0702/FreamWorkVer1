@@ -1,20 +1,20 @@
 ﻿#pragma once
-#include "../../Engine/game_instance.h"
+#include "../../Engine/actor.h"
 
 class SpriteComponent;
-class Option : public GameInstance
+class Option : public Actor
 {
 public:
     Option();
-    ~Option() = default;
+    ~Option() override = default;
     void Tick(float dt) override;
     bool IsVisible() const;
     void SetVisible(bool visible);
-    
+    static Option& Get();
 private:
     void Input() const;
-    std::unique_ptr<SpriteComponent> ui_ = nullptr;
-    std::unique_ptr<SpriteComponent> cur_texture_ = nullptr;
-    std::unique_ptr<SpriteComponent> overlay_ = nullptr;
+    SpriteComponent*ui_ = nullptr;
+    SpriteComponent*cur_texture_ = nullptr;
+    SpriteComponent*overlay_ = nullptr;
     bool visible_ = false;
 };

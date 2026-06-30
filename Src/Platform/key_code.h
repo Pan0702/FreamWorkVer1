@@ -10,13 +10,13 @@ enum class KeyState : uint8_t
     kReleased  // 今フレームに離された。
 };
 
-// 入力で使うキー番号。内部で Windows の仮想キーコードへ変換される。
+// 入力で使うキー番号。内部で Windows の仮想キーコードへ変換される。//
 namespace InputKey
 {
-    constexpr uint8_t kEsc = 0x01;
-    constexpr uint8_t kNum1 = 0x02;
-    constexpr uint8_t kNum2 = 0x03;
-    constexpr uint8_t kNum3 = 0x04;
+    inline constexpr uint8_t kEsc = 0x01;
+    inline constexpr uint8_t kNum1 = 0x02;
+    inline constexpr uint8_t kNum2 = 0x03;
+    inline constexpr uint8_t kNum3 = 0x04;
     constexpr uint8_t kNum4 = 0x05;
     constexpr uint8_t kNum5 = 0x06;
     constexpr uint8_t kNum6 = 0x07;

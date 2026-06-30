@@ -2,7 +2,14 @@
 
 #include "render_system.h"
 #include "../Game/GameMain.h"
+
 #include "../Renderer/scene_renderer.h"
+#include "../Resource/animation.h"
+#include "../Play/UI/option.h"
+
+GameInstance::GameInstance() =default;
+
+GameInstance::~GameInstance() = default;
 
 bool GameInstance::Initialize()
 {
@@ -14,6 +21,8 @@ bool GameInstance::Initialize()
     attach_context.ui_renderer = scene_renderer->GetUIRenderer();
     attach_context.skinned_mesh_renderer = scene_renderer->GetSkinnedMeshRenderer();
     world_.SetAttachContext(attach_context);
+    option_ = std::make_unique<Option>();
+    option_->OnSpawn(&world_);  
     level_manager_.Initialize(&world_);
     level_manager_.OpenLevel("Test");
     return true;
@@ -23,6 +32,7 @@ void GameInstance::Tick(float dt)
 {
     level_manager_.Tick(dt);
     world_.Tick(dt);
+
 }
 
 void GameInstance::Render()

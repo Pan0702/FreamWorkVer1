@@ -62,7 +62,7 @@
     <ClInclude Include="Src\Engine\Transition\fade.h" />
     <ClInclude Include="Src\Engine\Transition\transition_effect.h" />
     <ClInclude Include="Src\Engine\world.h" />
-    <ClInclude Include="Src\Game\GameMain.h" />
+    <ClCompile Include="Src\Game\GameMain.h" />
     <ClCompile Include="Src\Game\test_level.h" />
     <ClInclude Include="Src\Graphics\command_list.h" />
     <ClInclude Include="Src\Graphics\command_queue.h" />
@@ -110,6 +110,19 @@
     <ClInclude Include="Src\Resource\texture_loder.h" />
     <ClInclude Include="Src\Resource\texture_manager.h" />
     <ClInclude Include="Src\Resource\vertex_types.h" />
+    <ClInclude Include="Src\Play\Objects\cube.h" />
+    <ClInclude Include="Src\Play\Objects\goal_flag.h" />
+    <ClInclude Include="Src\Play\Objects\start_cube.h" />
+    <ClInclude Include="Src\Play\Player\player.h" />
+    <ClInclude Include="Src\Play\Player\player_camera.h" />
+    <ClInclude Include="Src\Play\Player\player_common.h" />
+    <ClInclude Include="Src\Play\Player\PlayerComponent\component_factor.h" />
+    <ClInclude Include="Src\Play\Player\PlayerComponent\jump.h" />
+    <ClInclude Include="Src\Play\Player\PlayerComponent\movement.h" />
+    <ClInclude Include="Src\Play\Player\PlayerComponent\state_component.h" />
+    <ClInclude Include="Src\Play\play_level.h" />
+    <ClInclude Include="Src\Play\UI\clear.h" />
+    <ClInclude Include="Src\Play\UI\option.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Engine\Components\capsule_collider_comp.cpp" />
@@ -193,6 +206,17 @@
     <ClCompile Include="Src\Graphics\swap_chain.cpp" />
     <ClCompile Include="Src\Graphics\vertex_buffer.cpp" />
     <ClCompile Include="Src\Platform\window.cpp" />
+    <ClCompile Include="Src\Play\Objects\cube.cpp" />
+    <ClCompile Include="Src\Play\Objects\goal_flag.cpp" />
+    <ClCompile Include="Src\Play\Objects\start_cube.cpp" />
+    <ClCompile Include="Src\Play\Player\player.cpp" />
+    <ClCompile Include="Src\Play\Player\player_camera.cpp" />
+    <ClCompile Include="Src\Play\Player\PlayerComponent\component_factor.cpp" />
+    <ClCompile Include="Src\Play\Player\PlayerComponent\jump.cpp" />
+    <ClCompile Include="Src\Play\Player\PlayerComponent\movement.cpp" />
+    <ClCompile Include="Src\Play\play_level.cpp" />
+    <ClCompile Include="Src\Play\UI\clear.cpp" />
+    <ClCompile Include="Src\Play\UI\option.cpp" />
   </ItemGroup>
   <ItemGroup>
    <None Include="Shaders\sky.vs.hlsl" />

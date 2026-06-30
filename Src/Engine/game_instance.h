@@ -2,12 +2,15 @@
 #include "level_manager.h"
 #include "world.h"
 
+class Option;
 /**
  * @brief GameInstanceのデータと処理をまとめる型。
  */
 class GameInstance
 {
 public:
+    GameInstance();
+    virtual ~GameInstance();
     /**
      * @brief 利用前に必要な参照とリソースを初期化する。
      * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
@@ -37,4 +40,5 @@ public:
 private:
     World world_;
     LevelManager level_manager_;
+    std::unique_ptr<Option> option_;
 };
