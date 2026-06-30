@@ -8,6 +8,7 @@ void Input::Initialize(HWND hwnd)
     {
         key_to_vk_[i] = MapVirtualKey(i, MAPVK_VSC_TO_VK);
     }
+    ShowCursor(false);
 }
 
 void Input::Update()
@@ -29,16 +30,39 @@ void Input::Update()
     {
         memset(current_keys_, 0, sizeof(current_keys_));
     }
-    int prev_x = mouse_x_;
-    int prev_y = mouse_y_;
+    if (mouse_locked_)
+    {
+        RECT rc;
+        GetClientRect(hwnd_, &rc);
+        POINT center = {rc.right / 2, rc.bottom / 2};
 
-    POINT pt;
-    GetCursorPos(&pt);
-    ScreenToClient(hwnd_, &pt);
-    mouse_x_ = pt.x;
-    mouse_y_ = pt.y;
-    mouse_delta_x_ = mouse_x_ - prev_x;
-    mouse_delta_y_ = mouse_y_ - prev_y;
+        POINT cur;
+        GetCursorPos(&cur);
+        ScreenToClient(hwnd_, &cur);
+        // 中央からのズレ＝今フレームの移動量//
+        mouse_delta_x_ = cur.x - center.x;
+        mouse_delta_y_ = cur.y - center.y;
+
+        POINT c = center;
+        ClientToScreen(hwnd_, &c);
+        // 毎フレーム中央へ戻す//
+        SetCursorPos(c.x, c.y);
+        mouse_x_ = center.x;
+        mouse_y_ = center.y;
+    }
+    else
+    {
+        int prev_x = mouse_x_;
+        int prev_y = mouse_y_;
+
+        POINT pt;
+        GetCursorPos(&pt);
+        ScreenToClient(hwnd_, &pt);
+        mouse_x_ = pt.x;
+        mouse_y_ = pt.y;
+        mouse_delta_x_ = mouse_x_ - prev_x;
+        mouse_delta_y_ = mouse_y_ - prev_y;
+    }
     mouse_buttons_[0] = (GetAsyncKeyState(VK_LBUTTON) & 0x8000) != 0;
     mouse_buttons_[1] = (GetAsyncKeyState(VK_RBUTTON) & 0x8000) != 0;
     mouse_buttons_[2] = (GetAsyncKeyState(VK_MBUTTON) & 0x8000) != 0;
@@ -83,15 +107,22 @@ int Input::GetMouseX() const
 
 int Input::GetMouseY() const
 {
-    return mouse_y_;   
+    return mouse_y_;
 }
 
 int Input::GetMouseDeltaX() const
 {
-    return mouse_delta_x_;  
+    return mouse_delta_x_;
 }
 
 int Input::GetMouseDeltaY() const
 {
-    return mouse_delta_y_; 
+    return mouse_delta_y_;
+}
+
+void Input::SetMouseLock(bool lock)
+{
+    if (lock == mouse_locked_) return;
+    mouse_locked_ = lock;
+    
 }

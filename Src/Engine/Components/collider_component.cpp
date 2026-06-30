@@ -93,3 +93,13 @@ bool ColliderComponent::IsDraw() const
 {
     return is_draw_;
 }
+
+void ColliderComponent::SetTrigger(bool is_trigger)
+{
+    is_trigger_ = is_trigger;
+}
+
+bool ColliderComponent::IsTrigger() const
+{
+    return is_trigger_;
+}

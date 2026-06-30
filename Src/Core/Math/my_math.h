@@ -204,13 +204,13 @@ float NormalizeAngleRadSigned(float angle);
 float PowF(float num,int power);
 
 // Šp“x•ÏŠ·‚Æ‰~ü—¦‚Ì’è”B
-constexpr float kPI = std::numbers::pi_v<float>;
-constexpr float k2PI = 2.0f * kPI;
-constexpr float kHalfPi = kPI * 0.5f;
-constexpr float kDegToRad = kPI / 180.0f;
-constexpr float kRadToDeg = 180.0f / kPI;
-constexpr float kHalfSize = 0.5f;
-constexpr float kEpsilon = 1e-6f;
+inline constexpr float kPI = std::numbers::pi_v<float>;
+inline constexpr float k2PI = 2.0f * kPI;
+inline constexpr float kHalfPi = kPI * 0.5f;
+inline constexpr float kDegToRad = kPI / 180.0f;
+inline constexpr float kRadToDeg = 180.0f / kPI;
+inline constexpr float kHalfSize = 0.5f;
+inline constexpr float kEpsilon = 1e-6f;
 
 
 // ‚æ‚­g‚¤®”Œ^‚Ì’Zk•Ê–¼B

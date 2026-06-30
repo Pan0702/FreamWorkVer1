@@ -35,6 +35,12 @@ public:
      * @param name 対象の名前。
      */
     void OpenLevel(std::string_view name);
+
+    /**
+     * いまのLevelの名前を返す
+     * @return current_name_を返す。
+     */
+    const std::string& GetCurrentLevelName() const ;
 private:
     /**
      * @brief 予約された Level へ切り替える。

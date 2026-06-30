@@ -27,12 +27,12 @@ namespace
     {
         return static_cast<MeshColliderComponent*>(c);
     }
-    
+
     Capsule CapsuleData(ColliderComponent* c)
     {
         return static_cast<CapsuleColliderComponent*>(c)->GetColliderCapsuleData();
     }
-    
+
     constexpr int kVertsPerTriangle = 3;
 }
 
@@ -56,10 +56,13 @@ void CollisionWorld::Collect()
             if (ComputeContact(coll1, coll2, info))
             {
                 cur_pairs.emplace(HitPair(coll1, coll2)); // Overlap //
-                coll1->InvokeHit(coll2, info); // Hit //
-                ContactInfo flipped = info;
-                flipped.normal = info.normal * -1.0f;
-                coll2->InvokeHit(coll1, flipped);
+                if (!coll1->IsTrigger() && !coll2->IsTrigger())
+                {
+                    coll1->InvokeHit(coll2, info); // Hit //
+                    ContactInfo flipped = info;
+                    flipped.normal = info.normal * -1.0f;
+                    coll2->InvokeHit(coll1, flipped);
+                }
             }
         }
     }
@@ -133,7 +136,7 @@ void CollisionWorld::Unregister(ColliderComponent* coll)
 bool CollisionWorld::ComputeContact(ColliderComponent* coll1, ColliderComponent* coll2, ContactInfo& out)
 {
     // 規約: out.normal は coll1 を coll2 から押し出す向き。
-    // 形状を kSphere < kBox < kMesh の正準順に並べ替え、逆順だったら最後に
+    // 形状を kSphere < kBox < kCapsule < kMesh の正準順に並べ替え、逆順だったら最後に
     // 法線を反転する。正準順なら各 Contact の第1引数が coll1 に一致するので、
     // 分岐内での反転は要らない。//
     ColliderShape s1 = coll1->GetColliderShape();
@@ -171,6 +174,10 @@ bool CollisionWorld::ComputeContact(ColliderComponent* coll1, ColliderComponent*
     else if (s1 == ColliderShape::kCapsule && s2 == ColliderShape::kMesh)
     {
         hit = ContactMeshCapsule(MeshOf(coll2), CapsuleData(coll1), out);
+    }
+    else if (s1 == ColliderShape::kBox && s2 == ColliderShape::kCapsule)
+    {
+        hit = ContactBoxCapsule(BoxData(coll1), CapsuleData(coll2), out);
     }
     // kMesh × kMeshは重たいので書かない//
 
@@ -224,7 +231,7 @@ bool CollisionWorld::Raycast(const Ray& ray, ContactInfo& out, const ColliderCom
 void CollisionWorld::DrawDebug()
 {
     debug_objects_.clear();
-    
+
     for (ColliderComponent* coll : colliders_)
     {
         if (coll->IsDraw())
@@ -323,4 +330,30 @@ bool ContactMeshCapsule(const MeshColliderComponent* mesh, const Capsule& capsul
         }
     }
     return hit;
+}
+
+bool ContactBoxCapsule(const Box& b, const Capsule& c, ContactInfo& out)
+{
+    const Vec3 a = c.center - c.dir * c.height;
+    const Vec3 e = c.center + c.dir * c.height;
+
+    // 箱の中心に最も近い芯線上の点を求める //
+    const Vec3 box_center = (b.min + b.max) * kHalfSize;
+    const Vec3 ab = e - a;
+    const float len2 = Dot(ab, ab);
+    float t = 0.0f;
+    if (len2 > kEpsilon) 
+    {
+        t = Dot(box_center - a, ab) / len2;
+        t = std::clamp(t, 0.0f, 1.0f);
+    }
+    const Vec3 p = a + ab * t;
+
+    // その点に半径 r の球を置いて、既存の sphere×box を流用//
+    const Sphere s{p, c.radius};
+    if (!Contact(s, b, out))
+    {
+        return false;
+    }
+    return true;
 }

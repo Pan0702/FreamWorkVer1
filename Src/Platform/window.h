@@ -4,7 +4,7 @@
 #include "../Core/common.h"
 
 // ダブルバッファリングで使うフレーム数。
-constexpr uint32_t kFrameCount = 2;
+inline constexpr uint32_t kFrameCount = 2;
 
 /**
  * @brief WindowSizeのデータと処理をまとめる型。
@@ -108,6 +108,11 @@ public:
      * @param callback 通知時に呼び出すコールバック。
      */
     void SetResizeCallback(const ResizeCallback& callback);
+
+    /**                                                                     
+     * @brief アプリ終了要求を投げる（次の ProcessMessages でループ終了）。 
+     */
+    void Close();
 
 private:
     /**

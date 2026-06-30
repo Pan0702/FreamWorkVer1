@@ -1,26 +1,16 @@
 ﻿#pragma once
 #include "../../Engine/actor.h"
-
 class SpriteComponent;
-
-enum class ClearButton : uint8
-{
-    kNext = 0,
-    kRestart,
-    kSelect,
-};
-class Clear : public Actor
+class Select : public Actor
 {
 public:
-    Clear();
+    Select();
     void Begin() override;
     void Tick(float dt) override;
-    void SetVisible(bool visible);
 private:
-    void Input() ;
+    void Input();
+    int button_index_ = 0;
     SpriteComponent* ui_ = nullptr;
     SpriteComponent* cur_texture_ = nullptr;
     SpriteComponent* overlay_ = nullptr;
-    int button_index_ = 0;
-    bool visible_ = false;
 };

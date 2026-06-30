@@ -38,7 +38,7 @@ Option::Option()
     cur_texture_->SetSize(kCursorWidth, kCursorHeight);
     cur_texture_->SetPos(kCursorX, kCursorStartY);
     cur_texture_->sort_key = 12;
-    
+
     ui_->SetVisible(visible_);
     overlay_->SetVisible(visible_);
     cur_texture_->SetVisible(visible_);
@@ -68,11 +68,7 @@ void Option::Tick(float dt)
 {
     if (game_main->GetInput().CheckKey(InputKey::kEsc, KeyState::kPressed))
     {
-        SetVisible(!visible_);
-        game_main->GetGameInstance().SetUseTick(visible_);
-        ui_->SetVisible(visible_);
-        overlay_->SetVisible(visible_);
-        cur_texture_->SetVisible(visible_);
+        SetOpen();
     }
     if (!visible_)
     {
@@ -85,19 +81,45 @@ void Option::Tick(float dt)
 }
 
 
-void Option::Input() const
+void Option::Input()
 {
-    static int t = 0;
     if (game_main->GetInput().CheckKey(InputKey::kW, KeyState::kPressed))
     {
-        t--;
+        button_index_--;
     }
     if (game_main->GetInput().CheckKey(InputKey::kS, KeyState::kPressed))
     {
-        t++;
+        button_index_++;
     }
-    t = std::clamp(t, kMinSelectionIndex, kMaxSelectionIndex);
-    cur_texture_->SetPos(kCursorX, kCursorStartY + t * kCursorStepY);
+    if (game_main->GetInput().CheckKey(InputKey::kEnter, KeyState::kPressed))
+    {
+        const auto button = static_cast<OptionButton>(button_index_);
+        switch (button)
+        {
+        case OptionButton::kRestart: SetOpen();
+            break;
+        case OptionButton::kExit: game_main->Quit();
+            break;
+        case OptionButton::kSelect : 
+            game_main->GetGameInstance().GetLevelManager().OpenLevel(LevelName::kSelect);
+            SetOpen();
+            break;
+        default: 
+            break;
+        }
+    }
+    button_index_ = std::clamp(button_index_, kMinSelectionIndex, kMaxSelectionIndex);
+    cur_texture_->SetPos(kCursorX, kCursorStartY + button_index_ * kCursorStepY);
+}
+
+void Option::SetOpen()
+{
+    SetVisible(!visible_);
+    game_main->GetGameInstance().SetUseTick(visible_);
+    ui_->SetVisible(visible_);
+    overlay_->SetVisible(visible_);
+    cur_texture_->SetVisible(visible_);
+    button_index_ = 0;
 }
 
 bool Option::IsVisible() const
@@ -108,10 +130,4 @@ bool Option::IsVisible() const
 void Option::SetVisible(bool visible)
 {
     visible_ = visible;
-}
-
-Option& Option::Get()
-{
-    static Option instance;
-    return instance;
 }

@@ -39,17 +39,16 @@ void LevelManager::OpenLevel(std::string_view name)
     transition_.Start();
 }
 
+const std::string& LevelManager::GetCurrentLevelName() const
+{
+    return current_name_;
+}
+
 void LevelManager::ApplyPendingLevel()
 {
     
     if (next_name_.empty())
     {
-        return;
-    }
-    
-    if (next_name_ == current_name_)
-    {
-        next_name_.clear();
         return;
     }
     

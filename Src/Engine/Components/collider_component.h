@@ -141,11 +141,25 @@ public:
      * @brief 現在の状態をもとに描画コマンドを積む。
      */
     virtual void DrawDebug() const = 0;
+
+    /**
+     * Triggerを設定
+     * @param is_trigger 
+     */
+    void SetTrigger(bool is_trigger);
+
+    /**
+     * Triggerの値を返す
+     * @return is_trigger_を返す。
+     */
+    bool IsTrigger() const;
     
 protected:
     Vec4 color_ = Vec4(1, 0, 1, 0);
     bool is_draw_ = false;
     bool use_transform_ = true;
+    bool is_trigger_ = false;
+    bool non = false;
 private:
 
     OverlapCallback on_begin_;

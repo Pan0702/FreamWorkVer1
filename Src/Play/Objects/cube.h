@@ -14,6 +14,7 @@ public:
      */
     Cube();
     
+    Cube(const Vec3& pos, const Vec3& scale);
 private:
     std::unique_ptr<MaterialSlot> materials_;
 };

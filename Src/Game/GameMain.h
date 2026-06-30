@@ -74,6 +74,11 @@ public:
      * @return 直前のフレーム更新に使った経過秒数。
      */
     float GetDeltaTime() const { return delta_time_; }
+    /**
+     * @brief アプリケーションの終了を要求する。                            
+     */
+    void Quit() { window_.Close(); }
+
 private:
     /**
      * @brief フレーム時間から FPS 表示用の値を更新する。

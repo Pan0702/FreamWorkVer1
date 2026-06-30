@@ -124,3 +124,12 @@ static bool ContactMeshBox(const MeshColliderComponent* mesh, const Box& box, Co
  * @return メッシュ内のいずれかの三角形とカプセルが接触した場合は true。
  */
 static bool ContactMeshCapsule(const MeshColliderComponent* mesh,const Capsule& capsule, ContactInfo& out);
+
+/**
+* @brief ボックスとカプセルの当たり判定を行う。
+* @param b 判定相手になるボックス。
+* @param c 押し出し対象になるカプセル。
+* @param out 接触法線と貫通量を書き込む情報。
+* @return メッシュ内のいずれかの三角形とカプセルが接触した場合は true。
+*/
+static bool ContactBoxCapsule(const Box& b,const Capsule& c, ContactInfo& out);

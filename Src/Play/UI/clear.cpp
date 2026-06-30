@@ -36,10 +36,12 @@ Clear::Clear()
     cur_texture_->SetSize(kCursorWidth, kCursorHeight);
     cur_texture_->SetPos(740,514);
     cur_texture_->sort_key = 2;
+    SetVisible(visible_);
 }
 
 void Clear::Begin()
 {
+    SetVisible(false);
     Actor::Begin();
 }
 
@@ -49,17 +51,44 @@ void Clear::Tick(float dt)
     Actor::Tick(dt);
 }
 
-void Clear::Input() const
+void Clear::SetVisible(bool visible)
 {
-    static int t  = 0;
-    if (game_main->GetInput().CheckKey(InputKey::kW, KeyState::kPressed))
+    visible_ = visible;
+    overlay_->SetVisible(visible);
+    ui_->SetVisible(visible);
+    cur_texture_->SetVisible(visible);
+}
+
+void Clear::Input() 
+{
+    auto input = game_main->GetInput();
+    if (input.CheckKey(InputKey::kW, KeyState::kPressed))
     {
-        t--;
+         button_index_--;
     }
-    if (game_main->GetInput().CheckKey(InputKey::kS, KeyState::kPressed))
+    if (input.CheckKey(InputKey::kS, KeyState::kPressed))
     {
-        t++;
+        button_index_++;
     }
-    t = std::clamp(t,kMinSelectionIndex,kMaxSelectionIndex);
-    cur_texture_->SetPos(kCursorX,kCursorStartY + t * kCursorStepY);
+    button_index_ = std::clamp(button_index_,kMinSelectionIndex,kMaxSelectionIndex);
+    cur_texture_->SetPos(kCursorX,kCursorStartY + static_cast<float>(button_index_) * kCursorStepY);
+    
+    if (input.CheckKey(InputKey::kEnter,KeyState::kPressed))
+    {
+        ClearButton b = static_cast<ClearButton>(button_index_);
+        switch (b)
+        {
+        case ClearButton::kRestart:
+            {
+                const std::string name = game_main->GetGameInstance().GetLevelManager().GetCurrentLevelName();
+                game_main->GetGameInstance().GetLevelManager().OpenLevel(name);
+                break;
+            }
+        case ClearButton::kSelect:
+            game_main->GetGameInstance().GetLevelManager().OpenLevel(LevelName::kSelect);
+            break;
+        default:
+            break;
+        }
+    }
 }

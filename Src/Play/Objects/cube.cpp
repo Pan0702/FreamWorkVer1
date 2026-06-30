@@ -14,3 +14,4 @@ Cube::Cube()
     AddComponent<MeshColliderComponent>(mesh);
     transform_.position = Vec3(0, 0, 0);
 }
+

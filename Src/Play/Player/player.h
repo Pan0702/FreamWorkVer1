@@ -90,6 +90,7 @@ private:
     std::unique_ptr<MaterialSlot> materials_;
     class AnimationComponent* animation_ = nullptr;
 
+    class PlayerCamera* camera_ = nullptr;
     Vec3 vel_;
     float radius_ = 0.5f;
     uint32_t state_bit_ = 0;

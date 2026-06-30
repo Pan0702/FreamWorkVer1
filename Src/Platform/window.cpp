@@ -132,6 +132,11 @@ void Window::SetResizeCallback(const ResizeCallback& callback)
     resize_callback_ = std::move(callback);
 }
 
+void Window::Close()
+{
+    PostQuitMessage(0);
+}
+
 extern IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND, UINT, WPARAM,LPARAM);
 LRESULT Window::WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
@@ -173,6 +178,14 @@ LRESULT Window::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         DestroyWindow(hwnd_);
         hwnd_ = nullptr;
         return 0;
+    case WM_SETFOCUS:
+        //マウスのカーソルを固定//
+        game_main->GetInput().SetMouseLock(true);
+        break;
+    case WM_KILLFOCUS:
+        //マウスのカーソルの固定を解除//
+        game_main->GetInput().SetMouseLock(false);
+        break;
     case WM_DESTROY:
         closed_ = true;
         PostQuitMessage(0);

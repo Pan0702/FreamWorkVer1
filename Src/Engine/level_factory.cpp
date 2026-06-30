@@ -1,6 +1,7 @@
 #include "level_factory.h"
-#include "../Play/play_level.h"
+#include "../Play/Stage/play_level.h"
 #include "../Game/test_level.h"
+#include "../Select/select_level.h"
 
 void LevelFactory::Initialize()
 {
@@ -12,6 +13,7 @@ void LevelFactory::Initialize()
     //});
     Register<TestLevel>("Test");
     Register<PlayLevel>("Play");
+    Register<SelectLevel>("Select");
 }
 
 std::unique_ptr<LevelBase> LevelFactory::Create(const std::string& name)

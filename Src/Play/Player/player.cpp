@@ -10,7 +10,7 @@
 #include "PlayerComponent/state_component.h"
 #include "player_common.h"
 #include "../../Engine/Components/capsule_collider_comp.h"
-
+#include "player_camera.h"
 namespace
 {
     inline const std::string kRun = "run";
@@ -26,7 +26,7 @@ Player::Player()
     materials_ = std::make_unique<MaterialSlot>(sk->GetMaterialDecs());
     AddComponent<SkeletalMeshComponent>(sk, materials_.get());
     animation_ = AddComponent<AnimationComponent>();
-    
+
     animation_->AddAnimation(kRun, AnimatorManager::Get().Load("Assets/Animation/run.anim"), true);
     animation_->AddAnimation(kIdle, AnimatorManager::Get().Load("Assets/Animation/idle.anim"), true);
     animation_->AddAnimation(kJump, AnimatorManager::Get().Load("Assets/Animation/jump_up.anim"), false);
@@ -37,7 +37,6 @@ Player::Player()
     auto capsule = AddComponent<CapsuleColliderComponent>(sk);
     capsule->SetOnHit(this, &Player::OnHit);
     capsule->SetUseTransform(true);
-    capsule->SetDraw(true);
     transform_.scale = Vec3(0.01f, 0.01f, 0.01f);
     std::vector<PlayerState> states = {PlayerState::kJump, PlayerState::kWalk};
     states_ = factor_.GetComponents(states);
@@ -45,16 +44,23 @@ Player::Player()
 
 void Player::Begin()
 {
+    transform_.position = Vec3(0, 0, 0);
+    use_tick_ = true;
+    camera_ = GetWorld()->FindActor<PlayerCamera>();
     Actor::Begin();
 }
 
 void Player::Tick(float dt)
 {
+    if (!use_tick_)
+    {
+        return;
+    }
     // 足元から真下へレイを撃って、このフレームの重力処理前に接地状態を確定する。//
     {
         constexpr float kProbeMargin = 0.1f; // 接地とみなす許容ギャップ//
         Ray ray;
-        constexpr float kProbeUp = 0.5f; 
+        constexpr float kProbeUp = 0.5f;
         ray.origin = transform_.position + Vec3(0.0f, kProbeUp, 0.0f);
         ray.direction = Vec3(0.0f, -1.0f, 0.0f);
         ray.distance = kProbeUp + kProbeMargin;
@@ -62,7 +68,7 @@ void Player::Tick(float dt)
         is_grounded_ = GetWorld()->GetCollisionWorld().Raycast(ray, hit);
         if (is_grounded_)
         {
-          vel_.y = ray.origin.y - (hit.normal * hit.depth).y;
+            vel_.y = ray.origin.y - (hit.normal * hit.depth).y;
         }
     }
 
@@ -77,7 +83,7 @@ void Player::Tick(float dt)
             comp->Tick(dt, pl_input_);
         }
     }
-    
+
     // ジャンプ入力がなく空中にいる間は、落下速度を加算して移動量に反映する。//
     if (!pl_input_.jump && !is_grounded_)
     {
@@ -91,26 +97,26 @@ void Player::Tick(float dt)
     }
     transform_.position += pl_input_.move_amount;
     transform_.rotation.y = pl_input_.yaw;
-    
+
     const bool just_landed = is_grounded_ && !was_grounded_;
     const bool landing_playing = (animation_name_ == kLanding && animation_->IsPlaying());
     std::string anim_name;
-    
+
     {
         // ジャンプ中はジャンプアニメーションを選ぶ。//
-        if (pl_input_.jump)            anim_name = kJump;
-        else if (!is_grounded_)        anim_name = kFall;
-        else if (just_landed)          anim_name = kLanding;        // 着地に入る
-        else if (landing_playing)      anim_name = kLanding;        // 終わるまで維持
+        if (pl_input_.jump) anim_name = kJump;
+        else if (!is_grounded_) anim_name = kFall;
+        else if (just_landed) anim_name = kLanding; // 着地に入る
+        else if (landing_playing) anim_name = kLanding; // 終わるまで維持
         else if (pl_input_.move_amount.LengthSquared() > kEpsilon) anim_name = kRun;
-        else                           anim_name = kIdle;
+        else anim_name = kIdle;
     }
-    
+
     // 前フレームと違うアニメーションになった時だけ再生を切り替える。//
     if (anim_name != animation_name_ && !anim_name.empty())
     {
         animation_name_ = anim_name;
-        animation_->CrossFade(anim_name,0.2f);       
+        animation_->CrossFade(anim_name, 0.2f);
     }
     was_grounded_ = is_grounded_;
     Actor::Tick(dt);
@@ -120,33 +126,38 @@ PlayerInput Player::Input(float dt)
 {
     PlayerInput input;
     input.yaw = pl_input_.yaw;
-    constexpr float move_speed = 10.0f;
 
-    // A キー入力を左方向の移動量へ変換する。//
-    if (game_main->GetInput().CheckKey(InputKey::kA, KeyState::kDown))
-    {
-        input.move_amount.x -= move_speed * dt;
-    }
-    // D キー入力を右方向の移動量へ変換する。//
-    if (game_main->GetInput().CheckKey(InputKey::kD, KeyState::kDown))
-    {
-        input.move_amount.x += move_speed * dt;
-    }
-    // W キー入力を前方向の移動量へ変換する。//
+    Vec3 local = {0, 0, 0};
     if (game_main->GetInput().CheckKey(InputKey::kW, KeyState::kDown))
-    {
-        input.move_amount.z += move_speed * dt;
-    }
-    // S キー入力を後ろ方向の移動量へ変換する。//
+        local.z += 1.0f;
     if (game_main->GetInput().CheckKey(InputKey::kS, KeyState::kDown))
+        local.z -= 1.0f;
+    if (game_main->GetInput().CheckKey(InputKey::kD, KeyState::kDown))
+        local.x += 1.0f;
+    if (game_main->GetInput().CheckKey(InputKey::kA, KeyState::kDown))
+        local.x -= 1.0f;
+    
+    if (local.LengthSquared() > kEpsilon)
     {
-        input.move_amount.z -= move_speed * dt;
+        if (!camera_)
+        {
+            camera_ = GetWorld()->FindActor<PlayerCamera>();
+        }
+        const float cam_yaw = camera_ ? camera_->GetYaw() : 0.0f;
+        Vec3 world_dir = TransformVector(RotateY(cam_yaw), local);
+        // 斜め移動が速くならないように//  
+        world_dir = world_dir.Normalized();        
+        constexpr float move_speed = 10.0f;
+        input.move_amount.x = world_dir.x * move_speed * dt;
+        input.move_amount.z = world_dir.z * move_speed * dt;
+        //進む方向へ体を向ける //
+        input.yaw = atan2f(world_dir.x, world_dir.z);                                                    
     }
     const bool space = game_main->GetInput().CheckKey(InputKey::kSpace, KeyState::kDown);
     // 接地中にスペースを押している場合だけ、新しくジャンプ入力を立てる。//
     if (is_grounded_ && space)
     {
-        input.jump = true;        
+        input.jump = true;
     }
     // 接地中でスペースを押していなければ、ジャンプ状態を止める。//
     else if (is_grounded_)

@@ -1,5 +1,5 @@
 #pragma once
-#include "../Engine/level_base.h"
+#include "../../Engine/level_base.h"
 // PlayLevel ‚ÉŠÖŒW‚·‚éó‘Ô‚ÆU‚é•‘‚¢‚ğ‚Ü‚Æ‚ß‚éŒ^B
 class PlayLevel : public LevelBase
 {

@@ -7,14 +7,14 @@
 #include "../Resource/animation.h"
 #include "../Play/UI/option.h"
 
-GameInstance::GameInstance() =default;
+GameInstance::GameInstance() = default;
 
 GameInstance::~GameInstance() = default;
 
 bool GameInstance::Initialize()
 {
     SceneRenderer* scene_renderer = game_main->GetRenderSystem()->GetSceneRenderer();
-    
+
     AttachContext attach_context = {};
     attach_context.mesh_renderer = scene_renderer->GetMeshRenderer();
     attach_context.sprite_renderer = scene_renderer->GetSpriteRenderer();
@@ -31,14 +31,14 @@ bool GameInstance::Initialize()
 void GameInstance::Tick(float dt)
 {
     option_->Tick(dt);
-    if (!use_tick_)return;
     level_manager_.Tick(dt);
+    if (!use_tick_)return;
     world_.Tick(dt);
 }
 
 void GameInstance::Render()
 {
-    game_main->GetRenderSystem()->Render(&world_,&game_main->GetCamera());
+    game_main->GetRenderSystem()->Render(&world_, &game_main->GetCamera());
 }
 
 World* GameInstance::GetWorld()

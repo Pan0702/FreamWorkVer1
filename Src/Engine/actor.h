@@ -137,5 +137,6 @@ private:
     World* world_ = nullptr;
     std::vector<std::unique_ptr<Component>> components_;
     bool attached_ = false;
+protected:
     bool use_tick_ = true;
 };

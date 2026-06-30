@@ -2,6 +2,8 @@
 #include "../../Engine/Components/static_mesh_component.h"
 #include "../../Game/GameMain.h"
 #include "../Player/player.h"
+#include "../UI/clear.h"
+
 GoalFlag::GoalFlag()
 {
     Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/GoalFlag.mesh");
@@ -19,6 +21,9 @@ void GoalFlag::OnBeginOverlap(const ColliderComponent* c1, const ColliderCompone
     if (!pl)
     {
         return;
-    }
-    game_main->GetGameInstance().GetLevelManager().OpenLevel(LevelName::kTest);
+    } 
+    auto* clear = GetWorld()->FindActor<Clear>();
+    pl->SetUseTick(false);
+    clear->SetVisible(true);
+    
 }
