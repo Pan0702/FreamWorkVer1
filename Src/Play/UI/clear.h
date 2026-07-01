@@ -5,8 +5,7 @@ class SpriteComponent;
 
 enum class ClearButton : uint8
 {
-    kNext = 0,
-    kRestart,
+    kRestart = 0,
     kSelect,
 };
 class Clear : public Actor

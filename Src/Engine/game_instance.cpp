@@ -24,7 +24,7 @@ bool GameInstance::Initialize()
     option_ = std::make_unique<Option>();
     option_->OnAttach(attach_context);
     level_manager_.Initialize(&world_);
-    level_manager_.OpenLevel("Test");
+    level_manager_.OpenLevel(LevelName::kTitle);
     return true;
 }
 

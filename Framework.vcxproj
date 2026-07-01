@@ -100,10 +100,16 @@
     </ClCompile>
     <ClCompile Include="Src\Play\Stage\stage_2.cpp" />
     <ClCompile Include="Src\Play\Stage\stage_3.cpp" />
+    <ClCompile Include="Src\Play\Stage\stage_4.cpp" />
+    <ClCompile Include="Src\Play\Stage\stage_5.cpp" />
+    <ClCompile Include="Src\Play\Stage\stage_6.cpp" />
     <ClCompile Include="Src\Play\UI\moveing_explanation.cpp" />
     <ClCompile Include="Src\Select\select_level.cpp" />
     <ClCompile Include="Src\Select\UI\select.cpp" />
+    <ClCompile Include="Src\Title\title_level.cpp" />
+    <ClCompile Include="Src\Title\UI\title.cpp" />
     <ClInclude Include="Src\Core\common.h" />
+    <ClInclude Include="Src\Core\common_data.h" />
     <ClInclude Include="Src\Core\Math\intersect.h" />
     <ClInclude Include="Src\Core\Math\mat.h" />
     <ClInclude Include="Src\Core\Math\my_math.h" />
@@ -168,6 +174,9 @@
     <ClInclude Include="Src\Play\Stage\stage_1.h" />
     <ClInclude Include="Src\Play\Stage\stage_2.h" />
     <ClInclude Include="Src\Play\Stage\stage_3.h" />
+    <ClInclude Include="Src\Play\Stage\stage_4.h" />
+    <ClInclude Include="Src\Play\Stage\stage_5.h" />
+    <ClInclude Include="Src\Play\Stage\stage_6.h" />
     <ClInclude Include="Src\Play\UI\moveing_explanation.h" />
     <ClInclude Include="Src\Renderer\cb_file.h" />
     <ClInclude Include="Src\Renderer\debug_line_renderer.h" />
@@ -214,6 +223,8 @@
     <ClInclude Include="Src\Play\UI\option.h" />
     <ClInclude Include="Src\Select\select_level.h" />
     <ClInclude Include="Src\Select\UI\select.h" />
+    <ClInclude Include="Src\Title\title_level.h" />
+    <ClInclude Include="Src\Title\UI\title.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Engine\Components\capsule_collider_comp.cpp" />

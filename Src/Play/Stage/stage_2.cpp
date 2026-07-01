@@ -6,17 +6,17 @@
 #include "../Player/player.h"
 #include "../Player/player_camera.h"
 #include "../UI/clear.h"
-#include "../UI/moveing_explanation.h"
+#include "../../Resource/audio_manager.h"
+#include "../../Core/common_data.h"
+
 void Stage2::OnEnter()
 {
+    AudioManager::GetInstance().Play(Sound::kGame);
     SpawnActor<Player>();
     SpawnActor<PlayerCamera>();
-    SpawnActor<Cube>(Vec3(0,0,0),Vec3(2,1,2));
-    SpawnActor<Cube>(Vec3(0,0,10),Vec3(2,1,2));
-    const Vec3 goal_pos(0,1,20);
-    SpawnActor<Cube>(goal_pos,Vec3(2,1,2));
-    SpawnActor<GoalFlag>(goal_pos + Vec3(0,-1.0f,0));
-    SpawnActor<Explanation>(L"Assets/Texture/explanationjamp.png");
+    SpawnActor<Cube>("Assets/Mesh/Stage1.mesh");
+    const Vec3 goal_pos(-7,0,50);
+    SpawnActor<GoalFlag>(goal_pos );
     SpawnActor<Clear>();
     SpawnActor<FallBox>();
     LevelBase::OnEnter();

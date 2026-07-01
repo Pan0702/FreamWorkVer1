@@ -68,7 +68,8 @@ void Player::Tick(float dt)
         is_grounded_ = GetWorld()->GetCollisionWorld().Raycast(ray, hit);
         if (is_grounded_)
         {
-            vel_.y = ray.origin.y - (hit.normal * hit.depth).y;
+            transform_.position.y  = ray.origin.y - (hit.normal * hit.depth).y;
+            vel_.y = 0.0f;
         }
     }
 
@@ -119,6 +120,9 @@ void Player::Tick(float dt)
         animation_->CrossFade(anim_name, 0.2f);
     }
     was_grounded_ = is_grounded_;
+    ImGui::Begin("pos");
+    ImGui::Text("pos: %f %f %f", transform_.position.x, transform_.position.y, transform_.position.z);
+    ImGui::End();
     Actor::Tick(dt);
 }
 

@@ -1,6 +1,7 @@
 #include "level_manager.h"
 
 #include "level_factory.h"
+#include "../Resource/audio_manager.h"
 
 
 LevelManager::LevelManager() = default;
@@ -52,6 +53,7 @@ void LevelManager::ApplyPendingLevel()
         return;
     }
     
+    AudioManager::GetInstance().StopAll();
     if (current_level_)
     {
         current_level_->OnExit();

@@ -211,6 +211,7 @@ inline constexpr float kDegToRad = kPI / 180.0f;
 inline constexpr float kRadToDeg = 180.0f / kPI;
 inline constexpr float kHalfSize = 0.5f;
 inline constexpr float kEpsilon = 1e-6f;
+inline const Vec4 kOverlayColor = Vec4(0.8f, 0.8f, 0.8f, 0.7f);
 
 
 // ‚æ‚­g‚¤®”Œ^‚Ì’Zk•Ê–¼B

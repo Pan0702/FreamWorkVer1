@@ -2,8 +2,10 @@
 
 #include <algorithm>
 
+#include "../../Core/common_data.h"
 #include "../../Engine/Components/sprite_component.h"
 #include "../../Game/GameMain.h"
+#include "../../Resource/audio_manager.h"
 
 namespace 
 {
@@ -12,12 +14,10 @@ namespace
     constexpr float kCursorStepY = 134.0f;
 
     constexpr int kMinSelectionIndex = 0;
-    constexpr int kMaxSelectionIndex = 2;
+    constexpr int kMaxSelectionIndex = 1;
 
     constexpr float kCursorWidth = 466.0f;
     constexpr float kCursorHeight = 125.0f;
-
-    const Vec4 kOverlayColor = Vec4(0.8f, 0.8f, 0.8f, 0.7f);
 }
 Clear::Clear()
 {
@@ -47,6 +47,10 @@ void Clear::Begin()
 
 void Clear::Tick(float dt)
 {
+    if (!visible_)
+    {
+        return;
+    }
     Input();
     Actor::Tick(dt);
 }
@@ -64,10 +68,12 @@ void Clear::Input()
     auto input = game_main->GetInput();
     if (input.CheckKey(InputKey::kW, KeyState::kPressed))
     {
+        AudioManager::GetInstance().Play(Sound::kSelectUp);
          button_index_--;
     }
     if (input.CheckKey(InputKey::kS, KeyState::kPressed))
     {
+        AudioManager::GetInstance().Play(Sound::kSelectDown);
         button_index_++;
     }
     button_index_ = std::clamp(button_index_,kMinSelectionIndex,kMaxSelectionIndex);
@@ -75,6 +81,7 @@ void Clear::Input()
     
     if (input.CheckKey(InputKey::kEnter,KeyState::kPressed))
     {
+        AudioManager::GetInstance().Play(Sound::kClick1);
         ClearButton b = static_cast<ClearButton>(button_index_);
         switch (b)
         {

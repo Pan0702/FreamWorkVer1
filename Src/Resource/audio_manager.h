@@ -8,6 +8,7 @@
 
 class AudioPlayer;
 
+
 // AudioData に関係する状態と振る舞いをまとめる型。
 struct AudioData
 {
@@ -49,18 +50,22 @@ public:
      * @brief 指定したアニメーションの再生を開始する。
      * @param name 対象の名前。
      */
-    void Play(const char* name);
+    void Play(const std::string& name);
     /**
      * @brief 再生中のアニメーションを停止する。
      * @param name 対象の名前。
      */
     void Stop(const char* name);
     /**
+     * @brief Stop all registered audio.
+     */
+    void StopAll();
+    /**
      * @brief 指定された値を内部状態に反映する。
      * @param name 対象の名前。
      * @param volume 処理対象の値。
      */
-    void SetVolume(const char* name, float volume);
+    void SetVolume(const std::string& name, float volume);
     /**
      * @brief Win32 インスタンスハンドル を取得する。
      * @return シングルトンとして保持しているインスタンス。

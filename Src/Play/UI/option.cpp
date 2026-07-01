@@ -2,9 +2,12 @@
 
 #include <algorithm>
 
+#include "../../Core/common_data.h"
+
 #include "../../Engine/Components/sprite_component.h"
 #include "../../Game/GameMain.h"
 #include "../../Renderer/ui_renderer.h"
+#include "../../Resource/audio_manager.h"
 
 namespace
 {
@@ -17,8 +20,7 @@ namespace
 
     constexpr float kCursorWidth = 466.0f;
     constexpr float kCursorHeight = 125.0f;
-
-    const Vec4 kOverlayColor = Vec4(0.8f, 0.8f, 0.8f, 0.7f);
+    
 }
 
 Option::Option()
@@ -69,6 +71,7 @@ void Option::Tick(float dt)
 {
     if (game_main->GetInput().CheckKey(InputKey::kEsc, KeyState::kPressed))
     {
+        AudioManager::GetInstance().Play(Sound::kOption);
         SetOpen();
     }
     if (!visible_)
@@ -86,14 +89,17 @@ void Option::Input()
 {
     if (game_main->GetInput().CheckKey(InputKey::kW, KeyState::kPressed))
     {
+        AudioManager::GetInstance().Play(Sound::kSelectUp);
         button_index_--;
     }
     if (game_main->GetInput().CheckKey(InputKey::kS, KeyState::kPressed))
     {
+        AudioManager::GetInstance().Play(Sound::kSelectDown);
         button_index_++;
     }
     if (game_main->GetInput().CheckKey(InputKey::kEnter, KeyState::kPressed))
     {
+        AudioManager::GetInstance().Play(Sound::kClick1);
         const auto button = static_cast<OptionButton>(button_index_);
         switch (button)
         {

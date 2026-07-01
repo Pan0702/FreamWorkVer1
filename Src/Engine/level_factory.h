@@ -8,6 +8,10 @@ namespace LevelName
 {
     inline constexpr std::string_view kStage1 = "Stage1";
     inline constexpr std::string_view kStage2 = "Stage2";
+    inline constexpr std::string_view kStage3 = "Stage3";
+    inline constexpr std::string_view kStage4 = "Stage4";
+    inline constexpr std::string_view kStage5 = "Stage5";   
+    inline constexpr std::string_view kStage6 = "Stage6";   
     inline constexpr std::string_view kTest = "Test";
     inline constexpr std::string_view kTitle = "Title";
     inline constexpr std::string_view kSelect = "Select";

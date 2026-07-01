@@ -36,7 +36,7 @@ void AudioManager::LoadWaveFile(const char* filename, const char* name, bool loo
         return;
     }
     data.loop = loop;
-    audio_data_[std::string(name)] = std::move(data);
+    audio_data_[name] = std::move(data);
 }
 bool AudioManager::Initialize()
 {
@@ -63,7 +63,7 @@ bool AudioManager::Initialize()
     return true;
 }
 
-void AudioManager::Play(const char* name)
+void AudioManager::Play(const std::string& name)
 {
     auto it = audio_data_.find(name);
     if (it == audio_data_.end())
@@ -83,7 +83,18 @@ void AudioManager::Stop(const char* name)
     it->second.player->Stop();
 }
 
-void AudioManager::SetVolume(const char* name, float volume)
+void AudioManager::StopAll()
+{
+    for (auto& audio : audio_data_)
+    {
+        if (audio.second.player)
+        {
+            audio.second.player->Stop();
+        }
+    }
+}
+
+void AudioManager::SetVolume(const std::string& name, float volume)
 {
     auto it = audio_data_.find(name);
     if (it == audio_data_.end())

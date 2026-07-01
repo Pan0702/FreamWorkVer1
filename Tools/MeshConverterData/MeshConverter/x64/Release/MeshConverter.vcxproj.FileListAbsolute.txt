@@ -1,7 +1,2 @@
 C:\Users\yu\RiderProjects\FreamWorkVer1\Tools\MeshConverter\MeshConverter\x64\Release\MeshConv.44529E12.Up2Date
-C:\Users\yu\RiderProjects\FreamWorkVer1\Tools\MeshConverterData\x64\Release\assimp-vc143-mt.dll
-C:\Users\yu\RiderProjects\FreamWorkVer1\Tools\MeshConverterData\x64\Release\poly2tri.dll
-C:\Users\yu\RiderProjects\FreamWorkVer1\Tools\MeshConverterData\x64\Release\minizip.dll
-C:\Users\yu\RiderProjects\FreamWorkVer1\Tools\MeshConverterData\x64\Release\zlib1.dll
-C:\Users\yu\RiderProjects\FreamWorkVer1\Tools\MeshConverterData\x64\Release\kubazip.dll
-C:\Users\yu\RiderProjects\FreamWorkVer1\Tools\MeshConverterData\x64\Release\pugixml.dll
+C:\Users\yu\RiderProjects\FreamWorkVer1\Tools\MeshConverterData\MeshConverter\x64\Release\MeshConv.44529E12.Up2Date

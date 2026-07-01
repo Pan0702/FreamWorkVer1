@@ -9,4 +9,5 @@ public:
     void OnBeginOverlap(const ColliderComponent* c1,const ColliderComponent* c2);
 private:
     std::unique_ptr<MaterialSlot> materials_;
+
 };

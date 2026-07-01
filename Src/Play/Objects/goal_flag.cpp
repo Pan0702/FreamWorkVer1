@@ -1,6 +1,9 @@
 #include "goal_flag.h"
+
+#include "../../Core/common_data.h"
 #include "../../Engine/Components/static_mesh_component.h"
 #include "../../Game/GameMain.h"
+#include "../../Resource/audio_manager.h"
 #include "../Player/player.h"
 #include "../UI/clear.h"
 
@@ -36,5 +39,6 @@ void GoalFlag::OnBeginOverlap(const ColliderComponent* c1, const ColliderCompone
     auto* clear = GetWorld()->FindActor<Clear>();
     pl->SetUseTick(false);
     clear->SetVisible(true);
+    AudioManager::GetInstance().Play(Sound::kClear);
     
 }
