@@ -67,7 +67,7 @@ void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* ca
     context.screen_size = Vec2(static_cast<float>(renderer_data.window->GetWidth()),
                                static_cast<float>(renderer_data.window->GetHeight()));
     
-    context.light_dir = Vec3(0.3f,-1.0f,0.5f).Normalized();
+    context.light_pos = Vec3(0.3f,-1.0f,0.5f).Normalized();
     context.light_color = Vec3(1.0f,1.0f,1.0f);
     context.ambient = Vec3(0.15f,0.15f,0.15f);
     context.camera_pos = camera->pos_;

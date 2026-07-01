@@ -16,8 +16,11 @@ struct RenderContext
     ConstantBufferAllocator* cb_allocator = nullptr;
     Vec2 screen_size = {0.0f, 0.0f};
     
-    Vec3 light_dir = Vec3(0.3f,-1.0f,0.5f); 
-    Vec3 light_color = Vec3(1.0f,1.0f,1.0f); 
+    //Œõ‚ÌŒü‚«//
+    Vec3 light_pos = Vec3(0,0,0);
+    // Œõ‚Ì‹­‚³//
+    Vec3 light_color = Vec3(1.0f,1.0f,1.0f);
+    //’êã‚°‚Ì‚Ğ‚©‚è//
     Vec3 ambient = Vec3(0.2f,0.2f,0.2f); 
     Vec3 camera_pos = Vec3(0.0f,0.0f,0.0f);
 };

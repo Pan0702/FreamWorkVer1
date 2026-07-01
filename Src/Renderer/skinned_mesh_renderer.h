@@ -53,7 +53,7 @@ public:
      * @brief 収集済みコマンドを GPU コマンドリストへ書き込む。
      * @param context 描画や登録に使う共有コンテキスト。
      */
-    void Submit(RenderContext& context);
+    void Submit(RenderContext& context) const;
 
 private:
     std::vector<SkeletalMeshComponent*> meshes_;

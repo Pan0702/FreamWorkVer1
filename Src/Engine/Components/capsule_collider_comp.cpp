@@ -4,7 +4,7 @@
 #include "../../Core/Math/intersect.h"
 #include "../../Resource/skeltal_mesh.h"
 
-CapsuleColliderComponent::CapsuleColliderComponent(SkeletalMesh* mesh)
+CapsuleColliderComponent::CapsuleColliderComponent(const SkeletalMesh* mesh)
 {
     if (not mesh) return;
     AABB bounds = mesh->GetBounds();

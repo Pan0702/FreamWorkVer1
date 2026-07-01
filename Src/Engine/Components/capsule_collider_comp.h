@@ -12,7 +12,7 @@ public:
      * @brief メッシュ情報をもとにカプセルコライダーを作成する。
      * @param mesh カプセルサイズの基準に使うスケルタルメッシュ。
      */
-    explicit CapsuleColliderComponent(SkeletalMesh* mesh = nullptr);
+    explicit CapsuleColliderComponent(const SkeletalMesh* mesh = nullptr);
     /**
      * @brief カプセルの半径と高さの元になる半サイズを設定する。
      * @param size XZ を半径、Y を高さ方向の基準として使う半サイズ。

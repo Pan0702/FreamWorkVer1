@@ -1,5 +1,6 @@
 #include "level_factory.h"
-#include "../Play/Stage/play_level.h"
+#include "../Play/Stage/stage_1.h"
+#include "../Play/Stage/stage_2.h"
 #include "../Game/test_level.h"
 #include "../Select/select_level.h"
 
@@ -12,7 +13,8 @@ void LevelFactory::Initialize()
     //    return std::make_unique<TitleLevel>();
     //});
     Register<TestLevel>("Test");
-    Register<PlayLevel>("Play");
+    Register<Stage1>("Stage1");
+    Register<Stage2>("Stage2");
     Register<SelectLevel>("Select");
 }
 

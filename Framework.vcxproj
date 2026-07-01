@@ -20,7 +20,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Src\Play\Objects\fall_box.cpp" />
-    <ClCompile Include="Src\Play\Stage\play_level.cpp">
+    <ClCompile Include="Src\Play\Objects\moving_cube.cpp" />
+    <ClCompile Include="Src\Play\Stage\stage_1.cpp">
       <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <Optimization>Disabled</Optimization>
@@ -97,6 +98,8 @@
       <LinkCompiled>true</LinkCompiled>
       <AdditionalIncludeDirectories>;C:\vcpkg\installed\x64-windows\include</AdditionalIncludeDirectories>
     </ClCompile>
+    <ClCompile Include="Src\Play\Stage\stage_2.cpp" />
+    <ClCompile Include="Src\Play\Stage\stage_3.cpp" />
     <ClCompile Include="Src\Play\UI\moveing_explanation.cpp" />
     <ClCompile Include="Src\Select\select_level.cpp" />
     <ClCompile Include="Src\Select\UI\select.cpp" />
@@ -161,7 +164,10 @@
     <ClInclude Include="Src\Platform\input.h" />
     <ClInclude Include="Src\Platform\window.h" />
     <ClInclude Include="Src\Play\Objects\fall_box.h" />
-    <ClInclude Include="Src\Play\Stage\play_level.h" />
+    <ClInclude Include="Src\Play\Objects\moving_cube.h" />
+    <ClInclude Include="Src\Play\Stage\stage_1.h" />
+    <ClInclude Include="Src\Play\Stage\stage_2.h" />
+    <ClInclude Include="Src\Play\Stage\stage_3.h" />
     <ClInclude Include="Src\Play\UI\moveing_explanation.h" />
     <ClInclude Include="Src\Renderer\cb_file.h" />
     <ClInclude Include="Src\Renderer\debug_line_renderer.h" />

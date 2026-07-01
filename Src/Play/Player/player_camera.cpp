@@ -3,6 +3,7 @@
 #include <algorithm>
 
 #include "player.h"
+#include "../../Engine/Components/skeletal_mesh.h"
 
 namespace
 {
@@ -29,16 +30,21 @@ void PlayerCamera::Tick(float dt)
     Input();
     const Mat rot = RotateX(cam_rad_.x) * RotateY(cam_rad_.y);
     const Vec3 offset = TransformVector(rot, kCamOffset);
-    Vec3 com_pos = player_->GetTransform().position + offset;
+    auto* s = player_->GetComponent<SkeletalMeshComponent>()->GetSkeltalMesh();
+
+    float scale_y = (s->GetBounds().max.y - s->GetBounds().min.y) * kHalfSize ;
+    Vec3 pl_pos = Vec3(player_->GetTransform().position.x,
+                       player_->GetTransform().position.y+ 1.0f * (scale_y * player_->GetTransform().scale.y),
+                       player_->GetTransform().position.z);
+    Vec3 com_pos = pl_pos + offset;
     if (com_pos.y < 0.0f)
     {
         com_pos.y = 0.0f;
     }
     camera_->pos_ = com_pos;
-    camera_->look_ = player_->GetTransform().position;
+    camera_->look_ = pl_pos;
     Actor::Tick(dt);
 }
-
 
 
 void PlayerCamera::Input()

@@ -27,6 +27,7 @@ Option::Option()
     ui_ = std::make_unique<SpriteComponent>(tex, SpriteSpace::kScreen);
     ui_->SetSize(kWindowWidth, kWindwoHeight);
     ui_->sort_key = 11;
+    
 
     overlay_ = std::make_unique<SpriteComponent>(nullptr, SpriteSpace::kScreen);
     overlay_->color = kOverlayColor;

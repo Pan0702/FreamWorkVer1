@@ -17,7 +17,7 @@ namespace CB
  */
     struct LightCB
     {
-        Vec4 light_dir;
+        Vec4 light_pos;
         Vec4 light_color;
         Vec4 ambient;
         Vec4 camera_pos;

@@ -92,7 +92,7 @@ void MeshRenderer::Submit(RenderContext& context) const
 {
     ConstantBufferAllocation light_alloc = {};
     CB::LightCB light_cb = {};
-    light_cb.light_dir = Vec4(context.light_dir.x, context.light_dir.y, context.light_dir.z, 0.0f);
+    light_cb.light_pos = Vec4(context.light_pos.x, context.light_pos.y, context.light_pos.z, 0.0f);
     light_cb.light_color = Vec4(context.light_color.x, context.light_color.y, context.light_color.z, 0.0f);
     light_cb.ambient = Vec4(context.ambient.x, context.ambient.y, context.ambient.z, 0.0f);
     light_cb.camera_pos = Vec4(context.camera_pos.x, context.camera_pos.y, context.camera_pos.z, 1.0f);

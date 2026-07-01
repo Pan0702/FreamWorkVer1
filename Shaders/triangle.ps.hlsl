@@ -57,6 +57,10 @@ float4 PSMain(PSInput input) : SV_TARGET
     }
     float3 L = normalize(-light_dir.xyz);
     float3 V = normalize(cam_pos.xyz - input.world_pos.xyz);
+    if (dot(N, V) < 0.0)
+    {
+        N = -N;
+    }
     float3 H = normalize(L + V);
     float ndotl = saturate(dot(N, L));
     float spec = pow(saturate(dot(N, H)), specular_power) * specular_intensity * ndotl;

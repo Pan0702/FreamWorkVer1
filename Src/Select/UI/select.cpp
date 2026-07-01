@@ -78,10 +78,10 @@ void Select::Input()
         switch (button_index_)
         {
             case 0:
-            game_main->GetGameInstance().GetLevelManager().OpenLevel(LevelName::kPlay);
+            game_main->GetGameInstance().GetLevelManager().OpenLevel(LevelName::kStage1);
             break;
             case 1:
-            game_main->GetGameInstance().GetLevelManager().OpenLevel("Play");
+            game_main->GetGameInstance().GetLevelManager().OpenLevel(LevelName::kStage2);
             break;
             case 2:
             game_main->GetGameInstance().GetLevelManager().OpenLevel("Select");

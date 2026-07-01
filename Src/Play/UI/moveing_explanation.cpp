@@ -2,9 +2,14 @@
 
 #include "../../Engine/Components/sprite_component.h"
 
-void MoveingExplanation::Begin()
+Explanation::Explanation(std::wstring_view path)
 {
-    Texture2D* tex = TextureManager::Get().Load(L"Assets/Texture/explanation.png");
+    path_ = path;
+}
+
+void Explanation::Begin()
+{
+    Texture2D* tex = TextureManager::Get().Load(path_.c_str());
     explanation_ = AddComponent<SpriteComponent>(tex, SpriteSpace::kScreen);
     explanation_->SetSize(kWindowWidth, kWindwoHeight);
     explanation_->sort_key = 0;
