@@ -25,6 +25,8 @@ struct IndexData
 struct MeshMaterialDesc
 {
     Vec4 base_color;
+    float metallic;
+    float roughness;
     std::wstring diffuse_texture_path;
 };
 /**

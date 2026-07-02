@@ -71,6 +71,30 @@ struct PSInput
     float3 bitangent : BINORMAL; // 従接線ベクトル。
 };
 
+/**
+ * 
+ * @param x 
+ * @return 
+ */
+float3 ACESFilm(float3 x)
+{
+    const float a = 2.51f;
+    const float b = 0.03f;
+    const float c = 2.43f;
+    const float d = 0.59f;
+    const float e = 0.14f;
+    return saturate(x * (a * x + b)) / (x * (c * x + d) + e);
+}
+
+/**
+ * 
+ * @param x 
+ * @return 
+ */
+float3 LinearTosRGB(float3 x)
+{
+    return pow(x,1.0f / 2.2f);
+}
 // メッシュの色を取得するテクスチャ。
 Texture2D g_texture : register(t0);
 // 法線方向を補正する法線マップ。
@@ -85,7 +109,8 @@ cbuffer LightCB : register(b1)
 {
     float4 light_dir; // ライトの向き。
     float4 light_color; // ライトの色。
-    float4 ambient; // 環境光の色。
+    float4 sky_color;
+    float4 ground_color;
     float4 cam_pos; // カメラのワールド位置。
 }
 
@@ -159,6 +184,15 @@ float4 PSMain(PSInput input) : SV_TARGET
     float3 lit = (diffuse + spec) * radiance * ndotl;
 
     // 環境光を足して最終色を返す。
-    lit += ambient.rgb * albedo.rgb;
+    // hemi = hemisphere
+    float hemi = N.y * 0.5 + 0.5;
+    float3 ambientIrradiance = lerp(ground_color.rgb,sky_color.rgb,hemi);
+    lit += kd * albedo.rgb * ambientIrradiance;
+    
+    // HDR->LDR
+    lit = ACESFilm(lit);
+    
+    // リニア->sRGB
+    lit = LinearTosRGB(lit);
     return float4(lit, albedo.a);
 }

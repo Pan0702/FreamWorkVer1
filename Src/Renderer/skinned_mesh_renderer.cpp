@@ -140,7 +140,8 @@ void SkinnedMeshRenderer::Submit(RenderContext& context) const
     CB::LightCB light = {};
     light.light_pos = Vec4(context.light_pos.x, context.light_pos.y, context.light_pos.z, 0.0f);
     light.light_color = Vec4(context.light_color.x, context.light_color.y, context.light_color.z, 0.0f);
-    light.ambient = Vec4(context.ambient.x, context.ambient.y, context.ambient.z, 0.0f);
+    light.sky_color = Vec4(context.sky_color.x, context.sky_color.y, context.sky_color.z, 0.0f);
+    light.ground_color = Vec4(context.ground_color.x, context.ground_color.y, context.ground_color.z, 0.0f);
     light.camera_pos = Vec4(context.camera_pos.x, context.camera_pos.y, context.camera_pos.z, 1.0f);
     ConstantBufferAllocation light_alloc = {};
     bool has_light = cb_allocator->Allocate(sizeof(light), &light_alloc);

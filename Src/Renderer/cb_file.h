@@ -19,7 +19,8 @@ namespace CB
     {
         Vec4 light_pos;
         Vec4 light_color;
-        Vec4 ambient;
+        Vec4 sky_color;
+        Vec4 ground_color;
         Vec4 camera_pos;
     };
 /**

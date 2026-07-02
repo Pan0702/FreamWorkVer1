@@ -14,10 +14,11 @@
 #include "render_object.h"
 #include "../Resource/material_slot.h"
 #include "cb_file.h"
+
 bool MeshRenderer::Initialize(const ID3D12Device* device)
 {
     (void)device;
-    
+
     return true;
 }
 
@@ -73,7 +74,7 @@ void MeshRenderer::Collect()
 
         DrawCommand command = {};
         command.mesh = component->GetMesh();
-       command.world = world;
+        command.world = world;
         command.material_slot = component->GetMaterialSlot();
         draw_commands_.push_back(command);
     }
@@ -94,14 +95,15 @@ void MeshRenderer::Submit(RenderContext& context) const
     CB::LightCB light_cb = {};
     light_cb.light_pos = Vec4(context.light_pos.x, context.light_pos.y, context.light_pos.z, 0.0f);
     light_cb.light_color = Vec4(context.light_color.x, context.light_color.y, context.light_color.z, 0.0f);
-    light_cb.ambient = Vec4(context.ambient.x, context.ambient.y, context.ambient.z, 0.0f);
+    light_cb.sky_color = Vec4(context.sky_color.x, context.sky_color.y, context.sky_color.z, 0.0f);
+    light_cb.ground_color = Vec4(context.ground_color.x, context.ground_color.y, context.ground_color.z, 0.0f);
     light_cb.camera_pos = Vec4(context.camera_pos.x, context.camera_pos.y, context.camera_pos.z, 1.0f);
     const bool has_light = context.cb_allocator->Allocate(sizeof(light_cb), &light_alloc);
     if (has_light)
     {
         memcpy(light_alloc.cpu, &light_cb, sizeof(light_cb));
     }
-    context.command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST); 
+    context.command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     for (const DrawCommand& command : draw_commands_)
     {
         // オブジェクトごとの行列を Constant Buffer に詰める。
@@ -146,7 +148,7 @@ void MeshRenderer::Submit(RenderContext& context) const
             mat_cb.metallic = mat->GetMetallic();
             mat_cb.roughness = mat->GetRoughness();
             mat_cb.has_normal_map = (mat->GetNormal() != nullptr) ? 1 : 0;
-            
+
             ConstantBufferAllocation mat_alloc = {};
             if (context.cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
             {

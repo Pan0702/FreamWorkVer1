@@ -23,7 +23,7 @@ bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQue
     {
         return false;
     }
-    
+
     // SkySphereのテクスチャをセット
     constexpr std::wstring_view sky_texture_path = L"Assets/Texture/SkyImage.png";
     sky_renderer_->SetTexture(TextureManager::Get().Load(sky_texture_path.data()));
@@ -55,7 +55,7 @@ bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQue
 void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* camera)
 {
     (void)world;
-   // ImGui::ShowDemoWindow();
+    // ImGui::ShowDemoWindow();
     BeginRenderTarget(renderer_data);
 
     RenderContext context = {};
@@ -66,10 +66,11 @@ void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* ca
     context.cb_allocator = renderer_data.cb_allocator;
     context.screen_size = Vec2(static_cast<float>(renderer_data.window->GetWidth()),
                                static_cast<float>(renderer_data.window->GetHeight()));
-    
-    context.light_pos = Vec3(0.3f,-1.0f,0.5f).Normalized();
-    context.light_color = Vec3(1.0f,1.0f,1.0f);
-    context.ambient = Vec3(0.15f,0.15f,0.15f);
+
+    context.light_pos = Vec3(0.3f, -1.0f, 0.5f).Normalized();
+    context.light_color = Vec3(1.0f, 1.0f, 1.0f);
+    context.sky_color = Vec3(0.5f, 0.7f, 1.0f);
+    context.ground_color = Vec3(0.2f, 0.18f, 0.15f);
     context.camera_pos = camera->pos_;
 
     sky_renderer_->Render(context);
@@ -83,11 +84,11 @@ void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* ca
     sprite_renderer_->Collect();
     sprite_renderer_->Sort();
     sprite_renderer_->Submit(context);
-    
+
     skinned_mesh_renderer_->Collect();
     skinned_mesh_renderer_->Sort();
     skinned_mesh_renderer_->Submit(context);
-    
+
     ui_renderer_->Collect();
     ui_renderer_->Sort();
     ui_renderer_->Submit(context);

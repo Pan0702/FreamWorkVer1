@@ -41,6 +41,8 @@ Material::Material(const MeshMaterialDesc& desc)
         SetDiffuse(nullptr);
     }
     SetBaseColor(desc.base_color);
+    SetRoughness(desc.roughness);
+    SetMetallic(desc.metallic);
 }
 
 bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_t* ps_path,
