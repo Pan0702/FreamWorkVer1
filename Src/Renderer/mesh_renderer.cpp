@@ -143,8 +143,8 @@ void MeshRenderer::Submit(RenderContext& context) const
             CB::MaterialCB mat_cb = {};
             mat_cb.base_color = mat->GetBaseColor();
             mat_cb.has_texture = (mat->GetDiffuse() != nullptr) ? 1 : 0;
-            mat_cb.specular_intensity = mat->GetSpecularIntensity();
-            mat_cb.specular_power = mat->GetSpecularPower();
+            mat_cb.metallic = mat->GetMetallic();
+            mat_cb.roughness = mat->GetRoughness();
             mat_cb.has_normal_map = (mat->GetNormal() != nullptr) ? 1 : 0;
             
             ConstantBufferAllocation mat_alloc = {};

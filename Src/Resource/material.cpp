@@ -156,27 +156,27 @@ Texture2D* Material::GetHeight() const
     return height_;
 }
 
-float Material::GetSpecularPower() const
-{
-    return specular_power_;
-}
-
-float Material::GetSpecularIntensity() const
-{
-    return specular_intensity_;
-}
-
-void Material::SetSpecularPower(float power)
-{
-    specular_power_ = power;
-}
-
-void Material::SetSpecularIntensity(float intensity)
-{
-    specular_intensity_ = intensity;
-}
-
 Vec4 Material::GetBaseColor() const
 {
     return base_color_;
+}
+
+void Material::SetRoughness(float roughness)
+{
+    roughness_ = roughness;
+}
+
+void Material::SetMetallic(float metallic)
+{
+    metallic_ = metallic;
+}
+
+float Material::GetRoughness() const
+{
+    return roughness_;
+}
+
+float Material::GetMetallic() const
+{
+    return metallic_;
 }

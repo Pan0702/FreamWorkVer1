@@ -27,11 +27,11 @@ namespace CB
  */
     struct MaterialCB
     {
-        Vec4 base_color;
+        Vec4 base_color; //rgb + a //
         int has_texture;
-        float specular_intensity;
-        float specular_power;
-        int has_normal_map;;
+        int has_normal_map;
+        float metallic; // 1 = 金属 //
+        float roughness; // 0 = つるつる　// 
     };
 /**
  * @brief BoneCBのデータと処理をまとめる型。

@@ -87,30 +87,14 @@ public:
      */
     Texture2D* GetHeight() const;
     /**
-     * @brief スペキュラの強さ指数を取得する。
-     * @return ハイライトの鋭さに使うスペキュラ指数。
-     */
-    float GetSpecularPower() const;
-    /**
-     * @brief スペキュラの強度を取得する。
-     * @return ハイライトの明るさに使うスペキュラ強度。
-     */
-    float GetSpecularIntensity() const;
-    /**
-     * @brief 指定された値を内部状態に反映する。
-     * @param power 掛け合わせる回数。
-     */
-    void SetSpecularPower(float power);
-    /**
-     * @brief 指定された値を内部状態に反映する。
-     * @param intensity 反射や発光に使う強さ。
-     */
-    void SetSpecularIntensity(float intensity);
-    /**
      * @brief ベースカラーを取得する。
      * @return マテリアルのベースカラー。
      */
     Vec4 GetBaseColor() const;
+    void SetRoughness(float roughness);
+    void SetMetallic(float metallic);
+    float GetRoughness() const;
+    float GetMetallic() const;
 
 private:
     std::unique_ptr<Shader> vertex_shader_;
@@ -121,7 +105,7 @@ private:
     Texture2D* normal_ = nullptr;
     Texture2D* specular_ = nullptr;
     Texture2D* height_ = nullptr;
-    float specular_power_ = 0.0f;
-    float specular_intensity_ = 0.0f;   
     Vec4 base_color_;
+    float roughness_ = 0.5f;
+    float metallic_ = 0.0f;   
 };
