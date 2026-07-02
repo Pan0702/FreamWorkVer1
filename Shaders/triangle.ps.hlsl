@@ -106,6 +106,7 @@ cbuffer MaterialCB : register(b2)
  */
 float4 PSMain(PSInput input) : SV_TARGET
 {
+    // 法線を用意する。法線マップがある場合は、タンジェント空間からワールド空間へ変換する。
     float3 N = normalize(input.normal);
     if (has_normal_map != 0)
     {
@@ -115,6 +116,8 @@ float4 PSMain(PSInput input) : SV_TARGET
         float3x3 TBN = float3x3(T, B, N);
         N = normalize(mul(tn, TBN));
     }
+
+    // ライト方向と視線方向を求める。法線が裏向きなら視線側へ反転する。
     float3 L = normalize(-light_dir.xyz);
     float3 V = normalize(cam_pos.xyz - input.world_pos.xyz);
     if (dot(N, V) < 0.0)
@@ -122,29 +125,40 @@ float4 PSMain(PSInput input) : SV_TARGET
         N = -N;
     }
     
+    // マテリアルの基本色を決める。テクスチャがある場合は base_color に掛け合わせる。
     float4 albedo = base_color;
     if (has_texture != 0)
     {
         albedo *= g_texture.Sample(g_sampler, input.uv);
     }
+
+    // ライト方向と視線方向の中間方向を求める。鏡面反射の計算で使う。
     float3 H = normalize(L + V);
 
-    // 金属はalbedoを反射色にして金属以外は0.04に固定
+    // Fresnel の基準反射率を決める。金属は albedo、非金属は 0.04 を使う。
     const float3 kDielectricF0 = float3(0.04f, 0.04f, 0.04f);
     float3 F0 = lerp(float3(kDielectricF0), albedo.rgb, metallic);
+
+    // Cook-Torrance の D/G/F 項を計算する。
+    // D: 法線分布、G: 凹凸による隠れ具合、F: 角度による反射率。
     float D = DistributionGGX(N, H, roughness);
     float G = GeometrySmith(N, V, L, roughness);
     float3 F = FresnelSchlick(saturate(dot(H, V)), F0);
 
-    //金属は拡散反射しない
+    // 拡散反射を計算する。金属は拡散反射しないので metallic で弱める。
     float3 kd = (1.0f - F) * (1.0f - metallic);
     float3 diffuse = kd * albedo.rgb / PI;
+
+    // 鏡面反射を計算する。分母が 0 に近くなりすぎないように下限を入れる。
     float ndotl = saturate(dot(N, L));
     float ndotv = saturate(dot(N, V));
     float3 spec = (D * G * F) / max(4.0f * ndotl * ndotv, 0.001f);
+
+    // ライト色と入射角を反映して、直接光の明るさを出す。
     float3 radiance = light_color.rgb;
     float3 lit = (diffuse + spec) * radiance * ndotl;
 
+    // 環境光を足して最終色を返す。
     lit += ambient.rgb * albedo.rgb;
     return float4(lit, albedo.a);
 }
