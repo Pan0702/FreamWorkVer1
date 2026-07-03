@@ -28,6 +28,9 @@ struct MeshMaterialDesc
     float metallic;
     float roughness;
     std::wstring diffuse_texture_path;
+    std::wstring normal_texture_path;
+    std::wstring specular_texture_path;  
+    std::wstring height_texture_path; 
 };
 /**
  * @brief SubMeshのデータと処理をまとめる型。

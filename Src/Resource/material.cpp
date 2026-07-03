@@ -26,19 +26,54 @@ Material::Material(const MeshMaterialDesc& desc)
     {
         MessageBox(nullptr, L"Failed to create material", L"Error", MB_OK);
     }
-
-    Texture2D* texture = TextureManager::Get().Load(desc.diffuse_texture_path.c_str());
-    if (texture)
+    if (!desc.diffuse_texture_path.empty())
     {
-        SetDiffuse(texture);
-    }
-    else
-    {
-        if (!desc.diffuse_texture_path.empty())
+        Texture2D* texture = TextureManager::Get().Load(desc.diffuse_texture_path.c_str());
+        if (texture)
+        {
+            SetDiffuse(texture);
+        }
+        else
         {
             printf("Failed to load texture %ls\n", desc.diffuse_texture_path.c_str());
         }
-        SetDiffuse(nullptr);
+    }
+    if (!desc.normal_texture_path.empty())
+    {
+        Texture2D* normal = TextureManager::Get().Load(desc.normal_texture_path.c_str(), true);
+        if (normal)
+        {
+            SetNormal(normal);
+        }
+        else
+        {
+            printf("Failed to load normal %ls\n", desc.normal_texture_path.c_str());
+        }
+    }
+
+    if (!desc.specular_texture_path.empty())
+    {
+        Texture2D* specular = TextureManager::Get().Load(desc.specular_texture_path.c_str(), true);
+        if (specular)
+        {
+            SetSpecular(specular);
+        }
+        else
+        {
+            printf("Failed to load specular %ls\n", desc.specular_texture_path.c_str());
+        }
+    }
+    if (!desc.height_texture_path.empty())
+    {
+        Texture2D* height = TextureManager::Get().Load(desc.height_texture_path.c_str(), true);
+        if (height)
+        {
+            SetHeight(height);
+        }
+        else
+        {
+            printf("Failed to load height %ls\n", desc.height_texture_path.c_str());
+        }
     }
     SetBaseColor(desc.base_color);
     SetRoughness(desc.roughness);
@@ -56,7 +91,7 @@ bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_
         .AddSrvTable(0, 1, D3D12_SHADER_VISIBILITY_PIXEL) //t0
         .AddCbv(1, D3D12_SHADER_VISIBILITY_PIXEL) // b1
         .AddCbv(2, D3D12_SHADER_VISIBILITY_PIXEL) // b2 
-        .AddSrvTable(1,1, D3D12_SHADER_VISIBILITY_PIXEL) // t1
+        .AddSrvTable(1, 1, D3D12_SHADER_VISIBILITY_PIXEL) // t1
         .AddStaticSampler(0, D3D12_SHADER_VISIBILITY_PIXEL, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
 
     if (!builder.Build(device, root_signature_.get()))
@@ -100,17 +135,16 @@ bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_
     return true;
 }
 
-void Material::Apply(ID3D12GraphicsCommandList* command_list, DescriptorHeap* descriptor_heap)
+void Material::Apply(ID3D12GraphicsCommandList* command_list, const DescriptorHeap* descriptor_heap) const
 {
     command_list->SetGraphicsRootSignature(root_signature_->GetRootSignature());
     command_list->SetPipelineState(pipeline_state_->GetPipelineState());
     ID3D12DescriptorHeap* heaps[] = {descriptor_heap->GetHeap()};
     command_list->SetDescriptorHeaps(1, heaps);
     const uint32_t srv_index = (diffuse_ != nullptr) ? diffuse_->GetSrvIndex() : 0;
-    command_list->SetGraphicsRootDescriptorTable(1,descriptor_heap->GetGpuHandle(srv_index));
+    command_list->SetGraphicsRootDescriptorTable(1, descriptor_heap->GetGpuHandle(srv_index));
     const uint32_t norm_index = (normal_ != nullptr) ? normal_->GetSrvIndex() : 0;
-    command_list->SetGraphicsRootDescriptorTable(4,descriptor_heap->GetGpuHandle(norm_index));
-    
+    command_list->SetGraphicsRootDescriptorTable(4, descriptor_heap->GetGpuHandle(norm_index));
 }
 
 void Material::SetDiffuse(Texture2D* diffuse)

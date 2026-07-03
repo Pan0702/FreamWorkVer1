@@ -107,6 +107,10 @@ namespace
     {
         Vec4 base_color; // マテリアルの基本色。
         std::wstring diffuse_path; // ディフューズテクスチャへのパス。
+        std::wstring normal_path;
+        std::wstring specular_path;  
+        std::wstring height_path; 
+        
     };
 
     /**
@@ -358,6 +362,18 @@ namespace
             {
                 data.diffuse_path = BuildTexturePathResolved(scene, tex, tex_dir);
             }
+            if (material->GetTexture(aiTextureType_NORMALS, 0, &tex) == AI_SUCCESS)
+            {
+                data.normal_path = BuildTexturePathResolved(scene, tex, tex_dir);
+            }
+            if (material->GetTexture(aiTextureType_SPECULAR, 0, &tex) == AI_SUCCESS)
+            {
+                data.specular_path = BuildTexturePathResolved(scene, tex, tex_dir);
+            }
+            if (material->GetTexture(aiTextureType_HEIGHT, 0, &tex) == AI_SUCCESS)
+            {
+                data.height_path = BuildTexturePathResolved(scene, tex, tex_dir);
+            }
             materials.push_back(data);
         }
 
@@ -441,6 +457,12 @@ namespace
             e.base_color = mat.base_color;
             e.diffuse_texture_length =
                 static_cast<std::uint32_t>(mat.diffuse_path.size());
+            e.normal_texture_length =
+                static_cast<std::uint32_t>(mat.normal_path.size());
+            e.specular_texture_length =
+                static_cast<std::uint32_t>(mat.specular_path.size());
+            e.height_texture_length =
+                static_cast<std::uint32_t>(mat.height_path.size());
             ofs.write(reinterpret_cast<const char*>(&e), sizeof(e));
         }
         for (const auto& mat : materials)
@@ -448,6 +470,15 @@ namespace
             if (!mat.diffuse_path.empty())
                 ofs.write(reinterpret_cast<const char*>(mat.diffuse_path.c_str()),
                           static_cast<std::streamsize>(mat.diffuse_path.size() * sizeof(std::wstring::value_type)));
+            if (!mat.normal_path.empty())  
+                ofs.write(reinterpret_cast<const char*>(mat.normal_path.c_str()),
+                    static_cast<std::streamsize>(mat.normal_path.size() * sizeof(std::wstring::value_type)));
+            if (!mat.specular_path.empty())
+                ofs.write(reinterpret_cast<const char*>(mat.specular_path.c_str()),
+                    static_cast<std::streamsize>(mat.specular_path.size() * sizeof(std::wstring::value_type)));
+            if (!mat.height_path.empty())
+                ofs.write(reinterpret_cast<const char*>(mat.height_path.c_str()),
+                    static_cast<std::streamsize>(mat.height_path.size() * sizeof(std::wstring::value_type)));
             printf("write %ls\n", mat.diffuse_path.c_str());
         }
 
@@ -739,16 +770,31 @@ namespace
         {
             MaterialEntry e = {};
             e.base_color = mat.base_color;
-            e.diffuse_texture_length = static_cast<std::uint32_t>(mat.diffuse_path.size());
+            e.diffuse_texture_length =
+                static_cast<std::uint32_t>(mat.diffuse_path.size());
+            e.normal_texture_length =
+                static_cast<std::uint32_t>(mat.normal_path.size());
+            e.specular_texture_length =
+                static_cast<std::uint32_t>(mat.specular_path.size());
+            e.height_texture_length =
+                static_cast<std::uint32_t>(mat.height_path.size());
             ofs.write(reinterpret_cast<const char*>(&e), sizeof(e));
         }
         for (const auto& mat : materials)
         {
             if (!mat.diffuse_path.empty())
-            {
                 ofs.write(reinterpret_cast<const char*>(mat.diffuse_path.c_str()),
                           static_cast<std::streamsize>(mat.diffuse_path.size() * sizeof(std::wstring::value_type)));
-            }
+            if (!mat.normal_path.empty())  
+                ofs.write(reinterpret_cast<const char*>(mat.normal_path.c_str()),
+                    static_cast<std::streamsize>(mat.normal_path.size() * sizeof(std::wstring::value_type)));
+            if (!mat.specular_path.empty())
+                ofs.write(reinterpret_cast<const char*>(mat.specular_path.c_str()),
+                    static_cast<std::streamsize>(mat.specular_path.size() * sizeof(std::wstring::value_type)));
+            if (!mat.height_path.empty())
+                ofs.write(reinterpret_cast<const char*>(mat.height_path.c_str()),
+                    static_cast<std::streamsize>(mat.height_path.size() * sizeof(std::wstring::value_type)));
+            printf("write %ls\n", mat.diffuse_path.c_str());
         }
 
         // ノード階層(topo順)。
@@ -1067,6 +1113,18 @@ namespace
             if (material->GetTexture(aiTextureType_DIFFUSE, 0, &tex) == AI_SUCCESS)
             {
                 data.diffuse_path = BuildTexturePathResolved(scene, tex, tex_dir);
+            }
+            if (material->GetTexture(aiTextureType_NORMALS, 0, &tex) == AI_SUCCESS)
+            {
+                data.normal_path = BuildTexturePathResolved(scene, tex, tex_dir);
+            }
+            if (material->GetTexture(aiTextureType_SPECULAR, 0, &tex) == AI_SUCCESS)
+            {
+                data.specular_path = BuildTexturePathResolved(scene, tex, tex_dir);
+            }
+            if (material->GetTexture(aiTextureType_HEIGHT, 0, &tex) == AI_SUCCESS)
+            {
+                data.height_path = BuildTexturePathResolved(scene, tex, tex_dir);
             }
             materials.push_back(data);
         }

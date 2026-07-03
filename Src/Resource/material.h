@@ -40,7 +40,7 @@ public:
      * @param command_list 描画コマンドを書き込むコマンドリスト。
      * @param descriptor_heap SRV/CBV/UAV などを保持するディスクリプタヒープ。
      */
-    void Apply(ID3D12GraphicsCommandList* command_list, DescriptorHeap* descriptor_heap);
+    void Apply(ID3D12GraphicsCommandList* command_list, const DescriptorHeap* descriptor_heap) const;
     /**
      * @brief 指定された値を内部状態に反映する。
      * @param diffuse ディフューズテクスチャ。

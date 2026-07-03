@@ -29,7 +29,7 @@ void TestLevel::OnEnter()
     Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/box1.mesh");
     material_slot_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDecs());
     material_slot_->GetMaterial(0)->SetDiffuse(TextureManager::Get().Load(L"Assets/Texture/NormalMap.png"));
-    material_slot_->GetMaterial(0)->SetNormal(TextureManager::Get().Load(L"Assets/Texture/NormalMap.png"));
+  //  material_slot_->GetMaterial(0)->SetNormal(TextureManager::Get().Load(L"Assets/Texture/NormalMap.png"));
     
     Actor* a = SpawnActor();
     auto* t = &a->GetTransform();

@@ -84,8 +84,8 @@ struct RotationKey
 
 static constexpr char kSkMeshMagic[4] = {'S', 'K', 'M', 'S'};
 static constexpr char kSkAnimMagic[4] = {'A', 'N', 'I', 'M'};
-static constexpr uint32 kSkMeshVersion = 1;
-static constexpr uint32 kSkAnimVersion = 1;
+static constexpr uint32 kSkMeshVersion = 2;
+static constexpr uint32 kSkAnimVersion = 2;
 
 // ディスク保存レイアウトを固定（コンバータ?ランタイムのパディング不一致を防ぐ）。
 // int(4)+int(4)+uint(4)+uint(4)=16, Mat(64)*2=128 → 計 144。

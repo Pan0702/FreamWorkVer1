@@ -22,10 +22,13 @@ struct MaterialEntry
 {
     Vec4 base_color;
     uint32_t diffuse_texture_length;
+    uint32_t normal_texture_length;    
+    uint32_t specular_texture_length;  
+    uint32_t height_texture_length;
     uint32_t reserved;
 };
 
 // ディスク保存レイアウトを固定する。コンバータ(別プロジェクト)とランタイムで
 // パディングが食い違うとバイナリ読み込みが丸ごと崩れるため、サイズを契約として固定。
 static_assert(sizeof(SubMeshEntry) == 12, "SubMeshEntry layout changed");
-static_assert(sizeof(MaterialEntry) == 24, "MaterialEntry layout changed");
+static_assert(sizeof(MaterialEntry) == 36, "MaterialEntry layout changed");

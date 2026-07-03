@@ -101,6 +101,40 @@ Mesh* MeshManager::Load(const std::string& path)
                      static_cast<std::streamsize>(len * sizeof(wchar_t)));
         }
     }
+
+    std::vector<std::wstring> normal_paths(header.material_count);
+    for (uint32_t i = 0; i < header.material_count; ++i)
+    {
+        const uint32_t len = materials[i].normal_texture_length;
+        if (len > 0)
+        {
+            normal_paths[i].resize(len);
+            ifs.read(reinterpret_cast<char*>(normal_paths[i].data()),
+                     static_cast<std::streamsize>(len * sizeof(wchar_t)));
+        }
+    }
+    std::vector<std::wstring> specular_paths(header.material_count);
+    for (uint32_t i = 0; i < header.material_count; ++i)
+    {
+        const uint32_t len = materials[i].specular_texture_length;
+        if (len > 0)
+        {
+            specular_paths[i].resize(len);
+            ifs.read(reinterpret_cast<char*>(specular_paths[i].data()),
+                     static_cast<std::streamsize>(len * sizeof(wchar_t)));
+        }
+    }
+    std::vector<std::wstring> height_paths(header.material_count);
+    for (uint32_t i = 0; i < header.material_count; ++i)
+    {
+        const uint32_t len = materials[i].height_texture_length;
+        if (len > 0)
+        {
+            height_paths[i].resize(len);
+            ifs.read(reinterpret_cast<char*>(height_paths[i].data()),
+                     static_cast<std::streamsize>(len * sizeof(wchar_t)));
+        }
+    }
     if (!ifs)
     {
         return nullptr;
@@ -124,7 +158,7 @@ Mesh* MeshManager::Load(const std::string& path)
     std::vector<Vec3> col_pos(header.vertex_count);
     for (uint32 i = 0; i < header.vertex_count; ++i)
     {
-        col_pos[i] = Vec3(vertices[i].position[0],vertices[i].position[1],vertices[i].position[2]);
+        col_pos[i] = Vec3(vertices[i].position[0], vertices[i].position[1], vertices[i].position[2]);
     }
     mesh->SetCollisionMesh(std::move(col_pos), std::move(indices));
 
@@ -134,6 +168,9 @@ Mesh* MeshManager::Load(const std::string& path)
     {
         descs[i].base_color = materials[i].base_color;
         descs[i].diffuse_texture_path = diffuse_paths[i].c_str();
+        descs[i].normal_texture_path = normal_paths[i].c_str();
+        descs[i].specular_texture_path = specular_paths[i].c_str();
+        descs[i].height_texture_path = height_paths[i].c_str();
     }
     mesh->SetMaterialDescs(descs);
 

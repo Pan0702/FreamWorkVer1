@@ -102,6 +102,40 @@ SkeletalMesh* SkeletalMeshManager::Load(const std::string& path)
                      static_cast<std::streamsize>(len * sizeof(wchar_t)));
         }
     }
+    
+    std::vector<std::wstring> normal_paths(header.material_count);
+    for (uint32_t i = 0; i < header.material_count; ++i)
+    {
+        const uint32_t len = materials[i].normal_texture_length;
+        if (len > 0)
+        {
+            normal_paths[i].resize(len);
+            ifs.read(reinterpret_cast<char*>(normal_paths[i].data()),
+                     static_cast<std::streamsize>(len * sizeof(wchar_t)));
+        }
+    }
+    std::vector<std::wstring> specular_paths(header.material_count);
+    for (uint32_t i = 0; i < header.material_count; ++i)
+    {
+        const uint32_t len = materials[i].specular_texture_length;
+        if (len > 0)
+        {
+            specular_paths[i].resize(len);
+            ifs.read(reinterpret_cast<char*>(specular_paths[i].data()),
+                     static_cast<std::streamsize>(len * sizeof(wchar_t)));
+        }
+    }
+    std::vector<std::wstring> height_paths(header.material_count);
+    for (uint32_t i = 0; i < header.material_count; ++i)
+    {
+        const uint32_t len = materials[i].height_texture_length;
+        if (len > 0)
+        {
+            height_paths[i].resize(len);
+            ifs.read(reinterpret_cast<char*>(height_paths[i].data()),
+                     static_cast<std::streamsize>(len * sizeof(wchar_t)));
+        }
+    }
     std::vector<NodeEntry> nodes(header.node_count);
     ifs.read(reinterpret_cast<char*>(nodes.data()),
              static_cast<std::streamsize>(header.node_count * sizeof(NodeEntry)));
@@ -116,14 +150,14 @@ SkeletalMesh* SkeletalMeshManager::Load(const std::string& path)
             ifs.read(skin[i].data(), len);
         }
     }
-    std::vector<SkeletonNode> skel_nodes(header.node_count);
+    std::vector<SkeletonNode> skele_nodes(header.node_count);
     for (uint32_t i = 0; i < header.node_count; ++i)
     {
-        skel_nodes[i].name = skin[i];
-        skel_nodes[i].parent_index = nodes[i].parent_index;
-        skel_nodes[i].skin_index = nodes[i].skin_index;
-        skel_nodes[i].local_bind_transform = nodes[i].local_bind_transform;
-        skel_nodes[i].inverse_bind_pose = nodes[i].inverse_bind_pose;
+        skele_nodes[i].name = skin[i];
+        skele_nodes[i].parent_index = nodes[i].parent_index;
+        skele_nodes[i].skin_index = nodes[i].skin_index;
+        skele_nodes[i].local_bind_transform = nodes[i].local_bind_transform;
+        skele_nodes[i].inverse_bind_pose = nodes[i].inverse_bind_pose;
     }
     if (!ifs)
     {
@@ -146,7 +180,7 @@ SkeletalMesh* SkeletalMeshManager::Load(const std::string& path)
         return nullptr;
     }
     auto sk = std::make_unique<Skeleton>();
-    sk->SetNodes(std::move(skel_nodes), header.skin_count);
+    sk->SetNodes(std::move(skele_nodes), header.skin_count);
     sk_mesh->SetSkeleton(std::move(sk));
     //Change MaterialEntry -> MeshMaterialDesc
     std::vector<MeshMaterialDesc> descs(header.material_count);
@@ -154,6 +188,10 @@ SkeletalMesh* SkeletalMeshManager::Load(const std::string& path)
     {
         descs[i].base_color = materials[i].base_color;
         descs[i].diffuse_texture_path = diffuse_paths[i].c_str();
+        descs[i].normal_texture_path = normal_paths[i].c_str();
+        descs[i].specular_texture_path = specular_paths[i].c_str();
+        descs[i].height_texture_path = height_paths[i].c_str();
+        
     }
     sk_mesh->SetMaterialDescs(descs);
 
