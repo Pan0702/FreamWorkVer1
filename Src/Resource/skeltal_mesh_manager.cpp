@@ -42,7 +42,7 @@ SkeletalMesh* SkeletalMeshManager::Load(const std::string& path)
     ifs.read(reinterpret_cast<char*>(&header), sizeof(SkMeshFileHeader));
     if (!ifs)
     {
-        MessageBox(nullptr, L"Failed to read SkeltalMesh file", L"Error", MB_OK);
+        MessageBox(nullptr, L"Failed to read SkeletalMesh file", L"Error", MB_OK);
         return nullptr;
     }
     if (std::memcmp(header.magic, kSkMeshMagic, 4) != 0)
@@ -91,51 +91,35 @@ SkeletalMesh* SkeletalMeshManager::Load(const std::string& path)
                  static_cast<std::streamsize>(header.material_count * sizeof(MaterialEntry)));
     }
 
-    std::vector<std::wstring> diffuse_paths(header.material_count);
-    for (uint32_t i = 0; i < header.material_count; ++i)
+    std::vector<std::wstring>
+        diffuse_paths(header.material_count);
+    std::vector<std::wstring>
+        normal_paths(header.material_count);
+    std::vector<std::wstring>
+        specular_paths(header.material_count);
+    std::vector<std::wstring>
+        height_paths(header.material_count);
+    for (uint32 i = 0; i < header.material_count; ++i)
     {
-        const uint32_t len = materials[i].diffuse_texture_length;
-        if (len > 0)
+        auto read_path = [&](std::wstring& dst, uint32 len)
         {
-            diffuse_paths[i].resize(len);
-            ifs.read(reinterpret_cast<char*>(diffuse_paths[i].data()),
-                     static_cast<std::streamsize>(len * sizeof(wchar_t)));
-        }
+            if (len > 0)
+            {
+                dst.resize(len);
+                ifs.read(reinterpret_cast<char*>(dst.data()),
+                         static_cast<std::streamsize>(len * sizeof(wchar_t)));
+            }
+        };
+        read_path(diffuse_paths[i],
+                  materials[i].diffuse_texture_length);
+        read_path(normal_paths[i],
+                  materials[i].normal_texture_length);
+        read_path(specular_paths[i],
+                  materials[i].specular_texture_length);
+        read_path(height_paths[i],
+                  materials[i].height_texture_length);
     }
     
-    std::vector<std::wstring> normal_paths(header.material_count);
-    for (uint32_t i = 0; i < header.material_count; ++i)
-    {
-        const uint32_t len = materials[i].normal_texture_length;
-        if (len > 0)
-        {
-            normal_paths[i].resize(len);
-            ifs.read(reinterpret_cast<char*>(normal_paths[i].data()),
-                     static_cast<std::streamsize>(len * sizeof(wchar_t)));
-        }
-    }
-    std::vector<std::wstring> specular_paths(header.material_count);
-    for (uint32_t i = 0; i < header.material_count; ++i)
-    {
-        const uint32_t len = materials[i].specular_texture_length;
-        if (len > 0)
-        {
-            specular_paths[i].resize(len);
-            ifs.read(reinterpret_cast<char*>(specular_paths[i].data()),
-                     static_cast<std::streamsize>(len * sizeof(wchar_t)));
-        }
-    }
-    std::vector<std::wstring> height_paths(header.material_count);
-    for (uint32_t i = 0; i < header.material_count; ++i)
-    {
-        const uint32_t len = materials[i].height_texture_length;
-        if (len > 0)
-        {
-            height_paths[i].resize(len);
-            ifs.read(reinterpret_cast<char*>(height_paths[i].data()),
-                     static_cast<std::streamsize>(len * sizeof(wchar_t)));
-        }
-    }
     std::vector<NodeEntry> nodes(header.node_count);
     ifs.read(reinterpret_cast<char*>(nodes.data()),
              static_cast<std::streamsize>(header.node_count * sizeof(NodeEntry)));
