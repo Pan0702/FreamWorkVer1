@@ -85,6 +85,11 @@ public:
      * @return 保持している Depth Write Enabled への参照。
      */
     PipelineStateBuilder& SetDepthWriteEnabled(bool enabled);
+
+    PipelineStateBuilder& SetNumRederTarget(UINT count);
+    
+    PipelineStateBuilder& SetDepthBias(int bias,float slope_scaled);
+    
     /**
      * @brief 後続処理で使いやすい形にデータを組み立てる。
      * @param device 使用する D3D12 デバイス。
@@ -99,11 +104,15 @@ private:
     D3D12_SHADER_BYTECODE pixel_shader_ = {};
     D3D12_INPUT_LAYOUT_DESC input_layout_ = {};
 
-    bool depth_enable_ = true;
-    bool blend_alpha_enable_ = false;
-    bool depth_write_ = true;
-
     DXGI_FORMAT rtv_format_ = DXGI_FORMAT_R8G8B8A8_UNORM;
     DXGI_FORMAT dsv_format_ = DXGI_FORMAT_D32_FLOAT;
     D3D12_PRIMITIVE_TOPOLOGY_TYPE primitive_topology_type_ = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+
+    UINT num_render_targets_ = 1;
+    float slope_scaled_depth_bias_ = 0.0f;
+    int depth_bias_ = 0;
+    bool depth_enable_ = true;
+    bool blend_alpha_enable_ = false;
+    bool depth_write_ = true;
+    bool non;
 };

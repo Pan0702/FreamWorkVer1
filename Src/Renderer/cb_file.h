@@ -22,6 +22,7 @@ namespace CB
         Vec4 sky_color;
         Vec4 ground_color;
         Vec4 camera_pos;
+        Mat light_view_proj;
     };
 /**
  * @brief MaterialCBのデータと処理をまとめる型。
@@ -40,5 +41,10 @@ namespace CB
     struct BoneCB
     {
         Mat bones[kMaxBones];
+    };
+    
+    struct ShadowObjectCB
+    {
+        Mat wvp;
     };
 }

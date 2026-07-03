@@ -66,6 +66,19 @@ PipelineStateBuilder& PipelineStateBuilder::SetDepthWriteEnabled(bool enabled)
     return *this;
 }
 
+PipelineStateBuilder& PipelineStateBuilder::SetNumRederTarget(UINT count)
+{
+    num_render_targets_ = count;
+    return *this;
+}
+
+PipelineStateBuilder& PipelineStateBuilder::SetDepthBias(int bias, float slope_scaled)
+{
+    depth_bias_ = bias;
+    slope_scaled_depth_bias_ = slope_scaled;
+    return *this;   
+}
+
 bool PipelineStateBuilder::Build(ID3D12Device* device, PipelineState* out_pipeline_state) const
 {
     D3D12_GRAPHICS_PIPELINE_STATE_DESC desc = {};
@@ -79,9 +92,9 @@ bool PipelineStateBuilder::Build(ID3D12Device* device, PipelineState* out_pipeli
     //三角形の描画をしろっていう宣言
     desc.PrimitiveTopologyType = primitive_topology_type_;
     //書き先（RTV）の枚数
-    desc.NumRenderTargets = 1;
+    desc.NumRenderTargets = num_render_targets_;
     //↑の色のフォーマットSwapChainと違う色だと失敗する
-    desc.RTVFormats[0] = rtv_format_;
+    desc.RTVFormats[0] = (num_render_targets_ > 0) ? rtv_format_ : DXGI_FORMAT_UNKNOWN;
     //MSAA(アンチエイリアス)なし
     //0は失敗、2以上で使用、４がよくつかわれる値
     desc.SampleDesc.Count = 1;
@@ -139,11 +152,11 @@ bool PipelineStateBuilder::Build(ID3D12Device* device, PipelineState* out_pipeli
         //どっちの向きがおもてか
         desc.RasterizerState.FrontCounterClockwise = FALSE;
         //深度値を整数でずらす
-        desc.RasterizerState.DepthBias = 0;
+        desc.RasterizerState.DepthBias = depth_bias_;
         //DepthBiasの上限
         desc.RasterizerState.DepthBiasClamp = 0.0f;
         //傾きに応じだdepthBias
-        desc.RasterizerState.SlopeScaledDepthBias = 0.0f;
+        desc.RasterizerState.SlopeScaledDepthBias = slope_scaled_depth_bias_;
         //視野買いをカットするか
         desc.RasterizerState.DepthClipEnable = TRUE;
         //MASSを有効化(2以上の時だけtrueにする) 
@@ -155,6 +168,7 @@ bool PipelineStateBuilder::Build(ID3D12Device* device, PipelineState* out_pipeli
         //保守的すたライズ
         desc.RasterizerState.ConservativeRaster = D3D12_CONSERVATIVE_RASTERIZATION_MODE_OFF;
     }
+    
     HRESULT hr = device->CreateGraphicsPipelineState(&desc,IID_PPV_ARGS(&out_pipeline_state->pipeline_state_));
     return SUCCEEDED(hr);
 }

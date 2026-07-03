@@ -48,12 +48,14 @@ public:
      * @brief 描画順が安定するようにコマンドを並べ替える。
      */
     void Sort();
+    void Submit(RenderContext& context);
     /**
      * @brief 収集済みコマンドを GPU コマンドリストへ書き込む。
      * @param context 描画や登録に使う共有コンテキスト。
      */
     void Submit(RenderContext& context) const;
 
+    void SubmitDepth(const RenderContext& context) const;
 private:
     std::vector<StaticMeshComponent*> registered_;
     std::vector<DrawCommand> draw_commands_;

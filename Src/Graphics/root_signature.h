@@ -54,6 +54,14 @@ public:
      */
     RootSignatureBuilder& AddStaticSampler(UINT shader_register, D3D12_SHADER_VISIBILITY visibility,
                                            D3D12_TEXTURE_ADDRESS_MODE address_mode);
+    
+    /**
+ * @brief RootSignature に比較サンプラー(シャドウマップ用)を追加する。
+ * @param shader_register バインド先のシェーダーレジスタ番号。
+ * @param visibility 参照できるシェーダーステージ。
+ * @return 保持している RootSignatureBuilder への参照。
+ */
+    RootSignatureBuilder& AddComparisonSampler(UINT shader_register, D3D12_SHADER_VISIBILITY visibility);
 
     /**
      * @brief 後続処理で使いやすい形にデータを組み立てる。

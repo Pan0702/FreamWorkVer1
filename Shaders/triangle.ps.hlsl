@@ -99,6 +99,8 @@ float3 LinearTosRGB(float3 x)
 Texture2D g_texture : register(t0);
 // 法線方向を補正する法線マップ。
 Texture2D g_normal_map : register(t1);
+
+Texture2D g_shadow_map : register(t2);
 // メッシュテクスチャのサンプラ。
 SamplerState g_sampler : register(s0);
 
@@ -112,6 +114,7 @@ cbuffer LightCB : register(b1)
     float4 sky_color;
     float4 ground_color;
     float4 cam_pos; // カメラのワールド位置。
+    float4x4 ligth_view_proj;
 }
 
 /**
@@ -125,7 +128,28 @@ cbuffer MaterialCB : register(b2)
     float metallic; // 0=誘電体, 1=金属              
     float roughness; // 0=つるつる, 1=ざらざら
 }
+SamplerComparisonState g_shadow_sampler : register(s1);
 
+float CalcShadow(float3 world_pos)
+{
+    // ワールド座標をライト視点のクリップ空間へ変換。
+    float4 lp = mul(float4(world_pos, 1.0f), ligth_view_proj);
+    // 平行投影なので w は 1 だが、一般化のため除算しておく。
+    float3 proj = lp.xyz / lp.w;
+
+    // クリップ空間(-1～1)を UV(0～1)へ。Y は上下反転。
+    float2 uv = proj.xy * float2(0.5f, -0.5f) + 0.5f;
+
+    // シャドウマップの範囲外、または最遠面より奥は影なし扱い。
+    if (uv.x < 0.0f || uv.x > 1.0f || uv.y < 0.0f || uv.y > 1.0f || proj.z > 1.0f)
+    {
+        return 1.0f;
+    }
+
+    // 比較サンプラーで「このピクセルの深度 <= 記録された深度」を判定。
+    // SampleCmpLevelZero は 0～1 を返す(比較サンプラーがLINEARなら自動でPCF的に補間)。
+    return g_shadow_map.SampleCmpLevelZero(g_shadow_sampler, uv, proj.z);
+}
 /**
  * @brief 入力された補間済みデータから最終カラーを計算する関数。
  */
@@ -181,7 +205,8 @@ float4 PSMain(PSInput input) : SV_TARGET
 
     // ライト色と入射角を反映して、直接光の明るさを出す。
     float3 radiance = light_color.rgb;
-    float3 lit = (diffuse + spec) * radiance * ndotl;
+    float shadow = CalcShadow(input.world_pos);        
+    float3 lit = (diffuse + spec) * radiance * ndotl * shadow;
 
     // 環境光を足して最終色を返す。
     // hemi = hemisphere

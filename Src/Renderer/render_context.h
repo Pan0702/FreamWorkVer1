@@ -15,6 +15,7 @@ struct RenderContext
     DescriptorHeap* srv_heap = nullptr;
     ConstantBufferAllocator* cb_allocator = nullptr;
     Vec2 screen_size = {0.0f, 0.0f};
+    uint32 shadow_srv_index = 0;
     
     //Œõ‚ÌŒü‚«//
     Vec3 light_pos = Vec3(0,0,0);
@@ -23,4 +24,6 @@ struct RenderContext
     Vec3 sky_color = Vec3(0.5f,0.7f,1.0f);
     Vec3 ground_color = Vec3(0.2f,0.3f,0.3f);
     Vec3 camera_pos = Vec3(0.0f,0.0f,0.0f);
+    
+    Mat light_view_proj = Identity();
 };

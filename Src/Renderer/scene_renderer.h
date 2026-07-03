@@ -7,6 +7,7 @@
 #include "sprite_renderer.h"
 #include "ui_renderer.h"
 
+class ShadowRenderer;
 class DebugLineRenderer;
 class Camera;
 class CommandList;
@@ -36,15 +37,18 @@ struct RendererData
 class SceneRenderer
 {
 public:
+    SceneRenderer();
+    ~SceneRenderer();
     /**
      * @brief 利用前に必要な参照とリソースを初期化する。
      * @param device 使用する D3D12 デバイス。
      * @param hwnd 描画対象の Win32 ウィンドウハンドル。
      * @param command_queue GPU コマンドを実行するキュー。
      * @param frame_count 用意するフレームリソース数。
+     * @param srv_heap
      * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
-    bool Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQueue* command_queue, uint32_t frame_count);
+    bool Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQueue* command_queue, uint32_t frame_count, DescriptorHeap* srv_heap);
  /**
   * @brief 現在の状態をもとに描画コマンドを積む。
   * @param renderer_data レンダラー初期化に使う共有データ。
@@ -106,5 +110,6 @@ private:
     std::unique_ptr<SkinnedMeshRenderer> skinned_mesh_renderer_;
     std::unique_ptr<DebugLineRenderer> debug_renderer_;
     std::unique_ptr<SkyRenderer> sky_renderer_;
+    std::unique_ptr<ShadowRenderer> shadow_renderer_;
     ImGuiManager imgui_manager_;
 };

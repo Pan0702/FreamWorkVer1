@@ -18,6 +18,7 @@ void  Stage1::OnEnter()
     SpawnActor<PlayerCamera>();
     SpawnActor<Cube>(Vec3(0,0,5),Vec3(10,1,20));
     SpawnActor<GoalFlag>(Vec3(0,0,15));
+    SpawnActor<MovingCube>(Vec3(0,0,5),Vec3(0,10,5));
     // SpawnActor<Explanation>(L"Assets/Texture/explanation.png");
     SpawnActor<Clear>();
     SpawnActor<FallBox>();

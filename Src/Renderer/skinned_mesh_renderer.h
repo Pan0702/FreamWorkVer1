@@ -54,7 +54,7 @@ public:
      * @param context 描画や登録に使う共有コンテキスト。
      */
     void Submit(RenderContext& context) const;
-
+    void SubmitDepth(RenderContext& context) const;
 private:
     std::vector<SkeletalMeshComponent*> meshes_;
     std::vector<SkinnedDrawCommand> draw_commands_;

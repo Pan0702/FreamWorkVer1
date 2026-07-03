@@ -2,7 +2,7 @@
 #include "../Core/common.h"
 
 //////////////////////////////
-///Mesh ÇÃèÓïÒ
+///Mesh ????
 //////////////////////////////
 struct StaticVertex
 {
@@ -43,7 +43,7 @@ static const D3D12_INPUT_ELEMENT_DESC kStaticVertexLayout[] =
 };
 
 //////////////////////////////
-///Sprite ÇÃèÓïÒ
+///Sprite ????
 //////////////////////////////
 struct SpriteVertex
 {
@@ -65,7 +65,7 @@ static constexpr D3D12_INPUT_ELEMENT_DESC kSpriteVertexLayout[] = {
 };
 
 //////////////////////////////
-///Line ÇÃèÓïÒ
+///Line ????
 //////////////////////////////
 struct DebugLineVertex
 {
@@ -85,7 +85,7 @@ static constexpr D3D12_INPUT_ELEMENT_DESC kDebugLineLayout[] = {
 };
 
 //////////////////////////////
-///SkMesh ÇÃèÓïÒ
+///SkMesh ????
 //////////////////////////////
 struct SkinnedVertex
 {
@@ -137,7 +137,7 @@ static constexpr D3D12_INPUT_ELEMENT_DESC kSkinnedVertexLayout[] = {
 };
 
 //////////////////////////////
-///SkySphereÇÃèÓïÒ
+///SkySphere????
 //////////////////////////////
 static constexpr D3D12_INPUT_ELEMENT_DESC kSkyLayout[] = {
     { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,

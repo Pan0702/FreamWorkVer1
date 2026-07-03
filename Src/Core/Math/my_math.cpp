@@ -57,6 +57,11 @@ Mat PerspectiveFovLH(float fov, float aspect, float zNear, float zFar)
     return XMMatrixPerspectiveFovLH(fov, aspect, zNear, zFar);
 }
 
+Mat OrthographicLH(float ViewWidth, float ViewHeight, float zNear, float zFar)
+{
+    return XMMatrixOrthographicLH(ViewWidth, ViewHeight, zNear, zFar);
+}
+
 Vec3 TransformDirection(const Mat& m, const Vec3& v)
 {
     return Vec3(XMVector3TransformNormal(v, m));

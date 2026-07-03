@@ -92,7 +92,9 @@ bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_
         .AddCbv(1, D3D12_SHADER_VISIBILITY_PIXEL) // b1
         .AddCbv(2, D3D12_SHADER_VISIBILITY_PIXEL) // b2 
         .AddSrvTable(1, 1, D3D12_SHADER_VISIBILITY_PIXEL) // t1
-        .AddStaticSampler(0, D3D12_SHADER_VISIBILITY_PIXEL, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
+        .AddSrvTable(2, 1, D3D12_SHADER_VISIBILITY_PIXEL) // t2
+        .AddStaticSampler(0, D3D12_SHADER_VISIBILITY_PIXEL, D3D12_TEXTURE_ADDRESS_MODE_WRAP)
+        .AddComparisonSampler(1, D3D12_SHADER_VISIBILITY_PIXEL); // s1
 
     if (!builder.Build(device, root_signature_.get()))
     {

@@ -79,6 +79,15 @@ Mat LookAtRH(const XMVECTOR& eye, const XMVECTOR& at, const XMVECTOR& up);
  */
 Mat PerspectiveFovLH(float fov, float aspect, float zNear, float zFar);
 /**
+ * @brief 左手座標系の正射影行列を作成する。
+ * @param ViewWidth 画面の幅
+ * @param ViewHeight がめんのたかさ　
+ * @param zNear ニアクリップ面の距離。
+ * @param zFar ファークリップ面の距離。
+ * @return  射影行列
+ */
+Mat OrthographicLH(float ViewWidth,float ViewHeight,float zNear,float zFar);
+/**
  * @brief 方向ベクトルを行列で変換する。
  * @param m 変換や分解に使う行列。
  * @param v 演算に使うベクトル。
@@ -176,7 +185,7 @@ bool Decompose(const Mat& m, Vec3& s, Quat& r, Vec3& t);
  * @param point 平面からの距離を測る点。
  * @return plane から point までの符号付き距離。
  */
-float PlaneLength(const Vec4& plane,const Vec3& point);
+float PlaneLength(const Vec4& plane, const Vec3& point);
 /**
  * @brief ベクトルや角度の補助計算を行う。
  * @param angle 回転角度。
@@ -201,7 +210,7 @@ float NormalizeAngleRadSigned(float angle);
  * @param power 掛け合わせる回数。
  * @return num を power 回掛け合わせた値。
  */
-float PowF(float num,int power);
+float PowF(float num, int power);
 
 // 角度変換と円周率の定数。
 inline constexpr float kPI = std::numbers::pi_v<float>;

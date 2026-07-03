@@ -8,10 +8,21 @@
 #include "../Graphics/swap_chain.h"
 #include "../Platform/window.h"
 #include "render_context.h"
+#include "shadow_renderer.h"
 #include "../Resource/texture_manager.h"
 
-bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQueue* command_queue, uint32_t frame_count)
+SceneRenderer::SceneRenderer() = default;
+SceneRenderer::~SceneRenderer() = default;
+
+bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQueue* command_queue,
+                               uint32_t frame_count, DescriptorHeap* srv_heap)
 {
+    shadow_renderer_ = std::make_unique<ShadowRenderer>();
+    if (!shadow_renderer_->Initialize(device, srv_heap))
+    {
+        return false;
+    }
+
     mesh_renderer_ = std::make_unique<MeshRenderer>();
     if (!mesh_renderer_->Initialize(device))
     {
@@ -26,7 +37,7 @@ bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQue
 
     // SkySphereのテクスチャをセット
     constexpr std::wstring_view sky_texture_path = L"Assets/Texture/SkyImage.png";
-    sky_renderer_->SetTexture(TextureManager::Get().Load(sky_texture_path.data(),true));
+    sky_renderer_->SetTexture(TextureManager::Get().Load(sky_texture_path.data(), true));
     sprite_renderer_ = std::make_unique<SpriteRenderer>();
     if (!sprite_renderer_->Initialize(device))
     {
@@ -55,8 +66,7 @@ bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQue
 void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* camera)
 {
     (void)world;
-    // ImGui::ShowDemoWindow();
-    BeginRenderTarget(renderer_data);
+
 
     RenderContext context = {};
     context.command_list = renderer_data.command_list->GetCommandList();
@@ -73,9 +83,21 @@ void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* ca
     context.ground_color = Vec3(0.2f, 0.18f, 0.15f);
     context.camera_pos = camera->pos_;
 
-    sky_renderer_->Render(context);
+    const Vec3 eye = Vec3(0, 0, 0) - context.light_pos * 30.0f;
+    const Mat light_view = LookAtLH(eye, Vec3(0, 0, 0), Vec3(0, 1, 0));
+    //Orthographicは平行投射//
+    const Mat light_proj = OrthographicLH(50.0f, 50.0f, 0.1f, 100.0f);
+    context.light_view_proj = light_view * light_proj;
 
     mesh_renderer_->Collect();
+    skinned_mesh_renderer_->Collect();
+
+    shadow_renderer_->RenderShadowPass(context, mesh_renderer_.get(), skinned_mesh_renderer_.get());
+    context.shadow_srv_index = shadow_renderer_->GetShadowMapIndex();
+    // ImGui::ShowDemoWindow();
+    BeginRenderTarget(renderer_data);
+    sky_renderer_->Render(context);
+
     mesh_renderer_->Sort();
     mesh_renderer_->Submit(context);
 
@@ -85,7 +107,6 @@ void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* ca
     sprite_renderer_->Sort();
     sprite_renderer_->Submit(context);
 
-    skinned_mesh_renderer_->Collect();
     skinned_mesh_renderer_->Sort();
     skinned_mesh_renderer_->Submit(context);
 

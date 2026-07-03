@@ -93,7 +93,7 @@ bool RenderSystem::Initialize(Window* window)
 
     scene_renderer_ = std::make_unique<SceneRenderer>();
     if (!scene_renderer_->Initialize(graphics_device_->GetDevice(), window_->GetHwnd(),
-                                     command_queue_->GetCommandQueue(), kFrameCount))
+                                     command_queue_->GetCommandQueue(), kFrameCount,srv_heap_.get()))
     {
         MessageBox(nullptr, L"Failed to create scene renderer", L"Error", MB_OK);
         return false;

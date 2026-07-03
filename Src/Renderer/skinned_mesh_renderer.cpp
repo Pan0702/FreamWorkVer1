@@ -29,7 +29,9 @@ bool SkinnedMeshRenderer::Initialize(ID3D12Device* device)
         .AddCbv(1, D3D12_SHADER_VISIBILITY_PIXEL)
         .AddCbv(2, D3D12_SHADER_VISIBILITY_PIXEL)
         .AddSrvTable(1, 1, D3D12_SHADER_VISIBILITY_PIXEL)
-        .AddStaticSampler(0, D3D12_SHADER_VISIBILITY_PIXEL, D3D12_TEXTURE_ADDRESS_MODE_WRAP);
+        .AddSrvTable(2, 1, D3D12_SHADER_VISIBILITY_PIXEL)
+        .AddStaticSampler(0, D3D12_SHADER_VISIBILITY_PIXEL, D3D12_TEXTURE_ADDRESS_MODE_WRAP)
+        .AddComparisonSampler(1, D3D12_SHADER_VISIBILITY_PIXEL);
 
     if (!builder.Build(device, root_signature_.get()))
     {
@@ -143,6 +145,7 @@ void SkinnedMeshRenderer::Submit(RenderContext& context) const
     light.sky_color = Vec4(context.sky_color.x, context.sky_color.y, context.sky_color.z, 0.0f);
     light.ground_color = Vec4(context.ground_color.x, context.ground_color.y, context.ground_color.z, 0.0f);
     light.camera_pos = Vec4(context.camera_pos.x, context.camera_pos.y, context.camera_pos.z, 1.0f);
+    light.light_view_proj = Transpose(context.light_view_proj);
     ConstantBufferAllocation light_alloc = {};
     bool has_light = cb_allocator->Allocate(sizeof(light), &light_alloc);
     if (has_light)
@@ -209,7 +212,8 @@ void SkinnedMeshRenderer::Submit(RenderContext& context) const
             uint32 norm = (mat->GetNormal() ? mat->GetNormal()->GetSrvIndex() : 0);
             command_list->SetGraphicsRootDescriptorTable(2, context.srv_heap->GetGpuHandle(diff));
             command_list->SetGraphicsRootDescriptorTable(5, context.srv_heap->GetGpuHandle(norm));
-
+            command_list->SetGraphicsRootDescriptorTable( 6, context.srv_heap->GetGpuHandle(context.shadow_srv_index));
+            
             // b2
             CB::MaterialCB mat_cb = {};
             mat_cb.base_color = mat->GetBaseColor();
@@ -225,5 +229,57 @@ void SkinnedMeshRenderer::Submit(RenderContext& context) const
                 command_list->DrawIndexedInstanced(sub.index_count, 1, sub.index_start, 0, 0);
             }
         }
+    }
+}
+
+void SkinnedMeshRenderer::SubmitDepth(RenderContext& context) const
+{
+    if (draw_commands_.empty())
+    {
+        return;
+    }
+    auto command_list = context.command_list;
+    command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+    for (const SkinnedDrawCommand& command : draw_commands_)
+    {
+        CB::ShadowObjectCB obj = {};
+        obj.wvp = Transpose(command.world * context.light_view_proj);
+        ConstantBufferAllocation alloc = {};
+        if (!context.cb_allocator->Allocate(sizeof(obj), &alloc))
+        {
+            continue;
+        }
+        memcpy(alloc.cpu, &obj, sizeof(obj));
+
+        CB::BoneCB bone = {};
+        for (int i = 0; i < kMaxBones; ++i)
+        {
+            bone.bones[i] = Identity();
+        }
+        if (command.bone_palette != nullptr)
+        {
+            const int bone_count = static_cast<int>(std::min(command.bone_palette->size(),
+                                                             static_cast<size_t>(kMaxBones)));
+            for (int i = 0; i < bone_count; ++i)
+            {
+                bone.bones[i] = Transpose((*command.bone_palette)[static_cast<size_t>(i)]);
+            }
+        }
+        ConstantBufferAllocation bone_alloc = {};
+        if (!context.cb_allocator->Allocate(sizeof(bone), &bone_alloc))
+        {
+            continue;
+        }
+        memcpy(bone_alloc.cpu, &bone, sizeof(bone));
+
+        command_list->SetGraphicsRootConstantBufferView(0, alloc.gpu);
+        command_list->SetGraphicsRootConstantBufferView(1, bone_alloc.gpu);
+
+        D3D12_VERTEX_BUFFER_VIEW vbv = command.mesh->GetVertexBufferView();
+        command_list->IASetVertexBuffers(0, 1, &vbv);
+        D3D12_INDEX_BUFFER_VIEW ibv = command.mesh->GetIndexBufferView();
+        command_list->IASetIndexBuffer(&ibv);
+        command_list->DrawIndexedInstanced(command.mesh->GetIndexCount(), 1, 0, 0, 0);
     }
 }

@@ -19,6 +19,9 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <None Include="Shaders\shadow.vs.hlsl" />
+    <None Include="Shaders\shadow_sk.vs.hlsl" />
+    <ClCompile Include="Src\Graphics\shadow_map.cpp" />
     <ClCompile Include="Src\Play\Objects\fall_box.cpp" />
     <ClCompile Include="Src\Play\Objects\moving_cube.cpp" />
     <ClCompile Include="Src\Play\Stage\stage_1.cpp" />
@@ -28,6 +31,7 @@
     <ClCompile Include="Src\Play\Stage\stage_5.cpp" />
     <ClCompile Include="Src\Play\Stage\stage_6.cpp" />
     <ClCompile Include="Src\Play\UI\moveing_explanation.cpp" />
+    <ClCompile Include="Src\Renderer\shadow_renderer.cpp" />
     <ClCompile Include="Src\Select\select_level.cpp" />
     <ClCompile Include="Src\Select\UI\select.cpp" />
     <ClCompile Include="Src\Title\title_level.cpp" />
@@ -89,6 +93,7 @@
     <ClInclude Include="Src\Graphics\pipeline_state.h" />
     <ClInclude Include="Src\Graphics\root_signature.h" />
     <ClInclude Include="Src\Graphics\shader.h" />
+    <ClInclude Include="Src\Graphics\shadow_map.h" />
     <ClInclude Include="Src\Graphics\swap_chain.h" />
     <ClInclude Include="Src\Graphics\vertex_buffer.h" />
     <ClInclude Include="Src\Platform\input.h" />
@@ -109,6 +114,7 @@
     <ClInclude Include="Src\Renderer\render_object.h" />
     <ClInclude Include="Src\Renderer\render_context.h" />
     <ClInclude Include="Src\Renderer\scene_renderer.h" />
+    <ClInclude Include="Src\Renderer\shadow_renderer.h" />
     <ClInclude Include="Src\Renderer\skinned_mesh_renderer.h" />
     <ClInclude Include="Src\Renderer\sky_renderer.h" />
     <ClInclude Include="Src\Renderer\sprite_draw_command.h" />
