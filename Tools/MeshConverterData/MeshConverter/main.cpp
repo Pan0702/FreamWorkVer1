@@ -2,7 +2,6 @@
 #include <assimp/postprocess.h>
 #include <assimp/scene.h>
 
-#include <cstdint>
 #include <cstdio>
 #include <cstring>
 #include <filesystem>

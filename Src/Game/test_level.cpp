@@ -38,7 +38,7 @@ void TestLevel::OnEnter()
     
     Mesh* mesh2 = MeshManager::Get().Load("Assets/Mesh/box1.mesh");
     material_slot_2_ = std::make_unique<MaterialSlot>(mesh2->GetMaterialDecs());
-    material_slot_2_->GetMaterial(0)->SetDiffuse(TextureManager::Get().Load(L"Assets/Texture/NormalMap.png"));
+    material_slot_2_->GetMaterial(0)->SetDiffuse(TextureManager::Get().Load(L"Assets/Texture/NormalMap.png", false));
     
     Actor* a2 = SpawnActor();
     auto* t2 = &a2->GetTransform();

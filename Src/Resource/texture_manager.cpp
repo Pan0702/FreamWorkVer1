@@ -26,32 +26,34 @@ void TextureManager::Shutdown()
     cmd_ = nullptr;
 }
 
-Texture2D* TextureManager::Load(const wchar_t* path)
+Texture2D* TextureManager::Load(const wchar_t* path, bool is_srgb)
 {
     if (path == nullptr || device_ == nullptr || srv_heap_ == nullptr || queue_ == nullptr || cmd_ == nullptr)
     {
         return nullptr;
     }
-
+    
+    
     // 同じパスは読み込み済みのものを使い回す
     if (const auto it = cache_.find(path); it != cache_.end())
     {
         return it->second.get();
     }
 
-    // ? ファイル → CPU上の RGBA8 ピクセル
+    //  ファイル → CPU上の RGBA8 ピクセル
     LoadedImage image;
     if (!TextureLoader::LoadFromFile(path, image))
     {
         return nullptr;
     }
 
-    // ? アップロードコマンドを記録（Texture2D は記録のみ）→ 実行 → GPU完了待ちはここで行う
+    //  アップロードコマンドを記録（Texture2D は記録のみ）→ 実行 → GPU完了待ちはここで行う
     if (!cmd_->Reset())
     {
         return nullptr;
     }
     auto texture = std::make_unique<Texture2D>();
+    texture->SetSRGB(is_srgb);
     if (!texture->Initialize(device_, cmd_->GetCommandList(), image))
     {
         return nullptr;
@@ -68,7 +70,7 @@ Texture2D* TextureManager::Load(const wchar_t* path)
         return nullptr;
     }
 
-    // ? SRV 作成
+    //  SRV 作成
     texture->SetSrvIndex(srv_index);
     texture->CreateSrv(device_, srv_heap_->GetCpuHandle(srv_index));
 

@@ -17,7 +17,7 @@ bool Texture2D::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* cmd_
     resource_desc.Height = image.height;
     resource_desc.DepthOrArraySize = 1;
     resource_desc.MipLevels = 1;
-    resource_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    resource_desc.Format = is_srgb_ ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
     resource_desc.SampleDesc.Count = 1;
     resource_desc.SampleDesc.Quality = 0;
     resource_desc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
@@ -85,7 +85,7 @@ bool Texture2D::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* cmd_
     src_loc.pResource = upload_buffer_.Get();
     src_loc.Type = D3D12_TEXTURE_COPY_TYPE_PLACED_FOOTPRINT;
     src_loc.PlacedFootprint.Offset = 0;
-    src_loc.PlacedFootprint.Footprint.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    src_loc.PlacedFootprint.Footprint.Format = is_srgb_ ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
     src_loc.PlacedFootprint.Footprint.Width = image.width;
     src_loc.PlacedFootprint.Footprint.Height = image.height;
     src_loc.PlacedFootprint.Footprint.Depth = 1;
@@ -116,7 +116,7 @@ bool Texture2D::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* cmd_
 void Texture2D::CreateSrv(ID3D12Device* device, D3D12_CPU_DESCRIPTOR_HANDLE srv_handle)
 {
     D3D12_SHADER_RESOURCE_VIEW_DESC srv_desc = {};
-    srv_desc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
+    srv_desc.Format =is_srgb_ ? DXGI_FORMAT_R8G8B8A8_UNORM_SRGB : DXGI_FORMAT_R8G8B8A8_UNORM;
     srv_desc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
     srv_desc.Texture2D.MipLevels = 1;
     srv_desc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
@@ -131,4 +131,14 @@ void Texture2D::SetSrvIndex(uint32_t srv_index)
 uint32_t Texture2D::GetSrvIndex() const
 {
     return srv_index_;
+}
+
+bool Texture2D::IsSRGB() const
+{
+    return is_srgb_; 
+}
+
+void Texture2D::SetSRGB(bool is_srgb)
+{
+    is_srgb_ = is_srgb;
 }

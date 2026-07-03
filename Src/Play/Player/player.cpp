@@ -120,9 +120,6 @@ void Player::Tick(float dt)
         animation_->CrossFade(anim_name, 0.2f);
     }
     was_grounded_ = is_grounded_;
-    ImGui::Begin("pos");
-    ImGui::Text("pos: %f %f %f", transform_.position.x, transform_.position.y, transform_.position.z);
-    ImGui::End();
     Actor::Tick(dt);
 }
 

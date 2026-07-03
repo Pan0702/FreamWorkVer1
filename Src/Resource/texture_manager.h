@@ -35,9 +35,10 @@ public:
     /**
      * @brief ファイルや外部データを読み込んで内部表現へ変換する。
      * @param path 読み書きするファイルパス。
+     * @param is_srgb 画像データがsrgbかどうか
      * @return 指定リソースの読み込みが完了した場合は true。
      */
-    Texture2D* Load(const wchar_t* path);
+    Texture2D* Load(const wchar_t* path, bool is_srgb = true);
 
     /**
      * @brief TextureManager の共有インスタンスを取得する。

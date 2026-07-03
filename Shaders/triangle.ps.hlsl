@@ -25,8 +25,8 @@ float DistributionGGX(float3 N, float3 H, float roughness)
  */
 float3 FresnelSchlick(float cosThetam, float3 F0)
 {
-    float cos = saturate(1.0f - cosThetam);
-    return F0 + (1.0f - F0) * pow(1.0f - cos, 5.0f);
+    const float cos = saturate(1.0f - cosThetam);
+    return F0 + cos * pow(cos, 5.0f);
 }
 
 /**

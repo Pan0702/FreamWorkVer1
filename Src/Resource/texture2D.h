@@ -1,6 +1,7 @@
 #pragma once
 #include "../Core/common.h"
 #include "texture_loder.h"
+#include "../Core/Math/my_math.h"
 /**
  * @brief Texture2Dのデータと処理をまとめる型。
  */
@@ -25,15 +26,28 @@ public:
      * @brief 指定された値を内部状態に反映する。
      * @param srv_index SRV ヒープ上のインデックス。
      */
-    void SetSrvIndex(uint32_t srv_index);
+    void SetSrvIndex(uint32 srv_index);
     /**
      * @brief SRV ヒープ上のインデックスを取得する。
      * @return テクスチャ SRV が配置されているヒープ内インデックス。
      */
-    uint32_t GetSrvIndex() const;
+    uint32 GetSrvIndex() const;
+
+    /**
+     * 画像がsRGBかどうかを返す
+     * @return is_srgb_をかす
+     */
+    bool IsSRGB() const;
+
+    /**
+     * is_srgb_にセットする
+     * @param is_srgb  画像がsRGBだったらtrue
+     */
+    void SetSRGB(bool is_srgb);
 
 private:
     ComPtr<ID3D12Resource> texture_;
     ComPtr<ID3D12Resource> upload_buffer_;
-    uint32_t srv_index_ = 0;
+    uint32 srv_index_ = 0;
+    bool is_srgb_;
 };
