@@ -36,8 +36,9 @@ Texture2D* TextureManager::Load(const wchar_t* path, bool is_srgb)
     std::wstring key = std::wstring(path) + (is_srgb ? L"#srgb" : L"#linear");
     
     // “¯‚¶ƒpƒX‚Í“Ç‚Ýž‚ÝÏ‚Ý‚Ì‚à‚Ì‚ðŽg‚¢‰ñ‚·
-    if (const auto it = cache_.find(path); it != cache_.end())
+    if (const auto it = cache_.find(key); it != cache_.end())
     {
+        printf("[TexCache HIT] %ls (srgb=%d)\n", path, is_srgb);  // © ’Ç‰Á
         return it->second.get();
     }
 
@@ -47,7 +48,7 @@ Texture2D* TextureManager::Load(const wchar_t* path, bool is_srgb)
     {
         return nullptr;
     }
-    return LoadTexture(path, image, is_srgb);
+    return LoadTexture(key.c_str(), image, is_srgb);
 }
 
 Texture2D* TextureManager::CreateFromImage(const wchar_t* cache_key, const LoadedImage& image, bool is_srgb)

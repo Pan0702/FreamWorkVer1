@@ -1,4 +1,4 @@
-#include "texture2D.h"
+    #include "texture2D.h"
 
 bool Texture2D::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* cmd_list, const LoadedImage& image)
 {
@@ -39,8 +39,8 @@ bool Texture2D::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* cmd_
     upload_heap_props.CreationNodeMask = 1;
     upload_heap_props.VisibleNodeMask = 1;
 
-    uint32_t row_size = image.width * 4;
-    uint32_t aligned_row_pitch = (row_size + 255) & ~255u;
+    const uint32 row_size = image.width * 4;
+    const uint32 aligned_row_pitch = (row_size + 255) & ~255u;
     UINT64 upload_size = static_cast<UINT64>(aligned_row_pitch) * image.height;
     D3D12_RESOURCE_DESC upload_desc = {};
     upload_desc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
@@ -78,7 +78,7 @@ bool Texture2D::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* cmd_
         memcpy_s(y * aligned_row_pitch + mapped, aligned_row_pitch, src, src_row_pitch);
         src += src_row_pitch;
     }
-    upload_buffer_->Unmap(0, nullptr);
+    upload_buffer_->Unmap(  0, nullptr);
 
     // CopyTextureRegion ‚ð‹L˜^
     D3D12_TEXTURE_COPY_LOCATION src_loc = {};

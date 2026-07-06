@@ -52,7 +52,7 @@ float GeometrySchlickGGX(float ndotv, float roughness)
  */
 float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
 {
-    const float  ndotl = saturate(dot(N, L));
+    const float ndotl = saturate(dot(N, L));
     const float ndotv = saturate(dot(N, V));
     const float ggxV = GeometrySchlickGGX(ndotv, roughness);
     const float ggxL = GeometrySchlickGGX(ndotl, roughness);
@@ -94,8 +94,9 @@ float3 ACESFilm(float3 x)
  */
 float3 LinearTosRGB(float3 x)
 {
-    return pow(x,1.0f / 2.2f);
+    return pow(x, 1.0f / 2.2f);
 }
+
 // メッシュの色を取得するテクスチャ。
 Texture2D g_texture : register(t0);
 // 法線方向を補正する法線マップ。
@@ -132,6 +133,7 @@ cbuffer MaterialCB : register(b2)
     float metallic; // 0=誘電体, 1=金属              
     float roughness; // 0=つるつる, 1=ざらざら
 }
+
 SamplerComparisonState g_shadow_sampler : register(s1);
 
 float CalcShadow(float3 world_pos)
@@ -161,6 +163,7 @@ float2 DirToEquirect(float3 d)
     float v = acos(clamp(d.y, -1.0f, 1.0f)) / PI;
     return float2(u, v);
 }
+
 /**
  * @brief 入力された補間済みデータから最終カラーを計算する関数。
  */
@@ -184,13 +187,14 @@ float4 PSMain(PSInput input) : SV_TARGET
     {
         N = -N;
     }
-    
+
     // マテリアルの基本色を決める。テクスチャがある場合は base_color に掛け合わせる。
     float4 albedo = base_color;
     if (has_texture != 0)
     {
         albedo *= g_texture.Sample(g_sampler, input.uv);
     }
+
 
     // ライト方向と視線方向の中間方向を求める。鏡面反射の計算で使う。
     const float3 H = normalize(L + V);
@@ -208,7 +212,7 @@ float4 PSMain(PSInput input) : SV_TARGET
     // 拡散反射を計算する。金属は拡散反射しないので metallic で弱める。
     const float3 kd = (1.0f - F) * (1.0f - metallic);
     const float3 diffuse = kd * albedo.rgb / PI;
-    
+
     // 鏡面反射を計算する。分母が 0 に近くなりすぎないように下限を入れる。
     const float ndotl = saturate(dot(N, L));
     const float ndotv = saturate(dot(N, V));
@@ -216,29 +220,21 @@ float4 PSMain(PSInput input) : SV_TARGET
 
     // ライト色と入射角を反映して、直接光の明るさを出す。
     const float3 radiance = light_color.rgb;
-    const float shadow = CalcShadow(input.world_pos);        
-    float3 lit = (diffuse + spec) * radiance * ndotl * shadow ;
+    const float shadow = CalcShadow(input.world_pos);
+    float3 lit = (diffuse + spec) * radiance * ndotl * shadow;
 
     //環境光の明るさを出す。
-    const float3 F_ambient = FresnelSchlick(ndotv,F0);
+    const float3 F_ambient = FresnelSchlick(ndotv, F0);
     const float3 kd_ambient = (1.0f - F_ambient) * (1.0f - metallic);
     // 環境光を足して最終色を返す。
-    const float3 ambientIrradiance = g_irradiance.SampleLevel(g_sampler, DirToEquirect(N), 0).rgb ;
+    const float3 ambientIrradiance = g_irradiance.SampleLevel(g_sampler, DirToEquirect(N), 0).rgb;
     lit = lit + kd_ambient * albedo.rgb * ambientIrradiance;
 
     // HDR->LDR
     lit = ACESFilm(lit);
-    
+
     // リニア->sRGB
     lit = LinearTosRGB(lit);
-    // ? albedo: 顔が正しい肌色ならテクスチャはシロ
-    return float4(LinearTosRGB(albedo.rgb), 1.0f);
-
-    // ? 法線の可視化: 顔がカラフルなグラデ(正面向きは青紫っぽい)なら正常。
-    //    緑一色や暗い色に偏ってたら法線マップ/タンジェントが犯人
-    return float4(N * 0.5f + 0.5f, 1.0f);
-
-    // ? ndotl: 顔だけ暗ければ法線が変、均一なら別の原因
-    return float4(ndotl, ndotl, ndotl, 1.0f);
+    
     return float4(lit, albedo.a);
 }

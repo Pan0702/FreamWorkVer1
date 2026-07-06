@@ -183,6 +183,9 @@ SkeletalMesh* SkeletalMeshManager::Load(const std::string& path)
     std::vector<SubMesh> sub_decs(header.submesh_count);
     for (uint32_t i = 0; i < header.submesh_count; ++i)
     {
+        printf("[SubMesh %u] material_slot=%u  diffuse=%ls\n",
+       i, sub_meshes[i].material_slot,
+       diffuse_paths[sub_meshes[i].material_slot].c_str());
         sub_decs[i].index_start = sub_meshes[i].index_start;
         sub_decs[i].index_count = sub_meshes[i].index_count;
         sub_decs[i].material_slot = sub_meshes[i].material_slot;
