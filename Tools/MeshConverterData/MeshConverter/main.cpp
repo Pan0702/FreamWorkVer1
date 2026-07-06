@@ -357,6 +357,7 @@ namespace
                 data.base_color = Vec4(color.r, color.g, color.b, color.a);
             }
             aiString tex;
+            aiString diffuse_tex;
             const std::filesystem::path tex_dir = BuildTextureRefDir( tex_folder);
             if (material->GetTexture(aiTextureType_DIFFUSE, 0, &tex) == AI_SUCCESS)
             {
