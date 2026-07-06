@@ -186,7 +186,8 @@ namespace
             if (has_uv)
             {
                 out.uv[0] = mesh.mTextureCoords[0][v].x;
-                out.uv[1] = mesh.mTextureCoords[0][v].y;
+                //反転させる。
+                out.uv[1] = 1.0f - mesh.mTextureCoords[0][v].y;
             }
 
             if (has_tangent)
@@ -639,7 +640,8 @@ namespace
             if (has_uv)
             {
                 out.uv[0] = mesh.mTextureCoords[0][v].x;
-                out.uv[1] = mesh.mTextureCoords[0][v].y;
+                //反転させる。
+                out.uv[1] = 1.0f - mesh.mTextureCoords[0][v].y;
             }
             if (has_tangent)
             {
@@ -698,7 +700,7 @@ namespace
 
         return true;
     }
-
+    
     /**
      * @brief スキニングメッシュ、マテリアル、サブメッシュ、スケルトン階層を .skmesh に書き出す。
      * @param out_path 書き出し先 .skmesh ファイルのパス。
