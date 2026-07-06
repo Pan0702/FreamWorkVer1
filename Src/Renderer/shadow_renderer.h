@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include "render_context.h"
 #include "../Graphics/command_list.h"
 #include "../Graphics/shadow_map.h"
@@ -12,16 +12,38 @@ class RootSignature;
 class ShadowRenderer
 {
 public:
+    /**
+     * @brief ƒVƒƒƒhƒE•`‰æ‚É•K—v‚ÈRSAShaderAPSOAShadowMap‚ğ‰Šú‰»‚·‚é
+     * @param device ƒŠƒ\[ƒX‚Ég‚¤ƒfƒoƒCƒXB
+     * @param srv_heap ShadowMap‚ÌSRV‚ğŠm•Û‚·‚é‹¤’ÊSRVƒq[ƒv
+     * @return 
+     */
     bool Initialize(ID3D12Device* device, DescriptorHeap* srv_heap);
+
+    /**
+     * @brief ƒ‰ƒCƒg‹“_‚©‚ç[“x•`‰æ‚µAƒVƒƒƒhƒEƒ}ƒbƒv‚ğXV‚·‚éE
+     * @param context ‹¤’ÊContext
+     * @param mesh [“x•`‰æ‚·‚éƒŒƒ“ƒ_ƒ‰[
+     * @param skinned [“x•`‰æ‚·‚éƒXƒLƒ“ƒƒbƒVƒ…ƒŒƒ“ƒ_ƒ‰[
+     */
     void RenderShadowPass(RenderContext& context, const MeshRenderer* mesh, const SkinnedMeshRenderer* skinned) const;
+
+    /**
+     * @brief ì¬‚µ‚½ƒVƒƒƒhƒEƒ}ƒbƒv‚ÌSRVƒCƒ“ƒfƒbƒNƒX‚ğæ“¾‚·‚éB
+     * @return ’Êí•`‰æ‚ÅƒVƒƒƒhƒEƒ}ƒbƒv‚ğQÆ‚·‚é‚½‚ß‚ÌSRVƒq[ƒvƒCƒ“ƒfƒbƒNƒX
+     */
     uint32 GetShadowMapIndex() const;
 private:
+    // ’ÊíƒƒbƒVƒ…—p‚Ì[“x•`‰æƒpƒCƒvƒ‰ƒCƒ“B
     std::unique_ptr<RootSignature> shadow_root_signature_; 
     std::unique_ptr<Shader> shadow_vs_;
     std::unique_ptr<PipelineState> shadow_pso_;
     
+    // ƒXƒLƒ“ƒƒbƒVƒ…—p‚Ì[“x•`‰æƒpƒCƒvƒ‰ƒCƒ“B
     std::unique_ptr<RootSignature> shadow_sk_root_signature_; 
     std::unique_ptr<Shader> shadow_sk_vs_;
     std::unique_ptr<PipelineState> shadow_sk_pso_;
+    
+    // ƒXƒLƒ“ƒƒbƒVƒ…—p‚Ì[“x•`‰æƒpƒCƒvƒ‰ƒCƒ“B
     ShadowMap shadow_map_;
 };

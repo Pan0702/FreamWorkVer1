@@ -54,10 +54,15 @@ public:
      * @param context 描画や登録に使う共有コンテキスト。
      */
     void Submit(RenderContext& context) const;
-    void SubmitDepth(RenderContext& context) const;
+
+    /**
+     * @brief 収集済みのメッシュをライト視点から描画する
+     * @param context 描画や登録に使う共有コンテキスト
+     */
+    void SubmitDepth(const RenderContext& context) const;
 private:
     std::vector<SkeletalMeshComponent*> meshes_;
     std::vector<SkinnedDrawCommand> draw_commands_;
-    std::unique_ptr<RootSignature> root_signature_;   // ← 追加
-    std::unique_ptr<PipelineState> pipeline_state_;   // ← 追加
+    std::unique_ptr<RootSignature> root_signature_;   
+    std::unique_ptr<PipelineState> pipeline_state_;   
 };

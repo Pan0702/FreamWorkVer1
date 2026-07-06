@@ -1,6 +1,7 @@
 #include "scene_renderer.h"
 
 #include "debug_line_renderer.h"
+#include "ibl_baker.h"
 #include "../Engine/camera.h"
 #include "../Engine/world.h"
 #include "../Graphics/command_list.h"
@@ -36,8 +37,12 @@ bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQue
     }
 
     // SkySphereのテクスチャをセット
-    constexpr std::wstring_view sky_texture_path = L"Assets/Texture/SkyImage.png";
-    sky_renderer_->SetTexture(TextureManager::Get().Load(sky_texture_path.data(), true));
+    LoadedImage sky_image;
+    const wchar_t* sky_texture_path = L"Assets/Texture/SkyImage.png";
+    TextureLoader::LoadFromFile(sky_texture_path, sky_image);
+    LoadedImage irr = IBLBaker::BakeIrradianceMap(sky_image);
+    irradiance_texture_ = TextureManager::Get().CreateFromImage(L"__sky_irradiance", irr, false);
+    sky_renderer_->SetTexture(TextureManager::Get().Load(sky_texture_path));
     sprite_renderer_ = std::make_unique<SpriteRenderer>();
     if (!sprite_renderer_->Initialize(device))
     {
@@ -78,15 +83,25 @@ void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* ca
                                static_cast<float>(renderer_data.window->GetHeight()));
 
     context.light_pos = Vec3(0.3f, -1.0f, 0.5f).Normalized();
-    context.light_color = Vec3(1.0f, 1.0f, 1.0f);
-    context.sky_color = Vec3(0.5f, 0.7f, 1.0f);
-    context.ground_color = Vec3(0.2f, 0.18f, 0.15f);
+    context.light_color = Vec3(3.0f, 3.0f, 3.0f);
     context.camera_pos = camera->pos_;
 
-    const Vec3 eye = Vec3(0, 0, 0) - context.light_pos * 30.0f;
+    // 平行光には実際の位置がないため、LookAt 用の仮想カメラ距離として使う。
+    constexpr float kShadowLightViewDistance = 30.0f;
+    // ライト視点で影を描く正射影範囲。値を大きくすると広範囲を覆えるが、影の解像度は粗くなる。
+    constexpr float kShadowOrthoWidth = 50.0f;
+    constexpr float kShadowOrthoHeight = 50.0f;
+
+    context.irradiance_srv_index = irradiance_texture_->GetSrvIndex();
+    // ライト視点で深度を記録する奥行き範囲。
+    constexpr float kShadowNearZ = 0.1f;
+    constexpr float kShadowFarZ = 100.0f;
+
+    const Vec3 eye = Vec3(0, 0, 0) - context.light_pos * kShadowLightViewDistance;
     const Mat light_view = LookAtLH(eye, Vec3(0, 0, 0), Vec3(0, 1, 0));
-    //Orthographicは平行投射//
-    const Mat light_proj = OrthographicLH(50.0f, 50.0f, 0.1f, 100.0f);
+    // 平行光の影なので Perspective ではなく Orthographicを使う。
+    // 幅・高さはシャドウを描きたい範囲に合わせて調整する。
+    const Mat light_proj = OrthographicLH(kShadowOrthoWidth, kShadowOrthoHeight, kShadowNearZ, kShadowFarZ);
     context.light_view_proj = light_view * light_proj;
 
     mesh_renderer_->Collect();
@@ -200,6 +215,7 @@ void SceneRenderer::BeginRenderTarget(const RendererData& renderer_data)
 void SceneRenderer::EndRenderTarget(const RendererData& renderer_data)
 {
     auto command_list = renderer_data.command_list->GetCommandList();
+
     D3D12_RESOURCE_BARRIER barrier = {};
     barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
     barrier.Transition.pResource = renderer_data.swap_chain->GetCurrentBackBuffer();

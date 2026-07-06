@@ -39,7 +39,7 @@ public:
      * @return 指定リソースの読み込みが完了した場合は true。
      */
     Texture2D* Load(const wchar_t* path, bool is_srgb = true);
-
+    Texture2D* CreateFromImage(const wchar_t* cache_key,const LoadedImage& image,bool is_srgb = false);
     /**
      * @brief TextureManager の共有インスタンスを取得する。
      * @return テクスチャキャッシュを管理する TextureManager への参照。
@@ -51,6 +51,7 @@ public:
     }
 
 private:
+    Texture2D* LoadTexture(const wchar_t* path, const LoadedImage& image, bool is_srgb);
     ID3D12Device* device_ = nullptr;
     DescriptorHeap* srv_heap_ = nullptr;
     CommandQueue* queue_ = nullptr;

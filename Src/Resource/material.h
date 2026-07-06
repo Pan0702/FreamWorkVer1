@@ -106,6 +106,6 @@ private:
     Texture2D* specular_ = nullptr;
     Texture2D* height_ = nullptr;
     Vec4 base_color_;
-    float roughness_ = 0.5f;
+    float roughness_ = 0.8f;
     float metallic_ = 0.0f;   
 };

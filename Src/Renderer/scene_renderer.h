@@ -45,7 +45,7 @@ public:
      * @param hwnd 描画対象の Win32 ウィンドウハンドル。
      * @param command_queue GPU コマンドを実行するキュー。
      * @param frame_count 用意するフレームリソース数。
-     * @param srv_heap
+    * @param srv_heap テクスチャやシャドウマップの SRVを確保する共通 SRV ヒープ
      * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
     bool Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQueue* command_queue, uint32_t frame_count, DescriptorHeap* srv_heap);
@@ -111,5 +111,6 @@ private:
     std::unique_ptr<DebugLineRenderer> debug_renderer_;
     std::unique_ptr<SkyRenderer> sky_renderer_;
     std::unique_ptr<ShadowRenderer> shadow_renderer_;
+    Texture2D* irradiance_texture_ = nullptr;
     ImGuiManager imgui_manager_;
 };

@@ -30,6 +30,7 @@ bool SkinnedMeshRenderer::Initialize(ID3D12Device* device)
         .AddCbv(2, D3D12_SHADER_VISIBILITY_PIXEL)
         .AddSrvTable(1, 1, D3D12_SHADER_VISIBILITY_PIXEL)
         .AddSrvTable(2, 1, D3D12_SHADER_VISIBILITY_PIXEL)
+        .AddSrvTable(3, 1, D3D12_SHADER_VISIBILITY_PIXEL)
         .AddStaticSampler(0, D3D12_SHADER_VISIBILITY_PIXEL, D3D12_TEXTURE_ADDRESS_MODE_WRAP)
         .AddComparisonSampler(1, D3D12_SHADER_VISIBILITY_PIXEL);
 
@@ -212,8 +213,8 @@ void SkinnedMeshRenderer::Submit(RenderContext& context) const
             uint32 norm = (mat->GetNormal() ? mat->GetNormal()->GetSrvIndex() : 0);
             command_list->SetGraphicsRootDescriptorTable(2, context.srv_heap->GetGpuHandle(diff));
             command_list->SetGraphicsRootDescriptorTable(5, context.srv_heap->GetGpuHandle(norm));
-            command_list->SetGraphicsRootDescriptorTable( 6, context.srv_heap->GetGpuHandle(context.shadow_srv_index));
-            
+            command_list->SetGraphicsRootDescriptorTable(6, context.srv_heap->GetGpuHandle(context.shadow_srv_index));
+            command_list->SetGraphicsRootDescriptorTable(7, context.srv_heap->GetGpuHandle(context.irradiance_srv_index));
             // b2
             CB::MaterialCB mat_cb = {};
             mat_cb.base_color = mat->GetBaseColor();
@@ -232,19 +233,22 @@ void SkinnedMeshRenderer::Submit(RenderContext& context) const
     }
 }
 
-void SkinnedMeshRenderer::SubmitDepth(RenderContext& context) const
+void SkinnedMeshRenderer::SubmitDepth(const RenderContext& context) const
 {
     if (draw_commands_.empty())
     {
         return;
     }
     auto command_list = context.command_list;
+    // シャドウパスでは通常メッシュを三角形リストとして描画し、色は出さず深度だけを書き込む。
     command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     for (const SkinnedDrawCommand& command : draw_commands_)
     {
         CB::ShadowObjectCB obj = {};
         obj.wvp = Transpose(command.world * context.light_view_proj);
+
+        // オブジェクトごとのライト視点 WVP を、フレーム用定数バッファへ書き込む。
         ConstantBufferAllocation alloc = {};
         if (!context.cb_allocator->Allocate(sizeof(obj), &alloc))
         {
@@ -276,6 +280,7 @@ void SkinnedMeshRenderer::SubmitDepth(RenderContext& context) const
         command_list->SetGraphicsRootConstantBufferView(0, alloc.gpu);
         command_list->SetGraphicsRootConstantBufferView(1, bone_alloc.gpu);
 
+        // 通常メッシュの頂点・インデックスを使い、シャドウ用 PSO で深度だけを描画する。
         D3D12_VERTEX_BUFFER_VIEW vbv = command.mesh->GetVertexBufferView();
         command_list->IASetVertexBuffers(0, 1, &vbv);
         D3D12_INDEX_BUFFER_VIEW ibv = command.mesh->GetIndexBufferView();

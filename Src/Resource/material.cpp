@@ -17,6 +17,7 @@ Material::Material()
     {
         MessageBox(nullptr, L"Failed to create material", L"Error", MB_OK);
     }
+    
 }
 
 Material::Material(const MeshMaterialDesc& desc)
@@ -40,7 +41,7 @@ Material::Material(const MeshMaterialDesc& desc)
     }
     if (!desc.normal_texture_path.empty())
     {
-        Texture2D* normal = TextureManager::Get().Load(desc.normal_texture_path.c_str(), true);
+        Texture2D* normal = TextureManager::Get().Load(desc.normal_texture_path.c_str(), false);
         if (normal)
         {
             SetNormal(normal);
@@ -53,7 +54,7 @@ Material::Material(const MeshMaterialDesc& desc)
 
     if (!desc.specular_texture_path.empty())
     {
-        Texture2D* specular = TextureManager::Get().Load(desc.specular_texture_path.c_str(), true);
+        Texture2D* specular = TextureManager::Get().Load(desc.specular_texture_path.c_str(), false);
         if (specular)
         {
             SetSpecular(specular);
@@ -65,7 +66,7 @@ Material::Material(const MeshMaterialDesc& desc)
     }
     if (!desc.height_texture_path.empty())
     {
-        Texture2D* height = TextureManager::Get().Load(desc.height_texture_path.c_str(), true);
+        Texture2D* height = TextureManager::Get().Load(desc.height_texture_path.c_str(), false);
         if (height)
         {
             SetHeight(height);
@@ -83,6 +84,7 @@ Material::Material(const MeshMaterialDesc& desc)
 bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_t* ps_path,
                       std::span<const D3D12_INPUT_ELEMENT_DESC> input_layout)
 {
+    
     base_color_ = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
     root_signature_ = std::make_unique<RootSignature>();
     RootSignatureBuilder builder;
@@ -93,6 +95,7 @@ bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_
         .AddCbv(2, D3D12_SHADER_VISIBILITY_PIXEL) // b2 
         .AddSrvTable(1, 1, D3D12_SHADER_VISIBILITY_PIXEL) // t1
         .AddSrvTable(2, 1, D3D12_SHADER_VISIBILITY_PIXEL) // t2
+        .AddSrvTable(3, 1, D3D12_SHADER_VISIBILITY_PIXEL)
         .AddStaticSampler(0, D3D12_SHADER_VISIBILITY_PIXEL, D3D12_TEXTURE_ADDRESS_MODE_WRAP)
         .AddComparisonSampler(1, D3D12_SHADER_VISIBILITY_PIXEL); // s1
 

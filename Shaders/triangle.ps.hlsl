@@ -14,7 +14,7 @@ float DistributionGGX(float3 N, float3 H, float roughness)
     // 0 ~ 1の間にclamp //
     float doth = saturate(dot(N, H));
     float d = doth * doth * (a2 - 1.0f) + 1.0f;
-    return a2 / (PI * d * d);
+    return a2 / max(PI * d * d, 1e-6f);
 }
 
 /**
@@ -25,8 +25,8 @@ float DistributionGGX(float3 N, float3 H, float roughness)
  */
 float3 FresnelSchlick(float cosThetam, float3 F0)
 {
-    const float cos = saturate(1.0f - cosThetam);
-    return F0 + cos * pow(cos, 5.0f);
+    const float t = saturate(1.0f - cosThetam);
+    return F0 + (1.0 - F0) * pow(t, 5.0);
 }
 
 /**
@@ -52,10 +52,10 @@ float GeometrySchlickGGX(float ndotv, float roughness)
  */
 float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
 {
-    float3 ndotl = saturate(dot(N, L));
-    float3 ndotv = saturate(dot(N, V));
-    float ggxV = GeometrySchlickGGX(ndotv, roughness);
-    float ggxL = GeometrySchlickGGX(ndotl, roughness);
+    const float  ndotl = saturate(dot(N, L));
+    const float ndotv = saturate(dot(N, V));
+    const float ggxV = GeometrySchlickGGX(ndotv, roughness);
+    const float ggxL = GeometrySchlickGGX(ndotl, roughness);
     return ggxV * ggxL;
 };
 /**
@@ -83,7 +83,8 @@ float3 ACESFilm(float3 x)
     const float c = 2.43f;
     const float d = 0.59f;
     const float e = 0.14f;
-    return saturate(x * (a * x + b)) / (x * (c * x + d) + e);
+
+    return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
 }
 
 /**
@@ -101,6 +102,9 @@ Texture2D g_texture : register(t0);
 Texture2D g_normal_map : register(t1);
 
 Texture2D g_shadow_map : register(t2);
+
+Texture2D g_irradiance : register(t3);
+
 // メッシュテクスチャのサンプラ。
 SamplerState g_sampler : register(s0);
 
@@ -150,6 +154,13 @@ float CalcShadow(float3 world_pos)
     // SampleCmpLevelZero は 0～1 を返す(比較サンプラーがLINEARなら自動でPCF的に補間)。
     return g_shadow_map.SampleCmpLevelZero(g_shadow_sampler, uv, proj.z);
 }
+
+float2 DirToEquirect(float3 d)
+{
+    float u = atan2(d.z, d.x) / (2.0f * PI) + 0.5f;
+    float v = acos(clamp(d.y, -1.0f, 1.0f)) / PI;
+    return float2(u, v);
+}
 /**
  * @brief 入力された補間済みデータから最終カラーを計算する関数。
  */
@@ -159,16 +170,16 @@ float4 PSMain(PSInput input) : SV_TARGET
     float3 N = normalize(input.normal);
     if (has_normal_map != 0)
     {
-        float3 tn = g_normal_map.Sample(g_sampler, input.uv).xyz * 2.0 - 1.0;
-        float3 T = normalize(input.tangent);
-        float3 B = normalize(input.bitangent);
-        float3x3 TBN = float3x3(T, B, N);
+        const float3 tn = g_normal_map.Sample(g_sampler, input.uv).xyz * 2.0 - 1.0;
+        const float3 T = normalize(input.tangent);
+        const float3 B = normalize(input.bitangent);
+        const float3x3 TBN = float3x3(T, B, N);
         N = normalize(mul(tn, TBN));
     }
 
     // ライト方向と視線方向を求める。法線が裏向きなら視線側へ反転する。
-    float3 L = normalize(-light_dir.xyz);
-    float3 V = normalize(cam_pos.xyz - input.world_pos.xyz);
+    const float3 L = normalize(-light_dir.xyz);
+    const float3 V = normalize(cam_pos.xyz - input.world_pos.xyz);
     if (dot(N, V) < 0.0)
     {
         N = -N;
@@ -182,42 +193,52 @@ float4 PSMain(PSInput input) : SV_TARGET
     }
 
     // ライト方向と視線方向の中間方向を求める。鏡面反射の計算で使う。
-    float3 H = normalize(L + V);
+    const float3 H = normalize(L + V);
 
     // Fresnel の基準反射率を決める。金属は albedo、非金属は 0.04 を使う。
     const float3 kDielectricF0 = float3(0.04f, 0.04f, 0.04f);
-    float3 F0 = lerp(float3(kDielectricF0), albedo.rgb, metallic);
+    const float3 F0 = lerp(float3(kDielectricF0), albedo.rgb, metallic);
 
     // Cook-Torrance の D/G/F 項を計算する。
     // D: 法線分布、G: 凹凸による隠れ具合、F: 角度による反射率。
-    float D = DistributionGGX(N, H, roughness);
-    float G = GeometrySmith(N, V, L, roughness);
-    float3 F = FresnelSchlick(saturate(dot(H, V)), F0);
+    const float D = DistributionGGX(N, H, roughness);
+    const float G = GeometrySmith(N, V, L, roughness);
+    const float3 F = FresnelSchlick(saturate(dot(H, V)), F0);
 
     // 拡散反射を計算する。金属は拡散反射しないので metallic で弱める。
-    float3 kd = (1.0f - F) * (1.0f - metallic);
-    float3 diffuse = kd * albedo.rgb / PI;
-
+    const float3 kd = (1.0f - F) * (1.0f - metallic);
+    const float3 diffuse = kd * albedo.rgb / PI;
+    
     // 鏡面反射を計算する。分母が 0 に近くなりすぎないように下限を入れる。
-    float ndotl = saturate(dot(N, L));
-    float ndotv = saturate(dot(N, V));
-    float3 spec = (D * G * F) / max(4.0f * ndotl * ndotv, 0.001f);
+    const float ndotl = saturate(dot(N, L));
+    const float ndotv = saturate(dot(N, V));
+    const float3 spec = (D * G * F) / max(4.0f * ndotl * ndotv, 0.001f);
 
     // ライト色と入射角を反映して、直接光の明るさを出す。
-    float3 radiance = light_color.rgb;
-    float shadow = CalcShadow(input.world_pos);        
-    float3 lit = (diffuse + spec) * radiance * ndotl * shadow;
+    const float3 radiance = light_color.rgb;
+    const float shadow = CalcShadow(input.world_pos);        
+    float3 lit = (diffuse + spec) * radiance * ndotl * shadow ;
 
+    //環境光の明るさを出す。
+    const float3 F_ambient = FresnelSchlick(ndotv,F0);
+    const float3 kd_ambient = (1.0f - F_ambient) * (1.0f - metallic);
     // 環境光を足して最終色を返す。
-    // hemi = hemisphere
-    float hemi = N.y * 0.5 + 0.5;
-    float3 ambientIrradiance = lerp(ground_color.rgb,sky_color.rgb,hemi);
-    lit += kd * albedo.rgb * ambientIrradiance;
-    
+    const float3 ambientIrradiance = g_irradiance.SampleLevel(g_sampler, DirToEquirect(N), 0).rgb ;
+    lit = lit + kd_ambient * albedo.rgb * ambientIrradiance;
+
     // HDR->LDR
     lit = ACESFilm(lit);
     
     // リニア->sRGB
     lit = LinearTosRGB(lit);
+    // ? albedo: 顔が正しい肌色ならテクスチャはシロ
+    return float4(LinearTosRGB(albedo.rgb), 1.0f);
+
+    // ? 法線の可視化: 顔がカラフルなグラデ(正面向きは青紫っぽい)なら正常。
+    //    緑一色や暗い色に偏ってたら法線マップ/タンジェントが犯人
+    return float4(N * 0.5f + 0.5f, 1.0f);
+
+    // ? ndotl: 顔だけ暗ければ法線が変、均一なら別の原因
+    return float4(ndotl, ndotl, ndotl, 1.0f);
     return float4(lit, albedo.a);
 }

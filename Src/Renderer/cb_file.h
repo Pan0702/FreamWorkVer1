@@ -2,19 +2,21 @@
 
 //ボーンの最大数
 constexpr int kMaxBones = 128;
+
 namespace CB
 {
-/**
- * @brief MeshObjectCBのデータと処理をまとめる型。
- */
+    /**
+     * @brief MeshObjectCBのデータと処理をまとめる型。
+     */
     struct MeshObjectCB
     {
         Mat wvp;
         Mat world;
     };
-/**
- * @brief LightCBのデータと処理をまとめる型。
- */
+
+    /**
+     * @brief LightCBのデータと処理をまとめる型。
+     */
     struct LightCB
     {
         Vec4 light_pos;
@@ -24,9 +26,10 @@ namespace CB
         Vec4 camera_pos;
         Mat light_view_proj;
     };
-/**
- * @brief MaterialCBのデータと処理をまとめる型。
- */
+
+    /**
+     * @brief MaterialCBのデータと処理をまとめる型。
+     */
     struct MaterialCB
     {
         Vec4 base_color; //rgb + a //
@@ -35,14 +38,19 @@ namespace CB
         float metallic; // 1 = 金属 //
         float roughness; // 0 = つるつる　// 
     };
-/**
- * @brief BoneCBのデータと処理をまとめる型。
- */
+
+    /**
+     * @brief BoneCBのデータと処理をまとめる型。
+     */
     struct BoneCB
     {
         Mat bones[kMaxBones];
     };
-    
+
+
+    /**
+     * @brief シャドウパスで使うオブジェクト単位の定数バッファ。
+     */
     struct ShadowObjectCB
     {
         Mat wvp;

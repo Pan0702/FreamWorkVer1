@@ -143,6 +143,7 @@ void MeshRenderer::Submit(RenderContext& context)
                 context.command_list->SetGraphicsRootConstantBufferView(2, light_alloc.gpu);
             }
             context.command_list->SetGraphicsRootDescriptorTable(5, context.srv_heap->GetGpuHandle(context.shadow_srv_index));
+            context.command_list->SetGraphicsRootDescriptorTable(6, context.srv_heap->GetGpuHandle(context.irradiance_srv_index));
             // b2 にはサブメッシュのマテリアル定数を設定する。
             CB::MaterialCB mat_cb = {};
             mat_cb.base_color = mat->GetBaseColor();
