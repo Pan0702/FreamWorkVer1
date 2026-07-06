@@ -70,8 +70,9 @@ bool RenderSystem::Initialize(Window* window)
         return false;
     }
 
+    constexpr uint32 init_srv_heap_size = 1024;
     srv_heap_ = std::make_unique<DescriptorHeap>();
-    if (!srv_heap_->Initialize(graphics_device_->GetDevice(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, 256, true))
+    if (!srv_heap_->Initialize(graphics_device_->GetDevice(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, init_srv_heap_size, true))
     {
         MessageBox(nullptr, L"Failed to create descriptor heap", L"Error", MB_OK);
         return false;
