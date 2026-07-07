@@ -186,7 +186,7 @@ float2 ParallaxOcclusion(float2 uv, float3 view, float height)
     //　1層当たりの深さ。
     const float layer_depth = 1.0f / num_layers;
     //　視線方向に沿ってuvを動かす総量
-    const float2 P = (view.xy / view.z) * height;
+    const float2 P = (view.xy / min(view.z, 0.1f)) * height;
     //　1層進むごとにずらすuv量
     const float2 delta_uv = P / num_layers;
 
