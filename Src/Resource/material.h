@@ -126,7 +126,7 @@ public:
      * @brief テクスチャの有無を示すフラグを取得する。
      * @return テクスチャの有無を示すフラグ。
      */
-    uint32 GetHasFlag();
+    uint32 GetHasFlag() const;
 private:
     std::unique_ptr<Shader> vertex_shader_;
     std::unique_ptr<Shader> pixel_shader_;

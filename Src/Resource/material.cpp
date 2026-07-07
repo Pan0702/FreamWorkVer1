@@ -157,9 +157,9 @@ void Material::Apply(ID3D12GraphicsCommandList* command_list, const DescriptorHe
     const uint32_t norm_index = flag_ & kMatHasNormalMap  ? normal_->GetSrvIndex() : 0;
     command_list->SetGraphicsRootDescriptorTable(4, descriptor_heap->GetGpuHandle(norm_index));
     const uint32_t spec_index = flag_ & kMatHasSpecular ? specular_->GetSrvIndex() : 0;
-    command_list->SetGraphicsRootDescriptorTable(5, descriptor_heap->GetGpuHandle(spec_index));
+    command_list->SetGraphicsRootDescriptorTable(7, descriptor_heap->GetGpuHandle(spec_index));
     const uint32_t height_index = flag_ & kMatHasHeight ? height_->GetSrvIndex() : 0;
-    command_list->SetGraphicsRootDescriptorTable(6, descriptor_heap->GetGpuHandle(height_index));
+    command_list->SetGraphicsRootDescriptorTable(8, descriptor_heap->GetGpuHandle(height_index));
 }
 
 void Material::SetDiffuse(Texture2D* diffuse)
@@ -242,7 +242,7 @@ float Material::GetMetallic() const
     return metallic_;
 }
 
-uint32 Material::GetHasFlag()
+uint32 Material::GetHasFlag() const
 {
     return flag_;
 }

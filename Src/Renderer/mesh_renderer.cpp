@@ -140,7 +140,7 @@ void MeshRenderer::Submit(RenderContext& context)
             context.command_list->SetGraphicsRootConstantBufferView(0, alloc.gpu);
             if (has_light)
             {
-                context.command_list->SetGraphicsRootConstantBufferView(2, light_alloc.gpu);
+                context.command_list->SetGraphicsRootConstantBufferView(1, light_alloc.gpu);
             }
             context.command_list->SetGraphicsRootDescriptorTable(5, context.srv_heap->GetGpuHandle(context.shadow_srv_index));
             context.command_list->SetGraphicsRootDescriptorTable(6, context.srv_heap->GetGpuHandle(context.irradiance_srv_index));
@@ -157,7 +157,7 @@ void MeshRenderer::Submit(RenderContext& context)
             if (context.cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
             {
                 memcpy(mat_alloc.cpu, &mat_cb, sizeof(mat_cb));
-                context.command_list->SetGraphicsRootConstantBufferView(3, mat_alloc.gpu);
+                context.command_list->SetGraphicsRootConstantBufferView(2, mat_alloc.gpu);
             }
 
             // 現在のサブメッシュを描画する。

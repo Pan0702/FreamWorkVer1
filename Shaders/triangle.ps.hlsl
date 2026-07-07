@@ -186,16 +186,16 @@ float2 ParallaxOcclusion(float2 uv, float3 view, float height)
     //　1層当たりの深さ。
     const float layer_depth = 1.0f / num_layers;
     //　視線方向に沿ってuvを動かす総量
-    const float2 P =(view.xy / view.z) * height;
+    const float2 P = (view.xy / view.z) * height;
     //　1層進むごとにずらすuv量
     const float2 delta_uv = P / num_layers;
-    
+
     //表面0から開始して高さマップと現在の深さを比較していく
     float2 cur_uv = uv;
     float cur_layer = 0.0f;
     //　高さのmapを深さに変換
-    float cur_depth = 1.0f - g_height.SampleLevel(g_sampler,cur_uv,0).r;
-    
+    float cur_depth = 1.0f - g_height.SampleLevel(g_sampler, cur_uv, 0).r;
+
     //凹凸表面に視線がぶつかるまで進める
     //コンパイラがWhile文を展開する恐れがあるため、ループと明記しておく//
     [loop]
@@ -205,7 +205,7 @@ float2 ParallaxOcclusion(float2 uv, float3 view, float height)
         cur_depth = 1.0f - g_height.SampleLevel(g_sampler, cur_uv, 0).r;
         cur_layer += layer_depth;
     }
-    
+
     //ぶつかった層と手前の層を補完して、階段状にならないようにする。
     const float2 prev_uv = cur_uv + delta_uv;
     const float after = cur_depth - cur_layer;
@@ -221,37 +221,35 @@ float4 PSMain(PSInput input) : SV_TARGET
 {
     // 法線を用意する。法線マップがある場合は、タンジェント空間からワールド空間へ変換する。
     float3 N = normalize(input.normal);
-    const float3 tn = g_normal_map.Sample(g_sampler, input.uv).xyz * 2.0 - 1.0;
     const float3 T = normalize(input.tangent);
     const float3 B = normalize(input.bitangent);
     const float3x3 TBN = float3x3(T, B, N);
-
-    // マテリアルの基本色を決める。テクスチャがある場合は base_color に掛け合わせる。
-    float4 albedo = base_color;
-    if (has_flag & kMatHasTexture)
-    {
-        albedo *= g_texture.Sample(g_sampler, input.uv);
-    }
-
-    if (has_flag & kMatHasNormalMap)
-    {
-        N = normalize(mul(tn, TBN));
-    }
-
-    // ライト方向と視線方向を求める。法線が裏向きなら視線側へ反転する。
-    const float3 L = normalize(-light_dir.xyz);
     const float3 V = normalize(cam_pos.xyz - input.world_pos.xyz);
-    if (dot(N, V) < 0.0)
-    {
-        N = -N;
-    }
-
-
     float2 uv = input.uv;
     if (has_flag & kMatHasHeight)
     {
         float3 view_ts = mul(TBN, V);
         uv = ParallaxOcclusion(uv, view_ts, height_scale);
+    }
+
+    // マテリアルの基本色を決める。テクスチャがある場合は base_color に掛け合わせる。
+    float4 albedo = base_color;
+    if (has_flag & kMatHasTexture)
+    {
+        albedo *= g_texture.Sample(g_sampler, uv);
+    }
+
+    if (has_flag & kMatHasNormalMap)
+    {
+        const float3 tn = g_normal_map.Sample(g_sampler, input.uv).xyz * 2.0 - 1.0;
+        N = normalize(mul(tn, TBN));
+    }
+
+    // ライト方向と視線方向を求める。法線が裏向きなら視線側へ反転する。
+    const float3 L = normalize(-light_dir.xyz);
+    if (dot(N, V) < 0.0)
+    {
+        N = -N;
     }
 
     float rough = roughness;

@@ -235,7 +235,7 @@ void SkinnedMeshRenderer::Submit(RenderContext& context) const
             if (cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
             {
                 memcpy(mat_alloc.cpu, &mat_cb, sizeof(mat_cb));
-                command_list->SetGraphicsRootConstantBufferView(4, mat_alloc.gpu);
+                command_list->SetGraphicsRootConstantBufferView(3, mat_alloc.gpu);
                 command_list->DrawIndexedInstanced(sub.index_count, 1, sub.index_start, 0, 0);
             }
         }
