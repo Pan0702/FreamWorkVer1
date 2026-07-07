@@ -42,7 +42,7 @@ cbuffer LightCB : register(b1)
     float4 sky_color;
     float4 ground_color;
     float4 cam_pos; // カメラのワールド位置。
-    float4x4 ligth_view_proj;
+    float4x4 light_view_proj;
 }
 
 /**
@@ -54,6 +54,7 @@ cbuffer MaterialCB : register(b2)
     uint has_flag; // テクスチャを持ってるかどうかBitで管理。
     float metallic; // 0=誘電体, 1=金属              
     float roughness; // 0=つるつる, 1=ざらざら
+    float height_scale; // 1 = 凸凹
 }
 
 /**
@@ -144,7 +145,7 @@ float3 LinearTosRGB(float3 x)
 float CalcShadow(float3 world_pos)
 {
     // ワールド座標をライト視点のクリップ空間へ変換。
-    float4 lp = mul(float4(world_pos, 1.0f), ligth_view_proj);
+    float4 lp = mul(float4(world_pos, 1.0f), light_view_proj);
     // 平行投影なので w は 1 だが、一般化のため除算しておく。
     float3 proj = lp.xyz / lp.w;
 
@@ -169,8 +170,48 @@ float2 DirToEquirect(float3 d)
     return float2(u, v);
 }
 
-float2 ParallaxOcculusionUV(float2 uv, float3 view)
+/**
+ * @brief　視差オクルージョンマッピング(POM)でUVをずらし凹凸で隠れる部分を求める
+ * @param uv 元のテクスチャ画像
+ * @param view タンジェント空間の視線方向
+ * @param height 凹凸の強さ
+ * @return 凹凸を反映させたuv座標
+ */
+float2 ParallaxOcclusion(float2 uv, float3 view, float height)
 {
+    // 斜め方向から見るほど調べる回数を増やして精度を上げる。
+    const float kMinLayers = 8.0f;
+    const float kMaxLayers = 32.0f;
+    const float num_layers = lerp(kMaxLayers, kMinLayers, saturate(abs(view.z)));
+    //　1層当たりの深さ。
+    const float layer_depth = 1.0f / num_layers;
+    //　視線方向に沿ってuvを動かす総量
+    const float2 P =(view.xy / view.z) * height;
+    //　1層進むごとにずらすuv量
+    const float2 delta_uv = P / num_layers;
+    
+    //表面0から開始して高さマップと現在の深さを比較していく
+    float2 cur_uv = uv;
+    float cur_layer = 0.0f;
+    //　高さのmapを深さに変換
+    float cur_depth = 1.0f - g_height.SampleLevel(g_sampler,cur_uv,0).r;
+    
+    //凹凸表面に視線がぶつかるまで進める
+    //コンパイラがWhile文を展開する恐れがあるため、ループと明記しておく//
+    [loop]
+    while (cur_layer < cur_depth)
+    {
+        cur_uv -= delta_uv;
+        cur_depth = 1.0f - g_height.SampleLevel(g_sampler, cur_uv, 0).r;
+        cur_layer += layer_depth;
+    }
+    
+    //ぶつかった層と手前の層を補完して、階段状にならないようにする。
+    const float2 prev_uv = cur_uv + delta_uv;
+    const float after = cur_depth - cur_layer;
+    const float before = (1.0f - g_height.SampleLevel(g_sampler, prev_uv, 0).r) - cur_layer + layer_depth;
+    const float w = after / (after - before);
+    return lerp(cur_uv, prev_uv, w);
 }
 
 /**
@@ -184,6 +225,14 @@ float4 PSMain(PSInput input) : SV_TARGET
     const float3 T = normalize(input.tangent);
     const float3 B = normalize(input.bitangent);
     const float3x3 TBN = float3x3(T, B, N);
+
+    // マテリアルの基本色を決める。テクスチャがある場合は base_color に掛け合わせる。
+    float4 albedo = base_color;
+    if (has_flag & kMatHasTexture)
+    {
+        albedo *= g_texture.Sample(g_sampler, input.uv);
+    }
+
     if (has_flag & kMatHasNormalMap)
     {
         N = normalize(mul(tn, TBN));
@@ -197,24 +246,18 @@ float4 PSMain(PSInput input) : SV_TARGET
         N = -N;
     }
 
-    // マテリアルの基本色を決める。テクスチャがある場合は base_color に掛け合わせる。
-    float4 albedo = base_color;
-    if (has_flag & kMatHasTexture)
-    {
-        albedo *= g_texture.Sample(g_sampler, input.uv);
-    }
 
     float2 uv = input.uv;
     if (has_flag & kMatHasHeight)
     {
-        float3 view_ts = mul(TBN,V);
-        uv = ParallaxOcculusionUV(uv, view_ts);
+        float3 view_ts = mul(TBN, V);
+        uv = ParallaxOcclusion(uv, view_ts, height_scale);
     }
-    
+
     float rough = roughness;
     if (has_flag & kMatHasSpecular)
     {
-        rough = g_specular.Sample(g_sampler, uv).r
+        rough = g_specular.Sample(g_sampler, uv).r;
     }
     rough = max(rough, 0.05f);
     // ライト方向と視線方向の中間方向を求める。鏡面反射の計算で使う。

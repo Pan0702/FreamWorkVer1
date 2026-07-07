@@ -5,10 +5,10 @@ constexpr int kMaxBones = 128;
 
 enum MaterialFlags : uint8
 {
-    kMatHasTexture   = 1 << 0,
+    kMatHasTexture = 1 << 0,
     kMatHasNormalMap = 1 << 1,
-    kMatHasSpecular  = 1 << 2,
-    kMatHasHeight    = 1 << 3,
+    kMatHasSpecular = 1 << 2,
+    kMatHasHeight = 1 << 3,
 };
 
 
@@ -42,9 +42,10 @@ namespace CB
     struct MaterialCB
     {
         Vec4 base_color; //rgb + a //
-        uint32 flag;
+        uint32 flag; // ‰æ‘œ‚ð•ÛŽ‚µ‚Ä‚é‚©‚ÌFlag //
         float metallic; // 1 = ‹à‘® //
         float roughness; // 0 = ‚Â‚é‚Â‚é@// 
+        float height_scale; // 1 = “Ê‰š@// 
     };
 
     /**
