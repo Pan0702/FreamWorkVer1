@@ -55,11 +55,14 @@ void CollisionWorld::Collect()
             // 当たってるか
             if (ComputeContact(coll1, coll2, info))
             {
-                cur_pairs.emplace(HitPair(coll1, coll2)); // Overlap //
+                // Overlap //
+                cur_pairs.emplace(HitPair(coll1, coll2)); 
                 if (!coll1->IsTrigger() && !coll2->IsTrigger())
                 {
-                    coll1->InvokeHit(coll2, info); // Hit //
+                    // Hit //
+                    coll1->InvokeHit(coll2, info); 
                     ContactInfo flipped = info;
+                    //めり込んだ量を反転　//
                     flipped.normal = info.normal * -1.0f;
                     coll2->InvokeHit(coll1, flipped);
                 }
@@ -67,20 +70,24 @@ void CollisionWorld::Collect()
         }
     }
 
+    //通知中にColliderが追加/削除さる可能性があるから
+    //ここではcolliders_を変更しない
+    //新しく発生した接触だけ通知//
     for (const HitPair& p : cur_pairs)
     {
         // prev に無い //
-        if (prev_pairs_.find(p) == prev_pairs_.end())
+        if (!prev_pairs_.contains(p))
         {
             p.collider1->InvokeBeginOverlap(p.collider2);
             p.collider2->InvokeBeginOverlap(p.collider1);
         }
     }
 
+    //前フレーム存在して現在のフレームで消えた接触だけ通知
     for (const HitPair& p : prev_pairs_)
     {
         // cur に無い //
-        if (cur_pairs.find(p) == cur_pairs.end())
+        if (!cur_pairs.contains(p))
         {
             p.collider1->InvokeEndOverlap(p.collider2);
             p.collider2->InvokeEndOverlap(p.collider1);
@@ -88,9 +95,9 @@ void CollisionWorld::Collect()
     }
     prev_pairs_ = cur_pairs;
     dispatching_ = false;
-
-    // 通知中に積まれた解除を反映。colliders_ だけでなく prev_pairs_ からも
-    // 該当ペアを消し、破棄済みポインタを次フレームへ持ち越さない。//
+    
+    // 通知中に要求された解除をここでまとめて反映する。
+    // prev_pairs_ からも消して、解除済み Collider を含むペアを次フレームへ持ち越さない。
     for (ColliderComponent* coll : pending_remove_)
     {
         std::erase(colliders_, coll);
@@ -99,7 +106,10 @@ void CollisionWorld::Collect()
             return p.collider1 == coll || p.collider2 == coll;
         });
     }
+    
     pending_remove_.clear();
+    // 通知中に要求された追加をここでまとめて反映する。
+    // 追加 Collider は次フレームの衝突判定から参加する。
     for (ColliderComponent* coll : pending_add_)
     {
         colliders_.push_back(coll);

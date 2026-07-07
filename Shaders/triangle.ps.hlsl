@@ -94,8 +94,8 @@ float3 FresnelSchlick(float cosThetam, float3 F0)
  */
 float GeometrySchlickGGX(float ndotv, float roughness)
 {
-    const float r = (roughness + 1.0f);
-    const float k = (r * r) / 8.0f;
+    const float r = roughness + 1.0f;
+    const float k = r * r / 8.0f;
     return ndotv / (ndotv * (1.0f - k) + k);
 }
 
@@ -114,7 +114,7 @@ float GeometrySmith(float3 N, float3 V, float3 L, float roughness)
     const float ggxV = GeometrySchlickGGX(ndotv, roughness);
     const float ggxL = GeometrySchlickGGX(ndotl, roughness);
     return ggxV * ggxL;
-};
+}
 
 /**
  * 
@@ -129,7 +129,7 @@ float3 ACESFilm(float3 x)
     const float d = 0.59f;
     const float e = 0.14f;
 
-    return saturate((x * (a * x + b)) / (x * (c * x + d) + e));
+    return saturate(x * (a * x + b) / (x * (c * x + d) + e));
 }
 
 /**
@@ -186,7 +186,7 @@ float2 ParallaxOcclusion(float2 uv, float3 view, float height)
     //　1層当たりの深さ。
     const float layer_depth = 1.0f / num_layers;
     //　視線方向に沿ってuvを動かす総量
-    const float2 P = (view.xy / min(view.z, 0.1f)) * height;
+    const float2 P = view.xy / min(view.z, 0.1f) * height;
     //　1層進むごとにずらすuv量
     const float2 delta_uv = P / num_layers;
 
@@ -209,7 +209,7 @@ float2 ParallaxOcclusion(float2 uv, float3 view, float height)
     //ぶつかった層と手前の層を補完して、階段状にならないようにする。
     const float2 prev_uv = cur_uv + delta_uv;
     const float after = cur_depth - cur_layer;
-    const float before = (1.0f - g_height.SampleLevel(g_sampler, prev_uv, 0).r) - cur_layer + layer_depth;
+    const float before = 1.0f - g_height.SampleLevel(g_sampler, prev_uv, 0).r - cur_layer + layer_depth;
     const float w = after / (after - before);
     return lerp(cur_uv, prev_uv, w);
 }
@@ -219,6 +219,7 @@ float2 ParallaxOcclusion(float2 uv, float3 view, float height)
  */
 float4 PSMain(PSInput input) : SV_TARGET
 {
+    //return float4(base_color.rgb, 1.0f);
     // 法線を用意する。法線マップがある場合は、タンジェント空間からワールド空間へ変換する。
     float3 N = normalize(input.normal);
     const float3 T = normalize(input.tangent);
@@ -278,7 +279,7 @@ float4 PSMain(PSInput input) : SV_TARGET
     // 鏡面反射を計算する。分母が 0 に近くなりすぎないように下限を入れる。
     const float ndotl = saturate(dot(N, L));
     const float ndotv = saturate(dot(N, V));
-    const float3 spec = (D * G * F) / max(4.0f * ndotl * ndotv, 0.001f);
+    const float3 spec = D * G * F / max(4.0f * ndotl * ndotv, 0.001f);
 
     // ライト色と入射角を反映して、直接光の明るさを出す。
     const float3 radiance = light_color.rgb;
@@ -297,6 +298,5 @@ float4 PSMain(PSInput input) : SV_TARGET
 
     // リニア->sRGB
     lit = LinearTosRGB(lit);
-
     return float4(lit, albedo.a);
 }

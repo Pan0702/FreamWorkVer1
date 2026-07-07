@@ -37,6 +37,11 @@ public:
     void OpenLevel(std::string_view name);
 
     /**
+     * @brief アニメーションをせずに開く
+     * @param name 対象の名前
+     */
+    void OpenLevelImmediate(std::string_view name);
+    /**
      * いまのLevelの名前を返す
      * @return current_name_を返す。
      */

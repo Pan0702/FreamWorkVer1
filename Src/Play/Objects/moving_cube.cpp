@@ -21,7 +21,7 @@ MovingCube::MovingCube(const Vec3& pos, const Vec3& target)
     base_pos_ = pos;
     target_pos_ = target;
     transform_.position = pos;
-    transform_.scale = Vec3(2.0f, 1.0f, 2.0f);
+    transform_.scale = Vec3(2.0f, 1.0f, 2.4f);
 }
 
 void MovingCube::Init()

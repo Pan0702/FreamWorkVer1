@@ -13,7 +13,7 @@ namespace
 
 Cube::Cube()
 {
-    Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/cube.mesh");
+    Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/Cube.mesh");
     materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDecs());
     AddComponent<StaticMeshComponent>(mesh, materials_.get());
     AddComponent<MeshColliderComponent>(mesh);
@@ -22,7 +22,7 @@ Cube::Cube()
 
 Cube::Cube(const Vec3& pos, const Vec3& scale)
 {
-    Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/cube.mesh");
+    Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/Cube.mesh");
     materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDecs());
     AddComponent<StaticMeshComponent>(mesh, materials_.get());
     AddComponent<MeshColliderComponent>(mesh);

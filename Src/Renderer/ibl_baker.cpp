@@ -6,8 +6,8 @@ namespace
 {
     void TexelToDir(int x, int y, int width, int height, Vec3& d, float& sin_theta)
     {
-        const float u = (x + 0.5f) / static_cast<float>(width);
-        const float v = (y + 0.5f) / static_cast<float>(height);
+        const float u = (static_cast<float>(x) + 0.5f) / static_cast<float>(width);
+        const float v = (static_cast<float>(y) + 0.5f) / static_cast<float>(height);
         const float phi = (u - 0.5f) * 2.0f * kPI;
         float theta = kPI * v;
         sin_theta = std::sinf(theta);
@@ -28,15 +28,14 @@ LoadedImage IBLBaker::BakeIrradianceMap(const LoadedImage& sky_srgb)
     {
         for (int x = 0; x < src_w; ++x)
         {
-            int sx = x * static_cast<int>(sky_srgb.width) / src_w;
-            int sy = y * static_cast<float>(sky_srgb.height) / src_h;
-            size_t a = (sy * sky_srgb.width + sx) * 4;;
+            const int sx = x * static_cast<int>(sky_srgb.width) / src_w;
+            const int sy = y * static_cast<int>(sky_srgb.height) / src_h;
+            const size_t a = static_cast<size_t>(sy * sky_srgb.width + sx) * 4;
             const uint8* p = &sky_srgb.pixels[a];
             
-            
-            src[y * src_w + x].x = powf(p[0] / kMaxRGB, kGamma);
-            src[y * src_w + x].y = powf(p[1] / kMaxRGB, kGamma);
-            src[y * src_w + x].z = powf(p[2] / kMaxRGB, kGamma);
+            src[y * src_w + x].x = powf(static_cast<float>(p[0]) / kMaxRGB, kGamma);
+            src[y * src_w + x].y = powf(static_cast<float>(p[1]) / kMaxRGB, kGamma);
+            src[y * src_w + x].z = powf(static_cast<float>(p[2]) / kMaxRGB, kGamma);
         }
     }
 
@@ -45,8 +44,8 @@ LoadedImage IBLBaker::BakeIrradianceMap(const LoadedImage& sky_srgb)
     LoadedImage result;
     result.width = dst_w;
     result.height = dst_h;
-    const size_t b = dst_w * dst_h * 4;
-    result.pixels.resize(b);
+    constexpr size_t kB = static_cast<size_t>(dst_w * dst_h) * 4;
+    result.pixels.resize(kB);
 
     for (int oy = 0; oy < dst_h; ++oy)
     {
@@ -84,13 +83,13 @@ LoadedImage IBLBaker::BakeIrradianceMap(const LoadedImage& sky_srgb)
             {
                 irr = sum / weight_sum;
             }
-            const size_t c = (oy * dst_w + ox) * 4;
+            const size_t c = static_cast<size_t>(oy * dst_w + ox) * 4;
             uint8* out = &result.pixels[c];
             constexpr float kInvGamma = 1.0f/kGamma;
             out[0] = static_cast<uint8_t>(std::powf(std::clamp(irr.x, 0.0f, 1.0f),kInvGamma)* kMaxRGB + 0.5f);
             out[1] = static_cast<uint8_t>(std::powf(std::clamp(irr.y, 0.0f, 1.0f),kInvGamma) * kMaxRGB + 0.5f);
             out[2] = static_cast<uint8_t>(std::powf(std::clamp(irr.z, 0.0f, 1.0f),kInvGamma) * kMaxRGB + 0.5f);
-            out[3] = kMaxRGB;
+            out[3] = static_cast<uint8>(kMaxRGB);
         }
     }
     return result;

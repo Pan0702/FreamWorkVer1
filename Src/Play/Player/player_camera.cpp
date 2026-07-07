@@ -7,7 +7,7 @@
 
 namespace
 {
-    const Vec3 kCamOffset = Vec3(0.0f, 3.0f, -3.0f);
+    const Vec3 kCamOffset = Vec3(0.0f, 5.0f, -10.0f);
     constexpr float kSensitivity = 0.003f; // ä¥ìx                    
     constexpr float kPitchMin = -1.0f; // å©è„Ç∞å¿äE(rad)         
     constexpr float kPitchMax = 0.5f; // å©â∫ÇÎÇµå¿äE(rad)

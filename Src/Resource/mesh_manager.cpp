@@ -51,7 +51,7 @@ Mesh* MeshManager::Load(const std::string& path)
     if (header.version != kMeshVersion)
     {
         char msg[256];
-        sprintf_s(msg, "Invalid version mesh %s", path);
+        sprintf_s(msg, "Invalid version mesh %s", path.c_str());
         // filename ‚Í const char*                          
         MessageBoxA(nullptr, msg, "Error", MB_OK);
         return nullptr;

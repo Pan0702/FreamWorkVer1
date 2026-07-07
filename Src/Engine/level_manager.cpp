@@ -40,6 +40,12 @@ void LevelManager::OpenLevel(std::string_view name)
     transition_.Start();
 }
 
+void LevelManager::OpenLevelImmediate(std::string_view name)
+{
+    next_name_ = name;
+    ApplyPendingLevel();
+}
+
 const std::string& LevelManager::GetCurrentLevelName() const
 {
     return current_name_;

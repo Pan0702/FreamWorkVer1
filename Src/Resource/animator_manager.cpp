@@ -42,7 +42,7 @@ Animation* AnimatorManager::Load(const std::string& path)
     if (header.version != kSkAnimVersion)
     {
         char msg[256];                                       
-        sprintf_s(msg, "Invalid version anim %s", path);
+        sprintf_s(msg, "Invalid version anim %s", path.c_str());
         MessageBoxA(nullptr, msg, "Error", MB_OK);
         return nullptr;
     }

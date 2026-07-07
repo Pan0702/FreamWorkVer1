@@ -26,7 +26,7 @@ namespace
         { Vec3(0,  0, 16), Vec3(0, 7, 16), kSlowSpeed     },
         { Vec3(-6, 7, 34), Vec3(6, 7, 34), kSlowSpeed     },
         { Vec3(-6, 7, 52), Vec3(6, 7, 52), kFastSpeed     },
-        { Vec3(-6, 7, 62), Vec3(6, 7, 62), kVeryFastSpeed },
+        { Vec3(-6, 7, 63), Vec3(6, 7, 63), kVeryFastSpeed },
     };
 }
 
