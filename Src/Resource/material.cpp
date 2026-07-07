@@ -222,6 +222,16 @@ void Material::SetMetallic(float metallic)
     metallic_ = metallic;
 }
 
+void Material::SetHeightScale(float scale)
+{
+    height_scale_ = scale;
+}
+
+float Material::GetHeightScale() const
+{
+    return height_scale_;
+}
+
 float Material::GetRoughness() const
 {
     return roughness_;

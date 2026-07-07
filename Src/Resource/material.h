@@ -86,15 +86,46 @@ public:
      * @return 高さ。見つからない、または未作成の場合は nullptr。
      */
     Texture2D* GetHeight() const;
+    
     /**
      * @brief ベースカラーを取得する。
      * @return マテリアルのベースカラー。
      */
     Vec4 GetBaseColor() const;
+    /**
+     * @brief ラフネスを設定する。
+     * @param roughness 設定するラフネス。
+     */
     void SetRoughness(float roughness);
+    /**
+     * @brief メタリックを設定する。
+     * @param metallic 設定するメタリック。
+     */
     void SetMetallic(float metallic);
+    /**
+     * @brief 高さスケールを設定する。
+     * @param scale 設定する高さスケール。
+     */
+    void SetHeightScale(float scale);
+    /**
+     * @brief 高さスケールを取得する。
+     * @return マテリアルの高さスケール。
+     */
+    float GetHeightScale() const;
+    /**
+     * @brief ラフネスを取得する。
+     * @return マテリアルのラフネス。
+     */
     float GetRoughness() const;
+    /**
+     * @brief メタリックを取得する。
+     * @return マテリアルのメタリック。
+     */
     float GetMetallic() const;
+    /**
+     * @brief テクスチャの有無を示すフラグを取得する。
+     * @return テクスチャの有無を示すフラグ。
+     */
     uint32 GetHasFlag();
 private:
     std::unique_ptr<Shader> vertex_shader_;
@@ -109,4 +140,5 @@ private:
     uint32 flag_ = 0;
     float roughness_ = 0.8f;
     float metallic_ = 0.0f;   
+    float height_scale_ = 1.0f;
 };
