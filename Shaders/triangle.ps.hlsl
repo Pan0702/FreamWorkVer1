@@ -241,7 +241,7 @@ float4 PSMain(PSInput input) : SV_TARGET
 
     if (has_flag & kMatHasNormalMap)
     {
-        const float3 tn = g_normal_map.Sample(g_sampler, input.uv).xyz * 2.0 - 1.0;
+        const float3 tn = g_normal_map.Sample(g_sampler, uv).xyz * 2.0 - 1.0;
         N = normalize(mul(tn, TBN));
     }
 
