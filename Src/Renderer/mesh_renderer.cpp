@@ -147,9 +147,11 @@ void MeshRenderer::Submit(RenderContext& context)
             // b2 にはサブメッシュのマテリアル定数を設定する。
             CB::MaterialCB mat_cb = {};
             mat_cb.base_color = mat->GetBaseColor();
+            mat_cb.flag = mat->GetHasFlag();
             mat_cb.metallic = mat->GetMetallic();
             mat_cb.roughness = mat->GetRoughness();
-            mat_cb.flag = mat->GetHasFlag();
+            mat_cb.height_scale = mat->GetHeightScale();
+            
             
             ConstantBufferAllocation mat_alloc = {};
             if (context.cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))

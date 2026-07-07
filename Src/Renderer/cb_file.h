@@ -56,7 +56,6 @@ namespace CB
         Mat bones[kMaxBones];
     };
 
-
     /**
      * @brief シャドウパスで使うオブジェクト単位の定数バッファ。
      */

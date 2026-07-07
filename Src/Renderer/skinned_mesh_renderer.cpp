@@ -229,6 +229,8 @@ void SkinnedMeshRenderer::Submit(RenderContext& context) const
             mat_cb.metallic = mat->GetMetallic();
             mat_cb.roughness = mat->GetRoughness();
             mat_cb.flag = mat->GetHasFlag();
+            mat_cb.height_scale = mat->GetHeightScale();
+            
             ConstantBufferAllocation mat_alloc = {};
             if (cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
             {
