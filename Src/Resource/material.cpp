@@ -9,6 +9,7 @@
 #include "../Graphics/shader.h"
 #include "../Resource/texture2D.h"
 #include "../Graphics/descriptor_heap.h"
+#include "../Renderer/cb_file.h"
 
 Material::Material()
 {
@@ -17,7 +18,6 @@ Material::Material()
     {
         MessageBox(nullptr, L"Failed to create material", L"Error", MB_OK);
     }
-    
 }
 
 Material::Material(const MeshMaterialDesc& desc)
@@ -33,6 +33,7 @@ Material::Material(const MeshMaterialDesc& desc)
         if (texture)
         {
             SetDiffuse(texture);
+            flag_ |= kMatHasTexture;
         }
         else
         {
@@ -44,6 +45,7 @@ Material::Material(const MeshMaterialDesc& desc)
         Texture2D* normal = TextureManager::Get().Load(desc.normal_texture_path.c_str(), false);
         if (normal)
         {
+            flag_ |= kMatHasNormalMap;
             SetNormal(normal);
         }
         else
@@ -57,6 +59,7 @@ Material::Material(const MeshMaterialDesc& desc)
         Texture2D* specular = TextureManager::Get().Load(desc.specular_texture_path.c_str(), false);
         if (specular)
         {
+            flag_ |= kMatHasSpecular;
             SetSpecular(specular);
         }
         else
@@ -69,6 +72,7 @@ Material::Material(const MeshMaterialDesc& desc)
         Texture2D* height = TextureManager::Get().Load(desc.height_texture_path.c_str(), false);
         if (height)
         {
+            flag_ |= kMatHasHeight;
             SetHeight(height);
         }
         else
@@ -84,18 +88,19 @@ Material::Material(const MeshMaterialDesc& desc)
 bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_t* ps_path,
                       std::span<const D3D12_INPUT_ELEMENT_DESC> input_layout)
 {
-    
     base_color_ = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
     root_signature_ = std::make_unique<RootSignature>();
     RootSignatureBuilder builder;
     builder
         .AddCbv(0, D3D12_SHADER_VISIBILITY_VERTEX) //b0
-        .AddSrvTable(0, 1, D3D12_SHADER_VISIBILITY_PIXEL) //t0
         .AddCbv(1, D3D12_SHADER_VISIBILITY_PIXEL) // b1
         .AddCbv(2, D3D12_SHADER_VISIBILITY_PIXEL) // b2 
-        .AddSrvTable(1, 1, D3D12_SHADER_VISIBILITY_PIXEL) // t1
-        .AddSrvTable(2, 1, D3D12_SHADER_VISIBILITY_PIXEL) // t2
-        .AddSrvTable(3, 1, D3D12_SHADER_VISIBILITY_PIXEL)
+        .AddSrvTable(0, 1, D3D12_SHADER_VISIBILITY_PIXEL) // t0 : 
+        .AddSrvTable(1, 1, D3D12_SHADER_VISIBILITY_PIXEL) // t1 : diffus
+        .AddSrvTable(2, 1, D3D12_SHADER_VISIBILITY_PIXEL) // t2 : normal
+        .AddSrvTable(3, 1, D3D12_SHADER_VISIBILITY_PIXEL) // t3 : irradiance
+        .AddSrvTable(4, 1, D3D12_SHADER_VISIBILITY_PIXEL) // t4 : specular
+        .AddSrvTable(5, 1, D3D12_SHADER_VISIBILITY_PIXEL) // t5 : height
         .AddStaticSampler(0, D3D12_SHADER_VISIBILITY_PIXEL, D3D12_TEXTURE_ADDRESS_MODE_WRAP)
         .AddComparisonSampler(1, D3D12_SHADER_VISIBILITY_PIXEL); // s1
 
@@ -146,10 +151,15 @@ void Material::Apply(ID3D12GraphicsCommandList* command_list, const DescriptorHe
     command_list->SetPipelineState(pipeline_state_->GetPipelineState());
     ID3D12DescriptorHeap* heaps[] = {descriptor_heap->GetHeap()};
     command_list->SetDescriptorHeaps(1, heaps);
-    const uint32_t srv_index = (diffuse_ != nullptr) ? diffuse_->GetSrvIndex() : 0;
-    command_list->SetGraphicsRootDescriptorTable(1, descriptor_heap->GetGpuHandle(srv_index));
-    const uint32_t norm_index = (normal_ != nullptr) ? normal_->GetSrvIndex() : 0;
+    
+    const uint32_t srv_index = flag_ & kMatHasTexture ? diffuse_->GetSrvIndex() : 0;
+    command_list->SetGraphicsRootDescriptorTable(3, descriptor_heap->GetGpuHandle(srv_index));
+    const uint32_t norm_index = flag_ & kMatHasNormalMap  ? normal_->GetSrvIndex() : 0;
     command_list->SetGraphicsRootDescriptorTable(4, descriptor_heap->GetGpuHandle(norm_index));
+    const uint32_t spec_index = flag_ & kMatHasSpecular ? specular_->GetSrvIndex() : 0;
+    command_list->SetGraphicsRootDescriptorTable(5, descriptor_heap->GetGpuHandle(spec_index));
+    const uint32_t height_index = flag_ & kMatHasHeight ? height_->GetSrvIndex() : 0;
+    command_list->SetGraphicsRootDescriptorTable(6, descriptor_heap->GetGpuHandle(height_index));
 }
 
 void Material::SetDiffuse(Texture2D* diffuse)
@@ -220,4 +230,9 @@ float Material::GetRoughness() const
 float Material::GetMetallic() const
 {
     return metallic_;
+}
+
+uint32 Material::GetHasFlag()
+{
+    return flag_;
 }

@@ -95,7 +95,7 @@ public:
     void SetMetallic(float metallic);
     float GetRoughness() const;
     float GetMetallic() const;
-
+    uint32 GetHasFlag();
 private:
     std::unique_ptr<Shader> vertex_shader_;
     std::unique_ptr<Shader> pixel_shader_;
@@ -106,6 +106,7 @@ private:
     Texture2D* specular_ = nullptr;
     Texture2D* height_ = nullptr;
     Vec4 base_color_;
+    uint32 flag_ = 0;
     float roughness_ = 0.8f;
     float metallic_ = 0.0f;   
 };

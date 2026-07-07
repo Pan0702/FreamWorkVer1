@@ -26,7 +26,7 @@ struct MeshMaterialDesc
 {
     Vec4 base_color;
     float metallic = 0.0f;
-    float roughness = 0.8f;
+    float roughness = 0.0f;
     std::wstring diffuse_texture_path;
     std::wstring normal_texture_path;
     std::wstring specular_texture_path;  

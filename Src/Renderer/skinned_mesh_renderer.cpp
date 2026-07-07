@@ -25,12 +25,14 @@ bool SkinnedMeshRenderer::Initialize(ID3D12Device* device)
     builder
         .AddCbv(0, D3D12_SHADER_VISIBILITY_VERTEX)
         .AddCbv(1, D3D12_SHADER_VISIBILITY_VERTEX)
-        .AddSrvTable(0, 1, D3D12_SHADER_VISIBILITY_PIXEL)
         .AddCbv(1, D3D12_SHADER_VISIBILITY_PIXEL)
         .AddCbv(2, D3D12_SHADER_VISIBILITY_PIXEL)
+        .AddSrvTable(0, 1, D3D12_SHADER_VISIBILITY_PIXEL)
         .AddSrvTable(1, 1, D3D12_SHADER_VISIBILITY_PIXEL)
         .AddSrvTable(2, 1, D3D12_SHADER_VISIBILITY_PIXEL)
         .AddSrvTable(3, 1, D3D12_SHADER_VISIBILITY_PIXEL)
+        .AddSrvTable(4, 1, D3D12_SHADER_VISIBILITY_PIXEL)
+        .AddSrvTable(5, 1, D3D12_SHADER_VISIBILITY_PIXEL)
         .AddStaticSampler(0, D3D12_SHADER_VISIBILITY_PIXEL, D3D12_TEXTURE_ADDRESS_MODE_WRAP)
         .AddComparisonSampler(1, D3D12_SHADER_VISIBILITY_PIXEL);
 
@@ -195,7 +197,7 @@ void SkinnedMeshRenderer::Submit(RenderContext& context) const
         if (has_light)
         {
             //b1 ps
-            command_list->SetGraphicsRootConstantBufferView(3, light_alloc.gpu);
+            command_list->SetGraphicsRootConstantBufferView(2, light_alloc.gpu);
         }
         D3D12_VERTEX_BUFFER_VIEW vbv = command.mesh->GetVertexBufferView();
         command_list->IASetVertexBuffers(0, 1, &vbv);
@@ -209,19 +211,24 @@ void SkinnedMeshRenderer::Submit(RenderContext& context) const
             {
                 continue;
             }
-            uint32 diff = (mat->GetDiffuse() ? mat->GetDiffuse()->GetSrvIndex() : 0);
-            uint32 norm = (mat->GetNormal() ? mat->GetNormal()->GetSrvIndex() : 0);
-            command_list->SetGraphicsRootDescriptorTable(2, context.srv_heap->GetGpuHandle(diff));
+            const uint32 diff = (mat->GetDiffuse() ? mat->GetDiffuse()->GetSrvIndex() : 0);
+            const uint32 norm = (mat->GetNormal() ? mat->GetNormal()->GetSrvIndex() : 0);
+            const uint32 specular = (mat->GetSpecular() ? mat->GetSpecular()->GetSrvIndex() : 0);
+            const uint32 height = (mat->GetHeight() ? mat->GetHeight()->GetSrvIndex() : 0);
+            
+            command_list->SetGraphicsRootDescriptorTable(4, context.srv_heap->GetGpuHandle(diff));
             command_list->SetGraphicsRootDescriptorTable(5, context.srv_heap->GetGpuHandle(norm));
             command_list->SetGraphicsRootDescriptorTable(6, context.srv_heap->GetGpuHandle(context.shadow_srv_index));
             command_list->SetGraphicsRootDescriptorTable(7, context.srv_heap->GetGpuHandle(context.irradiance_srv_index));
+            command_list->SetGraphicsRootDescriptorTable(8, context.srv_heap->GetGpuHandle(specular));
+            command_list->SetGraphicsRootDescriptorTable(9, context.srv_heap->GetGpuHandle(height));
+            
             // b2
             CB::MaterialCB mat_cb = {};
             mat_cb.base_color = mat->GetBaseColor();
-            mat_cb.has_texture = (mat->GetDiffuse() != nullptr ? 1 : 0);
             mat_cb.metallic = mat->GetMetallic();
             mat_cb.roughness = mat->GetRoughness();
-            mat_cb.has_normal_map = (mat->GetNormal() != nullptr ? 1 : 0);
+            mat_cb.flag = mat->GetHasFlag();
             ConstantBufferAllocation mat_alloc = {};
             if (cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
             {
