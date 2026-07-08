@@ -9,6 +9,10 @@ public:
     void BeginFrame();
     void EndFrame(ID3D12GraphicsCommandList* command_list);
     void Shutdown();
+    ImDrawData* CloneCurrentData();
+    void FreeDrawData(ImDrawData* dd);
+    void RenderCloneData(ImDrawData* dd,ID3D12GraphicsCommandList* cmd);
+    
 
 private:
     struct ExampleDescriptorHeapAllocator

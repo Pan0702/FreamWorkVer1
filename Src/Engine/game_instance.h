@@ -20,11 +20,7 @@ public:
      * @brief 1 フレーム分の状態更新を進める。
      * @param dt 前フレームからの経過秒数。
      */
-    virtual void Tick(float dt);
-    /**
-     * @brief 現在の状態をもとに描画コマンドを積む。
-     */
-    void Render();
+    virtual void Tick(float dt);;
 
     /**
      * @brief Actor が所属している World を取得する。

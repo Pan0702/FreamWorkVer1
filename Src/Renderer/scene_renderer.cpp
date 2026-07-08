@@ -107,7 +107,7 @@ void SceneRenderer::Render(RendererData& renderer_data)
     skinned_mesh_renderer_->Submit(context, frame_snaps_[index]);
     ui_renderer_->Submit(context, frame_snaps_[index]);
     
-   // imgui_manager_.EndFrame(context.command_list);
+    imgui_manager_.RenderCloneData(frame_snaps_[index].imgui_draw_data,context.command_list);
     EndRenderTarget(renderer_data);
 }
 
@@ -132,6 +132,9 @@ void SceneRenderer::AllCollect(Camera& c)
     sprite_renderer_->Collect(snap);
     skinned_mesh_renderer_->Collect(snap);
     ui_renderer_->Collect(snap);
+    
+    imgui_manager_.FreeDrawData(snap.imgui_draw_data);
+    snap.imgui_draw_data = imgui_manager_.CloneCurrentData();
 }
 
 void SceneRenderer::Shutdown()
@@ -144,6 +147,8 @@ void SceneRenderer::Shutdown()
     {
         sprite_renderer_->Shutdown();
     }
+    imgui_manager_.FreeDrawData(frame_snaps_[0].imgui_draw_data);
+    imgui_manager_.FreeDrawData(frame_snaps_[1].imgui_draw_data);
     imgui_manager_.Shutdown();
 }
 

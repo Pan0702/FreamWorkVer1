@@ -162,16 +162,12 @@ void GameMain::Tick()
 {
     auto* render_system = render_system_->GetSceneRenderer();
     delta_time_ = ClacDeltaTime();
-    //render_system->GetImGuiManager().BeginFrame();
+    render_system->GetImGuiManager().BeginFrame();
     input_.Update();
     game_instance_.Tick(delta_time_);
     render_system->AllCollect(camera_);
 }
 
-void GameMain::Render()
-{
-    game_instance_.Render();
-}
 
 void GameMain::ClacFPS()
 {

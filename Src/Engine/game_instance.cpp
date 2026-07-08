@@ -36,11 +36,6 @@ void GameInstance::Tick(float dt)
     world_.Tick(dt);
 }
 
-void GameInstance::Render()
-{
-    game_main->GetRenderSystem()->Render();
-}
-
 World* GameInstance::GetWorld()
 {
     return &world_;

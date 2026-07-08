@@ -43,10 +43,6 @@ public:
      * @brief 1 フレーム分の状態更新を進める。
      */
     void Tick();
-    /**
-     * @brief 現在の状態をもとに描画コマンドを積む。
-     */
-    void Render();
 
     /**
      * @brief Window を取得する。

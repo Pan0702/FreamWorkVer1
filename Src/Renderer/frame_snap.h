@@ -2,7 +2,7 @@
 #include <vector>
 #include "draw_command.h"
 #include "../Resource/vertex_types.h"
-
+struct ImDrawData;
 struct CameraSnap
 {
     Mat view;
@@ -27,4 +27,5 @@ struct FrameSnap
     std::vector<DebugLineVertex> debug_triangles; 
     CameraSnap camera;
     LightSnap light;
+    ImDrawData* imgui_draw_data = nullptr;
 };

@@ -78,6 +78,57 @@ void ImGuiManager::Shutdown()
     ImGui::DestroyContext();
 }
 
+ImDrawData* ImGuiManager::CloneCurrentData()
+{
+    ImGui::Render();
+    const ImDrawData* src = ImGui::GetDrawData();
+    if (!src)
+    {
+        return nullptr;
+    }
+    
+    ImDrawData* dst = IM_NEW(ImDrawData)();
+    dst->Valid            = src->Valid;
+    dst->CmdListsCount    = src->CmdListsCount;
+    dst->TotalIdxCount    = src->TotalIdxCount;
+    dst->TotalVtxCount    = src->TotalVtxCount;
+    dst->DisplayPos       = src->DisplayPos;
+    dst->DisplaySize      = src->DisplaySize;
+    dst->FramebufferScale = src->FramebufferScale;
+    dst->OwnerViewport    = src->OwnerViewport;
+    dst->Textures         = src->Textures;     
+    dst->CmdLists.resize(src->CmdLists.Size);
+    for (int n = 0; n < src->CmdListsCount; n++)
+    {
+        dst->CmdLists[n] = src->CmdLists[n]->CloneOutput();
+    }
+    return dst;
+}
+
+void ImGuiManager::FreeDrawData(ImDrawData* dd)
+{
+    if (!dd)
+    {
+        return;
+    }
+    for (ImDrawList* list : dd->CmdLists)
+    {
+        IM_DELETE(list);
+    }
+    IM_DELETE(dd);
+}
+
+void ImGuiManager::RenderCloneData(ImDrawData* dd, ID3D12GraphicsCommandList* cmd)
+{
+    if (!dd)
+    {
+        return;
+    }
+    ID3D12DescriptorHeap* heaps[] = { srv_heap_.Get() };
+    cmd->SetDescriptorHeaps(1, heaps);
+    ImGui_ImplDX12_RenderDrawData(dd, cmd);
+}
+
 void ImGuiManager::ExampleDescriptorHeapAllocator::Create(ID3D12Device* device, ID3D12DescriptorHeap* heap)
 {
     IM_ASSERT(Heap == nullptr && FreeIndices.empty());
