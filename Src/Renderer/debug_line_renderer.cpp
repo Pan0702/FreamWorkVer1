@@ -176,7 +176,7 @@ void DebugLineRenderer::Submit(const RenderContext& context, const FrameSnap& re
     }
 
     // CB ?? view * projection ????iHLSL ?? mul(pos, M) ?K???????? Transpose?j?B???E?O?p?`????L//
-    Mat view_proj = Transpose(context.view * context.projection);
+    Mat view_proj = Transpose(read_snap.camera.view * read_snap.camera.projection);
     ConstantBufferAllocation allocation = {};
     if (!context.cb_allocator->Allocate(sizeof(view_proj), &allocation))
     {

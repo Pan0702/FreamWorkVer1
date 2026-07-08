@@ -55,12 +55,10 @@ public:
     /**
      * @brief 現在の状態をもとに描画コマンドを積む。
      * @param renderer_data レンダラー初期化に使う共有データ。
-     * @param world Actor や描画対象を管理する World。
-     * @param camera ビュー行列と射影行列を提供するカメラ。
      */
-    void Render(RendererData& renderer_data, World* world, Camera* camera);
+    void Render(RendererData& renderer_data);
     
-    void AllCollect();
+    void AllCollect(Camera& c);
     /**
      * @brief 保持しているリソースと登録状態を解放する。
      */

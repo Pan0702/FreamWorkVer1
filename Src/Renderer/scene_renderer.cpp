@@ -12,6 +12,17 @@
 #include "shadow_renderer.h"
 #include "../Resource/texture_manager.h"
 
+namespace 
+{
+    // 平行光には実際の位置がないため、LookAt 用の仮想カメラ距離として使う。
+    constexpr float kShadowLightViewDistance = 30.0f;
+    // ライト視点で影を描く正射影範囲。値を大きくすると広範囲を覆えるが、影の解像度は粗くなる。
+    constexpr float kShadowOrthoWidth = 50.0f;
+    constexpr float kShadowOrthoHeight = 50.0f;
+    // ライト視点で深度を記録する奥行き範囲。
+    constexpr float kShadowNearZ = 0.1f;
+    constexpr float kShadowFarZ = 100.0f;
+}
 SceneRenderer::SceneRenderer() = default;
 SceneRenderer::~SceneRenderer() = default;
 
@@ -68,69 +79,54 @@ bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQue
     return imgui_manager_.Initialize(hwnd, device, command_queue, static_cast<int>(frame_count));
 }
 
-void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* camera)
+void SceneRenderer::Render(RendererData& renderer_data)
 {
-    (void)world;
-
-
+    const int index =  1 - write_index_;
     RenderContext context = {};
     context.command_list = renderer_data.command_list->GetCommandList();
-    context.view = camera->GetViewMatrix();
-    context.projection = camera->GetProjectionMatrix();
     context.srv_heap = renderer_data.srv_heap;
     context.cb_allocator = renderer_data.cb_allocator;
     context.screen_size = Vec2(static_cast<float>(renderer_data.window->GetWidth()),
                                static_cast<float>(renderer_data.window->GetHeight()));
 
-    context.light_pos = Vec3(0.3f, -1.0f, 0.5f).Normalized();
-    context.light_color = Vec3(3.0f, 3.0f, 3.0f);
-    context.camera_pos = camera->pos_;
-
-    // 平行光には実際の位置がないため、LookAt 用の仮想カメラ距離として使う。
-    constexpr float kShadowLightViewDistance = 30.0f;
-    // ライト視点で影を描く正射影範囲。値を大きくすると広範囲を覆えるが、影の解像度は粗くなる。
-    constexpr float kShadowOrthoWidth = 50.0f;
-    constexpr float kShadowOrthoHeight = 50.0f;
-
+    
     context.irradiance_srv_index = irradiance_texture_->GetSrvIndex();
-    // ライト視点で深度を記録する奥行き範囲。
-    constexpr float kShadowNearZ = 0.1f;
-    constexpr float kShadowFarZ = 100.0f;
+    
+    //影はバックバッファに書くため、メインバッファに書き込む前に書き込む//
+    shadow_renderer_->RenderShadowPass(context, mesh_renderer_.get(),
+                                       skinned_mesh_renderer_.get(), frame_snaps_[index]);
+    context.shadow_srv_index = shadow_renderer_->GetShadowMapIndex();
+    
+    // ImGui::ShowDemoWindow();
+    BeginRenderTarget(renderer_data);
+    sky_renderer_->Render(context, frame_snaps_[index]);
+    
+    mesh_renderer_->Submit(context, frame_snaps_[index]);
+    debug_renderer_->Submit(context, frame_snaps_[index]);
+    sprite_renderer_->Submit(context, frame_snaps_[index]);
+    skinned_mesh_renderer_->Submit(context, frame_snaps_[index]);
+    ui_renderer_->Submit(context, frame_snaps_[index]);
+    
+   // imgui_manager_.EndFrame(context.command_list);
+    EndRenderTarget(renderer_data);
+}
 
-    const Vec3 eye = Vec3(0, 0, 0) - context.light_pos * kShadowLightViewDistance;
+void SceneRenderer::AllCollect(Camera& c)
+{
+    FrameSnap& snap = frame_snaps_[write_index_];
+    snap.camera.pos = c.pos_;
+    snap.camera.view = c.GetViewMatrix();
+    snap.camera.projection = c.GetProjectionMatrix();
+    snap.light.pos = Vec3(0.3f,-1.0f,0.5f).Normalized();
+    snap.light.color = Vec3(3.0f,3.0f,3.0f);
+    
+    const Vec3 eye = Vec3(0, 0, 0) - snap.light.pos * kShadowLightViewDistance;
     const Mat light_view = LookAtLH(eye, Vec3(0, 0, 0), Vec3(0, 1, 0));
     // 平行光の影なので Perspective ではなく Orthographicを使う。
     // 幅・高さはシャドウを描きたい範囲に合わせて調整する。
     const Mat light_proj = OrthographicLH(kShadowOrthoWidth, kShadowOrthoHeight, kShadowNearZ, kShadowFarZ);
-    context.light_view_proj = light_view * light_proj;
+    snap.light.lvp = light_view * light_proj;
     
-    // ImGui::ShowDemoWindow();
-    BeginRenderTarget(renderer_data);
-    sky_renderer_->Render(context);
-    
-    frame_snaps_[write_index_].light.light_color = context.light_color;
-    frame_snaps_[write_index_].light.light_pos = context.light_pos;
-    frame_snaps_[write_index_].camera.pos = context.camera_pos;
-    frame_snaps_[write_index_].camera.view = context.view;
-    frame_snaps_[write_index_].camera.projection = context.projection;
-
-    shadow_renderer_->RenderShadowPass(context, mesh_renderer_.get(),
-                                       skinned_mesh_renderer_.get(), frame_snaps_[write_index_]);
-    context.shadow_srv_index = shadow_renderer_->GetShadowMapIndex();
-    mesh_renderer_->Submit(context, frame_snaps_[write_index_]);
-    debug_renderer_->Submit(context, frame_snaps_[write_index_]);
-    sprite_renderer_->Submit(context, frame_snaps_[write_index_]);
-    skinned_mesh_renderer_->Submit(context, frame_snaps_[write_index_]);
-    ui_renderer_->Submit(context, frame_snaps_[write_index_]);
-
-
-    imgui_manager_.EndFrame(context.command_list);
-    EndRenderTarget(renderer_data);
-}
-
-void SceneRenderer::AllCollect()
-{
-    FrameSnap& snap = frame_snaps_[write_index_];
     mesh_renderer_->Collect(snap);
     debug_renderer_->Collect(snap);
     sprite_renderer_->Collect(snap);

@@ -72,8 +72,9 @@ private:
      * @brief 1 件分の描画コマンドを GPU コマンドリストへ書き込む。
      * @param context 描画や登録に使う共有コンテキスト。
      * @param command 描画キューへ積むスプライトコマンド。
+     * @param read_snap
      */
-    void SubmitCommand(RenderContext& context, const SpriteDrawCommand& command);
+    void SubmitCommand(RenderContext& context, const SpriteDrawCommand& command, const FrameSnap& read_snap);
 
     std::unique_ptr<VertexBuffer> quad_vb_;
     std::unique_ptr<IndexBuffer> quad_ib_;

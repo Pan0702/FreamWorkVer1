@@ -102,6 +102,11 @@ bool GameMain::Initialize(const wchar_t* title, int32_t width, int32_t height)
 
 void GameMain::Run()
 {
+    //Thead起動
+    render_thread_ = std::thread([this]
+    {
+        RenderThread();
+    });
     while (true)
     {
         if (!window_.ProcessMessages())
@@ -111,10 +116,33 @@ void GameMain::Run()
 
         ClacFPS();
         Tick();
-        Render();
+
+        // Renderが前フレーム消費し終えるまで待つ
+        render_done_.acquire();
         render_system_->GetSceneRenderer()->SwapFrame();
+        // Renderに投げる → 並列で次ループへ//
+        frame_ready_.release();
+    }
+    running_ = false;
+    frame_ready_.release();
+    if (render_thread_.joinable())
+    {
+        render_thread_.join();
     }
     render_system_->WaitForGPU();
+}
+void GameMain::RenderThread()
+{
+    while (true)
+    {
+        frame_ready_.acquire();
+        if (!running_)
+        {
+            break;
+        }
+        render_system_->Render();
+        render_done_.release();
+    }
 }
 
 void GameMain::Shutdown()
@@ -134,10 +162,10 @@ void GameMain::Tick()
 {
     auto* render_system = render_system_->GetSceneRenderer();
     delta_time_ = ClacDeltaTime();
-    render_system->GetImGuiManager().BeginFrame();
+    //render_system->GetImGuiManager().BeginFrame();
     input_.Update();
     game_instance_.Tick(delta_time_);
-    render_system->AllCollect();
+    render_system->AllCollect(camera_);
 }
 
 void GameMain::Render()
@@ -165,3 +193,4 @@ void GameMain::ClacFPS()
         frame = 0;
     }
 }
+

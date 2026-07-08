@@ -38,7 +38,7 @@ void GameInstance::Tick(float dt)
 
 void GameInstance::Render()
 {
-    game_main->GetRenderSystem()->Render(&world_, &game_main->GetCamera());
+    game_main->GetRenderSystem()->Render();
 }
 
 World* GameInstance::GetWorld()

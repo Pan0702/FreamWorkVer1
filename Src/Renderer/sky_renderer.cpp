@@ -1,5 +1,6 @@
 #include "sky_renderer.h"
 
+#include "frame_snap.h"
 #include "render_context.h"
 #include "../Graphics/pipeline_state.h"
 #include "../Graphics/root_signature.h"
@@ -111,7 +112,7 @@ void SkyRenderer::SetTexture(Texture2D* texture)
     sky_texture_ = texture;
 }
 
-void SkyRenderer::Render(const RenderContext& context) const
+void SkyRenderer::Render(const RenderContext& context,const FrameSnap& read_snap) const
 {
     if (!sky_mesh_ || !sky_texture_)
     {
@@ -119,8 +120,8 @@ void SkyRenderer::Render(const RenderContext& context) const
     }
 
     constexpr float kRadius = 50.0f;   // near(0.1) < R < far(100) ‚ÉŽû‚ß‚é
-    Mat world = Scale(Vec3(kRadius, kRadius, kRadius)) * Translate(context.camera_pos);
-    Mat wvp = Transpose(world * context.view * context.projection);
+    Mat world = Scale(Vec3(kRadius, kRadius, kRadius)) * Translate(read_snap.camera.pos);
+    Mat wvp = Transpose(world * read_snap.camera.view * read_snap.camera.projection);
     auto command_list = context.command_list;
     command_list->SetGraphicsRootSignature(root_signature_->GetRootSignature());
     command_list->SetPipelineState(pipeline_state_->GetPipelineState());

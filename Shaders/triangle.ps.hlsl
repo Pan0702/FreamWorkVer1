@@ -39,8 +39,6 @@ cbuffer LightCB : register(b1)
 {
     float4 light_dir; // ライトの向き。
     float4 light_color; // ライトの色。
-    float4 sky_color;
-    float4 ground_color;
     float4 cam_pos; // カメラのワールド位置。
     float4x4 light_view_proj;
 }

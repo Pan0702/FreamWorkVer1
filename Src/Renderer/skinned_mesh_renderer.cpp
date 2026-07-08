@@ -139,12 +139,10 @@ void SkinnedMeshRenderer::Submit(RenderContext& context, const FrameSnap& read_s
     auto cb_allocator = context.cb_allocator;
     //Light
     CB::LightCB light = {};
-    light.light_pos = Vec4(context.light_pos.x, context.light_pos.y, context.light_pos.z, 0.0f);
-    light.light_color = Vec4(context.light_color.x, context.light_color.y, context.light_color.z, 0.0f);
-    light.sky_color = Vec4(context.sky_color.x, context.sky_color.y, context.sky_color.z, 0.0f);
-    light.ground_color = Vec4(context.ground_color.x, context.ground_color.y, context.ground_color.z, 0.0f);
-    light.camera_pos = Vec4(context.camera_pos.x, context.camera_pos.y, context.camera_pos.z, 1.0f);
-    light.light_view_proj = Transpose(context.light_view_proj);
+    light.light_pos = Vec4(read_snap.light.pos);
+    light.light_color = Vec4(read_snap.light.color, 0.0f);
+    light.camera_pos = Vec4(read_snap.camera.pos, 1.0f);
+    light.light_view_proj = Transpose(read_snap.light.lvp);
     ConstantBufferAllocation light_alloc = {};
     bool has_light = cb_allocator->Allocate(sizeof(light), &light_alloc);
     if (has_light)
@@ -157,7 +155,7 @@ void SkinnedMeshRenderer::Submit(RenderContext& context, const FrameSnap& read_s
         //b0
         CB::MeshObjectCB obj = {};
         obj.world = Transpose(command.world);
-        obj.wvp = Transpose(command.world * context.view * context.projection);
+        obj.wvp = Transpose(command.world *read_snap.camera.view * read_snap.camera.projection);
         ConstantBufferAllocation obj_alloc = {};
         if (!cb_allocator->Allocate(sizeof(obj), &obj_alloc))
         {
@@ -252,7 +250,7 @@ void SkinnedMeshRenderer::SubmitDepth( RenderContext& context, const FrameSnap& 
     for (const SkinnedDrawCommand& command : read_snap.skinned_commands)
     {
         CB::ShadowObjectCB obj = {};
-        obj.wvp = Transpose(command.world * context.light_view_proj);
+        obj.wvp = Transpose(command.world * read_snap.light.lvp);
 
         // オブジェクトごとのライト視点 WVP を、フレーム用定数バッファへ書き込む。
         ConstantBufferAllocation alloc = {};

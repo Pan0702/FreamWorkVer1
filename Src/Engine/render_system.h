@@ -41,10 +41,8 @@ public:
     bool Initialize(Window* window);
     /**
      * @brief 現在の状態をもとに描画コマンドを積む。
-     * @param world Actor や描画対象を管理する World。
-     * @param camera ビュー行列と射影行列を提供するカメラ。
      */
-    void Render(World* world, Camera* camera);
+    void Render();
     /**
      * @brief 保持しているリソースと登録状態を解放する。
      */

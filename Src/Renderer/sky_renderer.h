@@ -1,5 +1,7 @@
 #pragma once
 #include <memory>
+
+#include "frame_snap.h"
 #include "../Core/common.h"
 
 struct RenderContext;
@@ -35,8 +37,9 @@ public:
     /**
      * @brief 現在の状態をもとに描画コマンドを積む。
      * @param context 描画や登録に使う共有コンテキスト。
+     * @param read_snap
      */
-    void Render(const RenderContext& context) const;
+    void Render(const RenderContext& context, const FrameSnap& read_snap) const;
 private:
     std::unique_ptr<Mesh> sky_mesh_;
     std::unique_ptr<RootSignature> root_signature_;

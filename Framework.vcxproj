@@ -121,7 +121,6 @@
     <ClInclude Include="Src\Renderer\shadow_renderer.h" />
     <ClInclude Include="Src\Renderer\skinned_mesh_renderer.h" />
     <ClInclude Include="Src\Renderer\sky_renderer.h" />
-    <ClInclude Include="Src\Renderer\sprite_draw_command.h" />
     <ClInclude Include="Src\Renderer\sprite_renderer.h" />
     <ClInclude Include="Src\Renderer\ui_renderer.h" />
     <ClInclude Include="Src\Resource\animation.h" />

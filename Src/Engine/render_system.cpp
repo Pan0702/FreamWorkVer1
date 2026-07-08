@@ -110,7 +110,7 @@ bool RenderSystem::Initialize(Window* window)
     return true;
 }
 
-void RenderSystem::Render(World* world, Camera* camera)
+void RenderSystem::Render()
 {
     uint32 index = frame_count_ % kFrameCount;
     command_queue_->WaitForFence(frames_[index].fence_value);
@@ -128,7 +128,7 @@ void RenderSystem::Render(World* world, Camera* camera)
     renderer_data.swap_chain = swap_chain_.get();
     renderer_data.window = window_;
     frames_[index].cb_allocator.Reset();
-    scene_renderer_->Render(renderer_data, world, camera);
+    scene_renderer_->Render(renderer_data);
     if (!command_list_->Close())
     {
         MessageBox(nullptr, L"Failed to close command list", L"Error", MB_OK);

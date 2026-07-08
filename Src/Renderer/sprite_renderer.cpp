@@ -148,15 +148,15 @@ void SpriteRenderer::Submit(RenderContext& context, const FrameSnap& read_snap)
 
     for (const SpriteDrawCommand& command : read_snap.sprite_commands)
     {
-        SubmitCommand(context, command);
+        SubmitCommand(context, command, read_snap);
     }
 }
 
-void SpriteRenderer::SubmitCommand(RenderContext& context, const SpriteDrawCommand& command)
+void SpriteRenderer::SubmitCommand(RenderContext& context, const SpriteDrawCommand& command,const FrameSnap& read_snap)
 {
     SpriteWorldCBData cb_data = {};
     const Mat world = Scale(Vec3(command.size.x, command.size.y, 1.0f)) * command.world;
-    cb_data.wvp = Transpose(world * context.view * context.projection);
+    cb_data.wvp = Transpose(read_snap.camera.view * read_snap.camera.projection);
     cb_data.color = command.color;
     cb_data.src_rect = command.src_rect;
     cb_data.options = Vec4(command.use_texture ? 1.0f : 0.0f, 0.0f, 0.0f, 0.0f);

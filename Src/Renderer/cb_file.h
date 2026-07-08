@@ -30,8 +30,6 @@ namespace CB
     {
         Vec4 light_pos;
         Vec4 light_color;
-        Vec4 sky_color;
-        Vec4 ground_color;
         Vec4 camera_pos;
         Mat light_view_proj;
     };

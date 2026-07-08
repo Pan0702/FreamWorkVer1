@@ -28,6 +28,13 @@ struct Vec4 : public XMFLOAT4
     {
     }
 
+    Vec4(const Vec3& v, float w = 0.0f)
+    {
+        this->x = v.x;
+        this->y = v.y;
+        this->z = v.z;
+        this->w = w;
+    }
     /**
      * @brief 値を初期化する。
      * @param v 演算に使うベクトル。

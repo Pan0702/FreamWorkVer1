@@ -1,4 +1,8 @@
 #pragma once
+#include <semaphore>
+#include <atomic>
+#include <thread>
+
 #include "../Platform/window.h"
 #include "../Engine/camera.h"
 #include "../Engine/game_instance.h"
@@ -84,6 +88,7 @@ private:
      * @brief フレーム時間から FPS 表示用の値を更新する。
      */
     void ClacFPS();
+    void RenderThread();
 
     Window window_;
     Input input_;
@@ -91,6 +96,10 @@ private:
     std::unique_ptr<RenderSystem> render_system_;
     GameInstance game_instance_;
     float delta_time_ = 0.0f;
+    std::binary_semaphore frame_ready_{0};
+    std::binary_semaphore render_done_{1};
+    std::atomic<bool> running_ = true;
+    std::thread render_thread_;
 };
 
 extern GameMain* game_main;

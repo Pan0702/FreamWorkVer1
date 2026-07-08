@@ -80,6 +80,7 @@ void MeshRenderer::Collect(FrameSnap& write_snap)
         command.material_slot = component->GetMaterialSlot();
         write_snap.mesh_commands.push_back(command);
     }
+    
     std::ranges::sort(write_snap.mesh_commands,
                       [](const MeshDrawCommand& a, const MeshDrawCommand& b)
                       {
@@ -91,12 +92,10 @@ void MeshRenderer::Submit(RenderContext& context, const FrameSnap& read_snap)
 {
     ConstantBufferAllocation light_alloc = {};
     CB::LightCB light_cb = {};
-    light_cb.light_pos = Vec4(context.light_pos.x, context.light_pos.y, context.light_pos.z, 0.0f);
-    light_cb.light_color = Vec4(context.light_color.x, context.light_color.y, context.light_color.z, 0.0f);
-    light_cb.sky_color = Vec4(context.sky_color.x, context.sky_color.y, context.sky_color.z, 0.0f);
-    light_cb.ground_color = Vec4(context.ground_color.x, context.ground_color.y, context.ground_color.z, 0.0f);
-    light_cb.camera_pos = Vec4(context.camera_pos.x, context.camera_pos.y, context.camera_pos.z, 1.0f);
-    light_cb.light_view_proj = Transpose(context.light_view_proj);
+    light_cb.light_pos = Vec4(read_snap.light.pos.x, read_snap.light.pos.y, read_snap.light.pos.z, 0.0f);
+    light_cb.light_color = Vec4(read_snap.light.color.x, read_snap.light.color.y, read_snap.light.color.z, 0.0f);
+    light_cb.camera_pos = Vec4(read_snap.camera.pos.x,read_snap.camera.pos.y, read_snap.camera.pos.z, 1.0f);
+    light_cb.light_view_proj = Transpose(read_snap.light.lvp);
     const bool has_light = context.cb_allocator->Allocate(sizeof(light_cb), &light_alloc);
     if (has_light)
     {
@@ -108,7 +107,7 @@ void MeshRenderer::Submit(RenderContext& context, const FrameSnap& read_snap)
         // オブジェクトごとの行列を Constant Buffer に詰める。
         CB::MeshObjectCB obj = {};
         obj.world = Transpose(command.world);
-        obj.wvp = Transpose(command.world * context.view * context.projection);
+        obj.wvp = Transpose(command.world * read_snap.camera.view * read_snap.camera.projection);
         ConstantBufferAllocation alloc = {};
         if (!context.cb_allocator->Allocate(sizeof(obj), &alloc))
         {
@@ -171,7 +170,7 @@ void MeshRenderer::SubmitDepth(RenderContext& context, const FrameSnap& read_sna
     for (const MeshDrawCommand& command : read_snap.mesh_commands)
     {
         CB::ShadowObjectCB obj = {};
-        obj.wvp = Transpose(command.world * context.light_view_proj);
+        obj.wvp = Transpose(command.world * read_snap.light.lvp);
         ConstantBufferAllocation alloc = {};
         if (!context.cb_allocator->Allocate(sizeof(obj), &alloc))
         {

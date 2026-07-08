@@ -12,8 +12,9 @@ struct CameraSnap
 
 struct LightSnap
 {
-    Vec3 light_pos;
-    Vec3 light_color;
+    Vec3 pos;
+    Vec3 color;
+    Mat lvp;
 };
 
 struct FrameSnap
