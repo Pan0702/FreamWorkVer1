@@ -109,7 +109,7 @@ void AnimationComponent::Tick(float dt)
     {
         if (Actor* owner = GetOwner())
             if (auto* sk_mesh_comp = owner->GetComponent<SkeletalMeshComponent>())
-                if (auto* sk_mesh = sk_mesh_comp->GetSkeltalMesh())
+                if (auto* sk_mesh = sk_mesh_comp->GetSkeletalMesh())
                 {
                     skeleton_ = sk_mesh->GetSkeleton();
                     channels_dirty_ = true;

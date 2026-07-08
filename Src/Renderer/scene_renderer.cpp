@@ -103,35 +103,39 @@ void SceneRenderer::Render(RendererData& renderer_data, World* world, Camera* ca
     // 幅・高さはシャドウを描きたい範囲に合わせて調整する。
     const Mat light_proj = OrthographicLH(kShadowOrthoWidth, kShadowOrthoHeight, kShadowNearZ, kShadowFarZ);
     context.light_view_proj = light_view * light_proj;
-
-    mesh_renderer_->Collect();
-    skinned_mesh_renderer_->Collect();
-
-    shadow_renderer_->RenderShadowPass(context, mesh_renderer_.get(), skinned_mesh_renderer_.get());
-    context.shadow_srv_index = shadow_renderer_->GetShadowMapIndex();
+    
     // ImGui::ShowDemoWindow();
     BeginRenderTarget(renderer_data);
     sky_renderer_->Render(context);
+    
+    frame_snaps_[write_index_].light.light_color = context.light_color;
+    frame_snaps_[write_index_].light.light_pos = context.light_pos;
+    frame_snaps_[write_index_].camera.pos = context.camera_pos;
+    frame_snaps_[write_index_].camera.view = context.view;
+    frame_snaps_[write_index_].camera.projection = context.projection;
 
-    mesh_renderer_->Sort();
-    mesh_renderer_->Submit(context);
-
-    debug_renderer_->Submit(context);
-
-    sprite_renderer_->Collect();
-    sprite_renderer_->Sort();
-    sprite_renderer_->Submit(context);
-
-    skinned_mesh_renderer_->Sort();
-    skinned_mesh_renderer_->Submit(context);
-
-    ui_renderer_->Collect();
-    ui_renderer_->Sort();
-    ui_renderer_->Submit(context);
+    shadow_renderer_->RenderShadowPass(context, mesh_renderer_.get(),
+                                       skinned_mesh_renderer_.get(), frame_snaps_[write_index_]);
+    context.shadow_srv_index = shadow_renderer_->GetShadowMapIndex();
+    mesh_renderer_->Submit(context, frame_snaps_[write_index_]);
+    debug_renderer_->Submit(context, frame_snaps_[write_index_]);
+    sprite_renderer_->Submit(context, frame_snaps_[write_index_]);
+    skinned_mesh_renderer_->Submit(context, frame_snaps_[write_index_]);
+    ui_renderer_->Submit(context, frame_snaps_[write_index_]);
 
 
     imgui_manager_.EndFrame(context.command_list);
     EndRenderTarget(renderer_data);
+}
+
+void SceneRenderer::AllCollect()
+{
+    FrameSnap& snap = frame_snaps_[write_index_];
+    mesh_renderer_->Collect(snap);
+    debug_renderer_->Collect(snap);
+    sprite_renderer_->Collect(snap);
+    skinned_mesh_renderer_->Collect(snap);
+    ui_renderer_->Collect(snap);
 }
 
 void SceneRenderer::Shutdown()
@@ -145,6 +149,11 @@ void SceneRenderer::Shutdown()
         sprite_renderer_->Shutdown();
     }
     imgui_manager_.Shutdown();
+}
+
+void SceneRenderer::SwapFrame()
+{
+    write_index_ ^= 1;
 }
 
 MeshRenderer* SceneRenderer::GetMeshRenderer() const

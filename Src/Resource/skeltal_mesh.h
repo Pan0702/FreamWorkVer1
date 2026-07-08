@@ -86,7 +86,7 @@ public:
      */
     const std::vector<SubMesh>& GetSubMeshes();
 
-    const AABB& GetBounds() const;
+    const Box& GetBounds() const;
 
 private:
     std::unique_ptr<VertexBuffer> vertex_buffer_;
@@ -96,5 +96,5 @@ private:
     std::vector<SubMesh> sub_meshes_;
     uint32_t index_count_ = 0;
     std::unique_ptr<Skeleton> Skeleton_;
-    AABB bounds_;
+    Box bounds_;
 };

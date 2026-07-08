@@ -51,7 +51,10 @@ public:
     }
 
 private:
+    
     Texture2D* LoadTexture(const wchar_t* path, const LoadedImage& image, bool is_srgb);
+    
+    ComPtr<ID3D12CommandAllocator> upload_allocator_;
     ID3D12Device* device_ = nullptr;
     DescriptorHeap* srv_heap_ = nullptr;
     CommandQueue* queue_ = nullptr;

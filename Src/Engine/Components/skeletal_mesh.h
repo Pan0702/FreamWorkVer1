@@ -54,7 +54,7 @@ public:
      * @brief Skeltal Mesh を取得する。
      * @return Skeltal Mesh。見つからない、または未作成の場合は nullptr。
      */
-    SkeletalMesh* GetSkeltalMesh() const;
+    SkeletalMesh* GetSkeletalMesh() const;
     /**
      * @brief マテリアルスロット を取得する。
      * @return マテリアルスロット。見つからない、または未作成の場合は nullptr。

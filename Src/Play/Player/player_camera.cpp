@@ -30,7 +30,7 @@ void PlayerCamera::Tick(float dt)
     Input();
     const Mat rot = RotateX(cam_rad_.x) * RotateY(cam_rad_.y);
     const Vec3 offset = TransformVector(rot, kCamOffset);
-    auto* s = player_->GetComponent<SkeletalMeshComponent>()->GetSkeltalMesh();
+    auto* s = player_->GetComponent<SkeletalMeshComponent>()->GetSkeletalMesh();
 
     float scale_y = (s->GetBounds().max.y - s->GetBounds().min.y) * kHalfSize ;
     Vec3 pl_pos = Vec3(player_->GetTransform().position.x,

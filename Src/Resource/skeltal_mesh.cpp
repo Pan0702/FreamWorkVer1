@@ -27,7 +27,7 @@ bool SkeletalMesh::Create(ID3D12Device* device, VertexData vertex_data, IndexDat
         bounds_max = Vec3(std::max(bounds_max.x,p[0]),std::max(bounds_max.y,p[1]),std::max(bounds_max.z,p[2]));
         bounds_min = Vec3(std::min(bounds_min.x,p[0]),std::min(bounds_min.y,p[1]),std::min(bounds_min.z,p[2]));
     }
-    bounds_ = AABB(bounds_min,bounds_max);
+    bounds_ = Box(bounds_min,bounds_max);
     
     vertex_buffer_ = std::make_unique<VertexBuffer>();
     if (!vertex_buffer_->Initialize(device, vertex_data.data, vertex_data.total_size, vertex_data.stride))
@@ -95,7 +95,7 @@ const std::vector<SubMesh>& SkeletalMesh::GetSubMeshes()
     return sub_meshes_;
 }
 
-const AABB& SkeletalMesh::GetBounds() const
+const Box& SkeletalMesh::GetBounds() const
 {
     return bounds_; 
 }

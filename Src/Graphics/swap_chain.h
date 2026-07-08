@@ -1,7 +1,7 @@
 #pragma once
 #include "../Core/common.h"
-#include "../Platform/Window.h"
 #include  "descriptor_heap.h"
+#include "graphics_config.h"
 
 /**
  * @brief SwapChainのデータと処理をまとめる型。

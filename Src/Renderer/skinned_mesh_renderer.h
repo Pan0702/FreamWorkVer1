@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include "../Core/common.h"
-#include "draw_command.h"
+#include "frame_snap.h"
 
 class PipelineState;
 class RootSignature;
@@ -44,25 +44,21 @@ public:
     /**
      * @brief 登録済みの対象から今回処理する要素を集める。
      */
-    void Collect();
-    /**
-     * @brief 描画順が安定するようにコマンドを並べ替える。
-     */
-    void Sort();
+    void Collect(FrameSnap& write_snap);
     /**
      * @brief 収集済みコマンドを GPU コマンドリストへ書き込む。
      * @param context 描画や登録に使う共有コンテキスト。
      */
-    void Submit(RenderContext& context) const;
+    void Submit(RenderContext& context,const FrameSnap& read_snap) const;
 
     /**
      * @brief 収集済みのメッシュをライト視点から描画する
      * @param context 描画や登録に使う共有コンテキスト
      */
-    void SubmitDepth(const RenderContext& context) const;
+    void SubmitDepth( RenderContext& context,const FrameSnap& read_snap) const;
 private:
     std::vector<SkeletalMeshComponent*> meshes_;
-    std::vector<SkinnedDrawCommand> draw_commands_;
     std::unique_ptr<RootSignature> root_signature_;   
-    std::unique_ptr<PipelineState> pipeline_state_;   
+    std::unique_ptr<PipelineState> pipeline_state_; 
+    
 };

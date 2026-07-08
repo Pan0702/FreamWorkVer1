@@ -120,6 +120,9 @@ void Player::Tick(float dt)
         animation_->CrossFade(anim_name, 0.2f);
     }
     was_grounded_ = is_grounded_;
+   
+    
+    
     Actor::Tick(dt);
 }
 

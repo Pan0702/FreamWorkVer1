@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 
+#include "draw_command.h"
 #include "../Core/common.h"
 #include "../Core/Math/my_math.h"
 #include "../Graphics/index_buffer.h"
@@ -8,7 +9,7 @@
 #include "../Graphics/root_signature.h"
 #include "../Graphics/shader.h"
 #include "../Graphics/vertex_buffer.h"
-#include "sprite_draw_command.h"
+#include "frame_snap.h"
 
 class ConstantBufferAllocator;
 class DescriptorHeap;
@@ -58,16 +59,13 @@ public:
     /**
      * @brief 登録済みの対象から今回処理する要素を集める。
      */
-    void Collect();
-    /**
-     * @brief 描画順が安定するようにコマンドを並べ替える。
-     */
-    void Sort();
+    void Collect(FrameSnap& write_snap);
+
     /**
      * @brief 収集済みコマンドを GPU コマンドリストへ書き込む。
      * @param context 描画や登録に使う共有コンテキスト。
      */
-    void Submit(RenderContext& context);
+    void Submit(RenderContext& context,const FrameSnap& read_snap);
 
 private:
     /**
@@ -84,6 +82,6 @@ private:
     std::unique_ptr<RootSignature> root_signature_;
     std::unique_ptr<PipelineState> pipeline_state_;
     std::vector<SpriteComponent*> registered_;
-    std::vector<SpriteDrawCommand> draw_commands_;
     std::vector<SpriteDrawCommand> immediate_commands_;
+    
 };

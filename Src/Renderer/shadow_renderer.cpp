@@ -94,8 +94,8 @@ bool ShadowRenderer::Initialize(ID3D12Device* device, DescriptorHeap* srv_heap)
     return true;
 }
 
-void ShadowRenderer::RenderShadowPass(RenderContext& context, const MeshRenderer* mesh,
-                                      const SkinnedMeshRenderer* skinned) const
+void ShadowRenderer::RenderShadowPass( RenderContext& context,  MeshRenderer* mesh,
+                                       SkinnedMeshRenderer* skinned,FrameSnap& frame) 
 {
     auto* cmd = context.command_list;
     
@@ -127,14 +127,14 @@ void ShadowRenderer::RenderShadowPass(RenderContext& context, const MeshRenderer
     cmd->SetPipelineState(shadow_pso_->GetPipelineState());
     if (mesh)
     {
-        mesh->SubmitDepth(context);
+        mesh->SubmitDepth(context, frame);
     }
 
     cmd->SetGraphicsRootSignature(shadow_sk_root_signature_->GetRootSignature());
     cmd->SetPipelineState(shadow_sk_pso_->GetPipelineState());
     if (skinned)
     {
-        skinned->SubmitDepth(context);
+        skinned->SubmitDepth(context, frame);
     }
 
     //•`‰æ‚ÌPS‚Å‰e”»’è‚ÉŽg‚¤‚½‚ß‚ÉSRV‚Æ‚µ‚Ä“Ç‚ß‚éó‘Ô‚É–ß‚·B

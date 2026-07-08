@@ -89,6 +89,7 @@
     <ClInclude Include="Src\Graphics\constant_buffer.h" />
     <ClInclude Include="Src\Graphics\depth_stencil.h" />
     <ClInclude Include="Src\Graphics\descriptor_heap.h" />
+    <ClInclude Include="Src\Graphics\graphics_config.h" />
     <ClInclude Include="Src\Graphics\graphics_device.h" />
     <ClInclude Include="Src\Graphics\index_buffer.h" />
     <ClInclude Include="Src\Graphics\pipeline_state.h" />
@@ -110,6 +111,7 @@
     <ClInclude Include="Src\Play\UI\moveing_explanation.h" />
     <ClInclude Include="Src\Renderer\cb_file.h" />
     <ClInclude Include="Src\Renderer\debug_line_renderer.h" />
+    <ClInclude Include="Src\Renderer\frame_snap.h" />
     <ClInclude Include="Src\Renderer\ibl_baker.h" />
     <ClInclude Include="Src\Renderer\mesh_renderer.h" />
     <ClInclude Include="Src\Renderer\draw_command.h" />

@@ -47,13 +47,6 @@ struct Triangle
     Vec3 c;
 };
 
-// AABB の最小点と最大点を保持する境界箱。//
-struct AABB
-{
-    Vec3 min;
-    Vec3 max;
-};
-
 /**
  * @brief 球同士の当たり判定を行う。
  * @param s1 押し出し対象になる球。

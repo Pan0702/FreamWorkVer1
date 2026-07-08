@@ -1,7 +1,8 @@
 #include "debug_line_renderer.h"
 #include "../Resource/vertex_types.h"
 #include <algorithm>
-#include <cstring>
+
+#include "frame_snap.h"
 #include "../Core/common.h"
 #include "../Graphics/constant_buffer_allocator.h"
 #include "render_context.h"
@@ -105,8 +106,7 @@ bool DebugLineRenderer::Initialize(ID3D12Device* device)
     {
         return false;
     }
-
-    // --- 動的頂点バッファ（線・三角形でそれぞれ確保） ---//
+    
     capacity_ = 4048;
     const uint32_t buffer_size = capacity_ * sizeof(DebugLineVertex);
     if (!CreateDynamicVertexBuffer(device, buffer_size, vertex_buffer_, mapped_, gpu_address_))
@@ -155,21 +155,31 @@ void DebugLineRenderer::AddTriangle(const Vec3& a, const Vec3& b, const Vec3& c,
     tri_vertices_.push_back(v2);
 }
 
-void DebugLineRenderer::Submit(const RenderContext& context)
+void DebugLineRenderer::Collect(FrameSnap& write_snap)
 {
-    const bool has_lines = !vertices_.empty();
-    const bool has_tris = !tri_vertices_.empty();
+    // Move the temp vertices into the write snapshot and empty the temp buffers.
+    // Move avoids a copy; AddLine refills the temp buffers next frame.
+    write_snap.debug_lines = std::move(vertices_);
+    write_snap.debug_triangles = std::move(tri_vertices_);
+    vertices_.clear();
+    tri_vertices_.clear();
+}
+
+void DebugLineRenderer::Submit(const RenderContext& context, const FrameSnap& read_snap)
+{
+    // Render thread reads only the read snapshot; never touches vertices_.
+    const bool has_lines = !read_snap.debug_lines.empty();
+    const bool has_tris = !read_snap.debug_triangles.empty();
     if (!has_lines && !has_tris)
     {
         return;
     }
 
-    // CB に view * projection を積む（HLSL の mul(pos, M) 規約に合わせて Transpose）。線・三角形で共有//
+    // CB ?? view * projection ????iHLSL ?? mul(pos, M) ?K???????? Transpose?j?B???E?O?p?`????L//
     Mat view_proj = Transpose(context.view * context.projection);
     ConstantBufferAllocation allocation = {};
     if (!context.cb_allocator->Allocate(sizeof(view_proj), &allocation))
     {
-        Clear();
         return;
     }
     memcpy(allocation.cpu, &view_proj, sizeof(view_proj));
@@ -177,12 +187,12 @@ void DebugLineRenderer::Submit(const RenderContext& context)
     context.command_list->SetGraphicsRootSignature(root_signature_->GetRootSignature());
     context.command_list->SetGraphicsRootConstantBufferView(0, allocation.gpu);
 
-    // --- 線（先に不透明で描いて深度を書く） ---//
+
     if (has_lines)
     {
-        uint32_t count = static_cast<uint32_t>(vertices_.size());
-        count = std::min(count, capacity_);
-        memcpy(mapped_, vertices_.data(), count * sizeof(DebugLineVertex));
+        uint32_t count = static_cast<uint32_t>(read_snap.debug_lines.size());
+        count = (std::min)(count, capacity_);
+        memcpy(mapped_, read_snap.debug_lines.data(), count * sizeof(DebugLineVertex));
 
         D3D12_VERTEX_BUFFER_VIEW vbv = {};
         vbv.BufferLocation = gpu_address_;
@@ -194,13 +204,12 @@ void DebugLineRenderer::Submit(const RenderContext& context)
         context.command_list->IASetVertexBuffers(0, 1, &vbv);
         context.command_list->DrawInstanced(count, 1, 0, 0);
     }
-
-    // --- 塗りつぶし三角形（後から半透明でブレンド） ---//
+    
     if (has_tris)
     {
-        uint32_t count = static_cast<uint32_t>(tri_vertices_.size());
-        count = std::min(count, capacity_);
-        memcpy(tri_mapped_, tri_vertices_.data(), count * sizeof(DebugLineVertex));
+        uint32_t count = static_cast<uint32_t>(read_snap.debug_triangles.size());
+        count = (std::min)(count, capacity_);
+        memcpy(tri_mapped_, read_snap.debug_triangles.data(), count * sizeof(DebugLineVertex));
 
         D3D12_VERTEX_BUFFER_VIEW vbv = {};
         vbv.BufferLocation = tri_gpu_address_;
@@ -212,12 +221,5 @@ void DebugLineRenderer::Submit(const RenderContext& context)
         context.command_list->IASetVertexBuffers(0, 1, &vbv);
         context.command_list->DrawInstanced(count, 1, 0, 0);
     }
-
-    Clear();
-}
-
-void DebugLineRenderer::Clear()
-{
-    vertices_.clear();
-    tri_vertices_.clear();
+    // Do not clear the read snapshot here. The temp buffers were already emptied by move in Collect.
 }

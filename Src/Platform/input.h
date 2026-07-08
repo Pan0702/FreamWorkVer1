@@ -66,5 +66,5 @@ private:
     bool mouse_buttons_previous_[5] = {};
     bool current_keys_[256] = {};
     bool previous_keys_[256] = {};
-    bool mouse_locked_ = true;
+    bool mouse_locked_ = false;
 };

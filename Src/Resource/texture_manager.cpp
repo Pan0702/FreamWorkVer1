@@ -15,6 +15,10 @@ void TextureManager::Initialize(ID3D12Device* device, DescriptorHeap* srv_heap,
     srv_heap_ = srv_heap;
     queue_ = queue;
     cmd_ = cmd;
+    
+    device_->CreateCommandAllocator(
+        D3D12_COMMAND_LIST_TYPE_DIRECT,
+        IID_PPV_ARGS(&upload_allocator_));
 }
 
 void TextureManager::Shutdown()
@@ -69,17 +73,22 @@ Texture2D* TextureManager::CreateFromImage(const wchar_t* cache_key, const Loade
 Texture2D* TextureManager::LoadTexture(const wchar_t* path, const LoadedImage& image, bool is_srgb)
 {
     //  アップロードコマンドを記録（Texture2D は記録のみ）→ 実行 → GPU完了待ちはここで行う
-    if (!cmd_->Reset())
+    if (!cmd_->Reset(upload_allocator_.Get()))
     {
         return nullptr;
     }
     auto texture = std::make_unique<Texture2D>();
     texture->SetSRGB(is_srgb);
+    
     if (!texture->Initialize(device_, cmd_->GetCommandList(), image))
     {
         return nullptr;
     }
-    cmd_->Close();
+    
+    if (!cmd_->Close())
+    {
+        return nullptr;
+    }
     ID3D12CommandList* command_lists[] = {cmd_->GetCommandList()};
     queue_->GetCommandQueue()->ExecuteCommandLists(1, command_lists);
     queue_->WaitIdle(); // アップロード完了まで待つ（upload_buffer はこの間生存）

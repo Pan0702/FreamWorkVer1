@@ -1,6 +1,10 @@
 #pragma once
 #include "../Core/common.h"
 #include <memory>
+
+#include "../Core/Math/my_math.h"
+#include "../Graphics/graphics_config.h"
+#include "../Graphics/constant_buffer_allocator.h"
 class DebugLineRenderer;
 class SceneRenderer;
 class Camera;
@@ -8,7 +12,6 @@ class Input;
 class Actor;
 class World;
 class DescriptorHeap;
-class ConstantBufferAllocator;
 class DepthStencil;
 class Window;
 class GraphicsDevice;
@@ -41,7 +44,7 @@ public:
      * @param world Actor や描画対象を管理する World。
      * @param camera ビュー行列と射影行列を提供するカメラ。
      */
-    void Render(World* world, Camera* camera) const;
+    void Render(World* world, Camera* camera);
     /**
      * @brief 保持しているリソースと登録状態を解放する。
      */
@@ -67,11 +70,6 @@ public:
      */
     DescriptorHeap* GetDescriptorHeap() const;
     /**
-     * @brief Constant Buffer Allocator を取得する。
-     * @return Constant Buffer Allocator。見つからない、または未作成の場合は nullptr。
-     */
-    ConstantBufferAllocator* GetConstantBufferAllocator() const;
-    /**
      * @brief SceneRenderer を取得する。
      * @return SceneRenderer。見つからない、または未作成の場合は nullptr。
      */
@@ -91,29 +89,28 @@ public:
      * @return 保持している D3D12 デバイス。未初期化なら nullptr。
      */
     ID3D12Device* GetDevice() const;
-    /**
-     * @brief 直近の Present 計測時間を取得する。
-     * @return 直近の Present にかかったミリ秒単位の時間。
-     */
-    float GetLastPresentMs() const { return last_present_ms_; }
-    /**
-     * @brief 直近の GPU 待機時間を取得する。
-     * @return 直近の GPU 完了待ちにかかったミリ秒単位の時間。
-     */
-    float GetLastGpuWaitMs() const { return last_gpu_wait_ms_; }
-
 
 private:
+    static constexpr uint32 kFrameResource = kFrameCount;
+
+    struct FrameResource
+    {
+        ComPtr<ID3D12CommandAllocator> command_allocator;
+        ConstantBufferAllocator cb_allocator;
+        uint64 fence_value = 0;
+        bool Initialize(ID3D12Device* device, uint32 cb_size);
+    };
+
+
     std::unique_ptr<GraphicsDevice> graphics_device_;
     std::unique_ptr<CommandQueue> command_queue_;
     std::unique_ptr<SwapChain> swap_chain_;
     std::unique_ptr<CommandList> command_list_;
     std::unique_ptr<DepthStencil> depth_stencil_;
     std::unique_ptr<DescriptorHeap> srv_heap_;
-    std::unique_ptr<ConstantBufferAllocator> cb_allocator_;
     std::unique_ptr<SceneRenderer> scene_renderer_;
 
     Window* window_ = nullptr;
-    mutable float last_present_ms_ = 0.0f;
-    mutable float last_gpu_wait_ms_ = 0.0f;
+    FrameResource frames_[kFrameResource];
+    uint64 frame_count_ = 0;
 };

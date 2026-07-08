@@ -180,7 +180,7 @@ LRESULT Window::HandleMessage(UINT msg, WPARAM wParam, LPARAM lParam)
         return 0;
     case WM_SETFOCUS:
         //マウスのカーソルを固定//
-        game_main->GetInput().SetMouseLock(true);
+        //game_main->GetInput().SetMouseLock(true);
         break;
     case WM_KILLFOCUS:
         //マウスのカーソルの固定を解除//

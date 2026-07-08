@@ -7,7 +7,7 @@
 CapsuleColliderComponent::CapsuleColliderComponent(const SkeletalMesh* mesh)
 {
     if (not mesh) return;
-    AABB bounds = mesh->GetBounds();
+    Box bounds = mesh->GetBounds();
     half_size = (bounds.max - bounds.min) * 0.5f;
     // ˜r(x)‚Å‚Í‚È‚­”–‚¢•û(z)‚ð”¼Œa‚ÉŽg‚¤
     float radius = (std::min)(half_size.x, half_size.z);

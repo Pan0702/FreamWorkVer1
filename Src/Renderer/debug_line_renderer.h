@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
-#include <vector>
+
+#include "frame_snap.h"
 #include "../Core/common.h"
 #include "../Core/Math/my_math.h"
 #include "../Graphics/pipeline_state.h"
@@ -39,25 +40,19 @@ public:
      * @param color 設定する色。
      */
     void AddTriangle(const Vec3& a, const Vec3& b, const Vec3& c, const Vec4& color);
+    
     /**
      * @brief 収集済みコマンドを GPU コマンドリストへ書き込む。
-     * @param context 描画や登録に使う共有コンテキスト。
+     * @param write_snap 描画や登録に使う共有コンテキスト。
      */
-    void Submit(const RenderContext& context);
+    void Collect(FrameSnap& write_snap);
     /**
      * @brief 次フレームへ持ち越さない一時描画データを消す。
      */
-    void Clear();                                                                 
+    void Submit(const RenderContext& context, const FrameSnap& read_snap);
 
 private:
-/**
- * @brief DebugLineVertexのデータと処理をまとめる型。
- */
-    struct DebugLineVertex
-    {
-        float position[3];
-        float color[4];
-    };
+
     /**
      * @brief 内部で使用するリソースを作成する。
      * @param device 使用する D3D12 デバイス。

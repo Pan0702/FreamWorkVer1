@@ -13,7 +13,7 @@
 #include "../Debug/debug.h"
 #include "../Resource/mesh_manager.h"
 #include "../Resource/skeltal_mesh_manager.h"
-
+#include "../Graphics/graphics_config.h"
 RenderSystem::RenderSystem() = default;
 RenderSystem::~RenderSystem() = default;
 
@@ -29,6 +29,7 @@ bool RenderSystem::Initialize(Window* window)
     }
 
     graphics_device_ = std::make_unique<GraphicsDevice>();
+
 #ifdef _DEBUG
     constexpr bool enable_debug = true;
 #else
@@ -63,6 +64,16 @@ bool RenderSystem::Initialize(Window* window)
         return false;
     }
 
+    constexpr uint32_t kCBAllocatorSize = 1024 * 1024;
+    for (auto& frame : frames_)
+    {
+        if (!frame.Initialize(graphics_device_->GetDevice(), kCBAllocatorSize))
+        {
+            MessageBox(nullptr, L"Failed to create frame resource", L"Error", MB_OK);
+            return false;
+        }
+    }
+
     depth_stencil_ = std::make_unique<DepthStencil>();
     if (!depth_stencil_->Initialize(graphics_device_->GetDevice(), window_->GetWidth(), window_->GetHeight()))
     {
@@ -72,7 +83,8 @@ bool RenderSystem::Initialize(Window* window)
 
     constexpr uint32 init_srv_heap_size = 1024;
     srv_heap_ = std::make_unique<DescriptorHeap>();
-    if (!srv_heap_->Initialize(graphics_device_->GetDevice(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV, init_srv_heap_size, true))
+    if (!srv_heap_->Initialize(graphics_device_->GetDevice(), D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV,
+                               init_srv_heap_size, true))
     {
         MessageBox(nullptr, L"Failed to create descriptor heap", L"Error", MB_OK);
         return false;
@@ -80,21 +92,14 @@ bool RenderSystem::Initialize(Window* window)
 
     TextureManager::Get().Initialize(graphics_device_->GetDevice(), srv_heap_.get(),
                                      command_queue_.get(), command_list_.get());
-    
+
     MeshManager::Get().Initialize(graphics_device_->GetDevice());
     SkeletalMeshManager::Get().Initialize(graphics_device_->GetDevice());
 
-    cb_allocator_ = std::make_unique<ConstantBufferAllocator>();
-    constexpr uint32_t kConstantBufferAllocatorSize = 1024 * 1024;
-    if (!cb_allocator_->Initialize(graphics_device_->GetDevice(), kConstantBufferAllocatorSize))
-    {
-        MessageBox(nullptr, L"Failed to create constant buffer allocator", L"Error", MB_OK);
-        return false;
-    }
 
     scene_renderer_ = std::make_unique<SceneRenderer>();
     if (!scene_renderer_->Initialize(graphics_device_->GetDevice(), window_->GetHwnd(),
-                                     command_queue_->GetCommandQueue(), kFrameCount,srv_heap_.get()))
+                                     command_queue_->GetCommandQueue(), kFrameCount, srv_heap_.get()))
     {
         MessageBox(nullptr, L"Failed to create scene renderer", L"Error", MB_OK);
         return false;
@@ -104,24 +109,25 @@ bool RenderSystem::Initialize(Window* window)
                             scene_renderer_->GetDebugLineRenderer());
     return true;
 }
-void RenderSystem::Render(World* world, Camera* camera) const
+
+void RenderSystem::Render(World* world, Camera* camera)
 {
-    if (!command_list_->Reset())
-    {
-        MessageBox(nullptr, L"Failed to reset command list", L"Error", MB_OK);
-        return;
-    }
-    cb_allocator_->Reset();
+    uint32 index = frame_count_ % kFrameCount;
+    command_queue_->WaitForFence(frames_[index].fence_value);
+
+    frames_[index].command_allocator->Reset();
+    command_list_->Reset(frames_[index].command_allocator.Get());
     auto command_list = command_list_->GetCommandList();
-    
+
     RendererData renderer_data = {};
     renderer_data.command_list = command_list_.get();
     renderer_data.command_queue = command_queue_.get();
     renderer_data.depth_stencil = depth_stencil_.get();
     renderer_data.srv_heap = srv_heap_.get();
-    renderer_data.cb_allocator = cb_allocator_.get();
+    renderer_data.cb_allocator = &frames_[index].cb_allocator;
     renderer_data.swap_chain = swap_chain_.get();
     renderer_data.window = window_;
+    frames_[index].cb_allocator.Reset();
     scene_renderer_->Render(renderer_data, world, camera);
     if (!command_list_->Close())
     {
@@ -129,22 +135,13 @@ void RenderSystem::Render(World* world, Camera* camera) const
         return;
     }
 
-    ID3D12CommandList* command_lists[] = {command_list};
+    //　GPUにコマンドを送信 //
+    ID3D12CommandList* command_lists[] = {command_list_.get()->GetCommandList()};
     command_queue_->GetCommandQueue()->ExecuteCommandLists(1, command_lists);
-    LARGE_INTEGER freq = {};
-    LARGE_INTEGER t0 = {};
-    LARGE_INTEGER t1 = {};
-    LARGE_INTEGER t2 = {};
-    QueryPerformanceFrequency(&freq);
-
-    QueryPerformanceCounter(&t0);
     swap_chain_->Present();
-
-    QueryPerformanceCounter(&t1);
-    command_queue_->WaitIdle();
-    QueryPerformanceCounter(&t2);
-    last_present_ms_ = static_cast<float>((t1.QuadPart - t0.QuadPart) * 1000.0 / freq.QuadPart);
-    last_gpu_wait_ms_ = static_cast<float>((t2.QuadPart - t1.QuadPart) * 1000.0 / freq.QuadPart);
+    frames_[index].fence_value = command_queue_->Signal();
+    ++frame_count_;
+    
 }
 
 void RenderSystem::Shutdown()
@@ -180,11 +177,6 @@ DescriptorHeap* RenderSystem::GetDescriptorHeap() const
     return srv_heap_.get();
 }
 
-ConstantBufferAllocator* RenderSystem::GetConstantBufferAllocator() const
-{
-    return cb_allocator_.get();
-}
-
 SceneRenderer* RenderSystem::GetSceneRenderer() const
 {
     return scene_renderer_.get();
@@ -209,4 +201,21 @@ ID3D12Device* RenderSystem::GetDevice() const
     return graphics_device_->GetDevice();
 }
 
-\
+bool RenderSystem::FrameResource::Initialize(ID3D12Device* device, uint32 cb_size)
+{
+    HRESULT hr = device->CreateCommandAllocator(
+        D3D12_COMMAND_LIST_TYPE_DIRECT,
+        IID_PPV_ARGS(&command_allocator));
+
+    if (FAILED(hr))
+    {
+        MessageBox(nullptr, L"Failed to create command allocator", L"Error", MB_OK);
+        return false;
+    }
+    if (!cb_allocator.Initialize(device, cb_size))
+    {
+        MessageBox(nullptr, L"Failed to create constant buffer allocator", L"Error", MB_OK);
+        return false;
+    }
+    return true;
+}

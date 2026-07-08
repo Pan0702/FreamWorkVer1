@@ -75,7 +75,6 @@ bool UIRenderer::Initialize(ID3D12Device* device)
 void UIRenderer::Shutdown()
 {
     registered_.clear();
-    draw_commands_.clear();
     immediate_commands_.clear();
 }
 
@@ -97,9 +96,9 @@ void UIRenderer::DrawImmediate(const SpriteDrawCommand& command)
     immediate_commands_.push_back(command);
 }
 
-void UIRenderer::Collect()
+void UIRenderer::Collect(FrameSnap& write_snap)
 {
-    draw_commands_.clear();
+    write_snap.ui_commands.clear();
     for (SpriteComponent* component : registered_)
     {
         if (component == nullptr || !component->GetVisible())
@@ -127,23 +126,20 @@ void UIRenderer::Collect()
         command.src_rect = component->src_rect;
         command.use_texture = component->texture != nullptr;
         command.sort_key = component->sort_key;
-        draw_commands_.push_back(command);
+        write_snap.ui_commands.push_back(command);
     }
 
-    draw_commands_.insert(draw_commands_.end(), immediate_commands_.begin(), immediate_commands_.end());
+    write_snap.ui_commands.insert(write_snap.ui_commands.end(), immediate_commands_.begin(), immediate_commands_.end());
     immediate_commands_.clear();
+    
+    std::ranges::sort(write_snap.ui_commands,
+                  [](const SpriteDrawCommand& a, const SpriteDrawCommand& b)
+                  {
+                      return a.sort_key < b.sort_key;
+                  });
 }
 
-void UIRenderer::Sort()
-{
-    std::ranges::sort(draw_commands_,
-                      [](const SpriteDrawCommand& a, const SpriteDrawCommand& b)
-                      {
-                          return a.sort_key < b.sort_key;
-                      });
-}
-
-void UIRenderer::Submit(RenderContext& context)
+void UIRenderer::Submit(RenderContext& context, const FrameSnap& read_snap)
 {
     context.command_list->SetGraphicsRootSignature(root_signature_->GetRootSignature());
     context.command_list->SetPipelineState(pipeline_state_->GetPipelineState());
@@ -157,7 +153,7 @@ void UIRenderer::Submit(RenderContext& context)
     ID3D12DescriptorHeap* heaps[] = {context.srv_heap->GetHeap()};
     context.command_list->SetDescriptorHeaps(1, heaps);
 
-    for (const SpriteDrawCommand& command : draw_commands_)
+    for (const SpriteDrawCommand& command : read_snap.ui_commands)
     {
         SubmitCommand(context, command);
     }

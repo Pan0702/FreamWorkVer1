@@ -14,6 +14,7 @@
 #include "render_object.h"
 #include "../Resource/material_slot.h"
 #include "cb_file.h"
+
 #include "../Graphics/descriptor_heap.h"
 
 bool MeshRenderer::Initialize(const ID3D12Device* device)
@@ -57,9 +58,9 @@ void MeshRenderer::Unregister(StaticMeshComponent* component)
     std::erase(registered_, component);
 }
 
-void MeshRenderer::Collect()
+void MeshRenderer::Collect(FrameSnap& write_snap)
 {
-    draw_commands_.clear();
+    write_snap.mesh_commands.clear();
     for (StaticMeshComponent* component : registered_)
     {
         if (component == nullptr || component->GetMesh() == nullptr || component->GetMaterialSlot() == nullptr)
@@ -73,24 +74,20 @@ void MeshRenderer::Collect()
             world = owner->GetTransform().Matrix();
         }
 
-        DrawCommand command = {};
+        MeshDrawCommand command = {};
         command.mesh = component->GetMesh();
         command.world = world;
         command.material_slot = component->GetMaterialSlot();
-        draw_commands_.push_back(command);
+        write_snap.mesh_commands.push_back(command);
     }
-}
-
-void MeshRenderer::Sort()
-{
-    std::ranges::sort(draw_commands_,
-                      [](const DrawCommand& a, const DrawCommand& b)
+    std::ranges::sort(write_snap.mesh_commands,
+                      [](const MeshDrawCommand& a, const MeshDrawCommand& b)
                       {
                           return a.sort_key < b.sort_key;
                       });
 }
 
-void MeshRenderer::Submit(RenderContext& context) 
+void MeshRenderer::Submit(RenderContext& context, const FrameSnap& read_snap)
 {
     ConstantBufferAllocation light_alloc = {};
     CB::LightCB light_cb = {};
@@ -99,14 +96,14 @@ void MeshRenderer::Submit(RenderContext& context)
     light_cb.sky_color = Vec4(context.sky_color.x, context.sky_color.y, context.sky_color.z, 0.0f);
     light_cb.ground_color = Vec4(context.ground_color.x, context.ground_color.y, context.ground_color.z, 0.0f);
     light_cb.camera_pos = Vec4(context.camera_pos.x, context.camera_pos.y, context.camera_pos.z, 1.0f);
-    light_cb.light_view_proj =Transpose(context.light_view_proj);
+    light_cb.light_view_proj = Transpose(context.light_view_proj);
     const bool has_light = context.cb_allocator->Allocate(sizeof(light_cb), &light_alloc);
     if (has_light)
     {
         memcpy(light_alloc.cpu, &light_cb, sizeof(light_cb));
     }
     context.command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    for (const DrawCommand& command : draw_commands_)
+    for (const MeshDrawCommand& command : read_snap.mesh_commands)
     {
         // オブジェクトごとの行列を Constant Buffer に詰める。
         CB::MeshObjectCB obj = {};
@@ -142,8 +139,10 @@ void MeshRenderer::Submit(RenderContext& context)
             {
                 context.command_list->SetGraphicsRootConstantBufferView(1, light_alloc.gpu);
             }
-            context.command_list->SetGraphicsRootDescriptorTable(5, context.srv_heap->GetGpuHandle(context.shadow_srv_index));
-            context.command_list->SetGraphicsRootDescriptorTable(6, context.srv_heap->GetGpuHandle(context.irradiance_srv_index));
+            context.command_list->SetGraphicsRootDescriptorTable(
+                5, context.srv_heap->GetGpuHandle(context.shadow_srv_index));
+            context.command_list->SetGraphicsRootDescriptorTable(
+                6, context.srv_heap->GetGpuHandle(context.irradiance_srv_index));
             // b2 にはサブメッシュのマテリアル定数を設定する。
             CB::MaterialCB mat_cb = {};
             mat_cb.base_color = mat->GetBaseColor();
@@ -151,8 +150,8 @@ void MeshRenderer::Submit(RenderContext& context)
             mat_cb.metallic = mat->GetMetallic();
             mat_cb.roughness = mat->GetRoughness();
             mat_cb.height_scale = mat->GetHeightScale();
-            
-            
+
+
             ConstantBufferAllocation mat_alloc = {};
             if (context.cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
             {
@@ -166,20 +165,20 @@ void MeshRenderer::Submit(RenderContext& context)
     }
 }
 
-void MeshRenderer::SubmitDepth(const RenderContext& context) const
+void MeshRenderer::SubmitDepth(RenderContext& context, const FrameSnap& read_snap)
 {
     context.command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    for (const DrawCommand& command : draw_commands_)
+    for (const MeshDrawCommand& command : read_snap.mesh_commands)
     {
         CB::ShadowObjectCB obj = {};
-        obj.wvp =Transpose(command.world * context.light_view_proj);
+        obj.wvp = Transpose(command.world * context.light_view_proj);
         ConstantBufferAllocation alloc = {};
         if (!context.cb_allocator->Allocate(sizeof(obj), &alloc))
         {
             continue;
         }
         memcpy(alloc.cpu, &obj, sizeof(obj));
-        
+
         D3D12_VERTEX_BUFFER_VIEW vbv = command.mesh->GetVertexBufferView();
         context.command_list->IASetVertexBuffers(0, 1, &vbv);
         D3D12_INDEX_BUFFER_VIEW ibv = command.mesh->GetIndexBufferView();

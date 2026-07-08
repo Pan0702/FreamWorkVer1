@@ -16,11 +16,11 @@ void Stage1::OnEnter()
     AudioManager::GetInstance().Play(Sound::kGame);
     SpawnActor<Player>();
     SpawnActor<PlayerCamera>();
-    SpawnActor<Cube>(Vec3(0, 0, 5), Vec3(10, 1, 20));
+    //SpawnActor<Cube>(Vec3(0, 0, 5), Vec3(10, 1, 20));
     SpawnActor<GoalFlag>(Vec3(0, 0, 15));
     //SpawnActor<MovingCube>(Vec3(0,0,5),Vec3(0,10,5));
-    //SpawnActor<Cube>("Assets/Mesh/test.mesh");
-    SpawnActor<Explanation>(L"Assets/Texture/explanation.png");
+    SpawnActor<Cube>("Assets/Mesh/test.mesh");
+    //SpawnActor<Explanation>(L"Assets/Texture/explanation.png");
     SpawnActor<Clear>();
     SpawnActor<FallBox>();
     LevelBase::OnEnter();

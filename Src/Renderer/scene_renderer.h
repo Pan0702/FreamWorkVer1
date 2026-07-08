@@ -1,4 +1,5 @@
 #pragma once
+#include "frame_snap.h"
 #include "../Core/common.h"
 #include "../Debug/ImGui/imgui_manager.h"
 #include "mesh_renderer.h"
@@ -31,6 +32,7 @@ struct RendererData
     ConstantBufferAllocator* cb_allocator = nullptr;
     Window* window = nullptr;
 };
+
 /**
  * @brief SceneRendererのデータと処理をまとめる型。
  */
@@ -48,18 +50,23 @@ public:
     * @param srv_heap テクスチャやシャドウマップの SRVを確保する共通 SRV ヒープ
      * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
-    bool Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQueue* command_queue, uint32_t frame_count, DescriptorHeap* srv_heap);
- /**
-  * @brief 現在の状態をもとに描画コマンドを積む。
-  * @param renderer_data レンダラー初期化に使う共有データ。
-  * @param world Actor や描画対象を管理する World。
-  * @param camera ビュー行列と射影行列を提供するカメラ。
-  */
- void Render(RendererData& renderer_data, World* world, Camera* camera);
+    bool Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQueue* command_queue, uint32_t frame_count,
+                    DescriptorHeap* srv_heap);
+    /**
+     * @brief 現在の状態をもとに描画コマンドを積む。
+     * @param renderer_data レンダラー初期化に使う共有データ。
+     * @param world Actor や描画対象を管理する World。
+     * @param camera ビュー行列と射影行列を提供するカメラ。
+     */
+    void Render(RendererData& renderer_data, World* world, Camera* camera);
+    
+    void AllCollect();
     /**
      * @brief 保持しているリソースと登録状態を解放する。
      */
     void Shutdown();
+    
+    void SwapFrame();
     /**
      * @brief MeshRenderer を取得する。
      * @return MeshRenderer。見つからない、または未作成の場合は nullptr。
@@ -85,7 +92,7 @@ public:
      * @return DebugLineRenderer。見つからない、または未作成の場合は nullptr。
      */
     DebugLineRenderer* GetDebugLineRenderer() const;
-    
+
     /**
      * @brief Im Gui Manager を取得する。
      * @return 保持している Im Gui Manager への参照。
@@ -113,4 +120,6 @@ private:
     std::unique_ptr<ShadowRenderer> shadow_renderer_;
     Texture2D* irradiance_texture_ = nullptr;
     ImGuiManager imgui_manager_;
+    FrameSnap frame_snaps_[2];
+    int write_index_ = 0;
 };

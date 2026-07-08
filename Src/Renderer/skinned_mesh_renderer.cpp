@@ -90,46 +90,42 @@ void SkinnedMeshRenderer::Unregister(SkeletalMeshComponent* component)
     std::erase(meshes_, component);
 }
 
-void SkinnedMeshRenderer::Collect()
+void SkinnedMeshRenderer::Collect(FrameSnap& write_snap)
 {
-    draw_commands_.clear();
+    write_snap.skinned_commands.clear();
     for (SkeletalMeshComponent* component : meshes_)
     {
-        if (!component || !component->GetSkeltalMesh() || !component->GetMaterialSlot())
+        if (!component || !component->GetSkeletalMesh() || !component->GetMaterialSlot())
         {
             continue;
         }
         Mat world = Identity();
-        const std::vector<Mat>* bone_palette = nullptr;
+        std::vector<Mat> bone_palette;
         if (Actor* owner = component->GetOwner())
         {
             world = owner->GetTransform().Matrix();
             if (auto* s = owner->GetComponent<AnimationComponent>())
             {
-                bone_palette = &s->GetBonePalette();
+                bone_palette = s->GetBonePalette();
             }
         }
         SkinnedDrawCommand command = {};
-        command.mesh = component->GetSkeltalMesh();
+        command.mesh = component->GetSkeletalMesh();
         command.material_slot = component->GetMaterialSlot();
         command.world = world;
         command.bone_palette = bone_palette;
-        draw_commands_.push_back(command);
+        write_snap.skinned_commands.push_back(command);
     }
-}
-
-void SkinnedMeshRenderer::Sort()
-{
-    std::ranges::sort(draw_commands_,
+    std::ranges::sort(write_snap.skinned_commands,
                       [](const SkinnedDrawCommand& a, const SkinnedDrawCommand& b)
                       {
                           return a.material_slot < b.material_slot;
                       });
 }
 
-void SkinnedMeshRenderer::Submit(RenderContext& context) const
+void SkinnedMeshRenderer::Submit(RenderContext& context, const FrameSnap& read_snap) const
 {
-    if (draw_commands_.empty())
+    if (read_snap.skinned_commands.empty())
     {
         return;
     }
@@ -156,7 +152,7 @@ void SkinnedMeshRenderer::Submit(RenderContext& context) const
         memcpy(light_alloc.cpu, &light, sizeof(light));
     }
 
-    for (const SkinnedDrawCommand& command : draw_commands_)
+    for (const SkinnedDrawCommand& command : read_snap.skinned_commands)
     {
         //b0
         CB::MeshObjectCB obj = {};
@@ -175,13 +171,13 @@ void SkinnedMeshRenderer::Submit(RenderContext& context) const
         {
             bone.bones[i] = Identity();
         }
-        if (command.bone_palette != nullptr)
+        if (!command.bone_palette.empty())
         {
-            const int bone_count = static_cast<int>(std::min(command.bone_palette->size(),
+            const int bone_count = static_cast<int>(std::min(command.bone_palette.size(),
                                                              static_cast<size_t>(kMaxBones)));
             for (int i = 0; i < bone_count; ++i)
             {
-                bone.bones[i] = Transpose((*command.bone_palette)[static_cast<size_t>(i)]);
+                bone.bones[i] = Transpose((command.bone_palette)[static_cast<size_t>(i)]);
             }
         }
         ConstantBufferAllocation bone_alloc = {};
@@ -215,14 +211,15 @@ void SkinnedMeshRenderer::Submit(RenderContext& context) const
             const uint32 norm = (mat->GetNormal() ? mat->GetNormal()->GetSrvIndex() : 0);
             const uint32 specular = (mat->GetSpecular() ? mat->GetSpecular()->GetSrvIndex() : 0);
             const uint32 height = (mat->GetHeight() ? mat->GetHeight()->GetSrvIndex() : 0);
-            
+
             command_list->SetGraphicsRootDescriptorTable(4, context.srv_heap->GetGpuHandle(diff));
             command_list->SetGraphicsRootDescriptorTable(5, context.srv_heap->GetGpuHandle(norm));
             command_list->SetGraphicsRootDescriptorTable(6, context.srv_heap->GetGpuHandle(context.shadow_srv_index));
-            command_list->SetGraphicsRootDescriptorTable(7, context.srv_heap->GetGpuHandle(context.irradiance_srv_index));
+            command_list->SetGraphicsRootDescriptorTable(
+                7, context.srv_heap->GetGpuHandle(context.irradiance_srv_index));
             command_list->SetGraphicsRootDescriptorTable(8, context.srv_heap->GetGpuHandle(specular));
             command_list->SetGraphicsRootDescriptorTable(9, context.srv_heap->GetGpuHandle(height));
-            
+
             // b2
             CB::MaterialCB mat_cb = {};
             mat_cb.base_color = mat->GetBaseColor();
@@ -230,7 +227,7 @@ void SkinnedMeshRenderer::Submit(RenderContext& context) const
             mat_cb.roughness = mat->GetRoughness();
             mat_cb.flag = mat->GetHasFlag();
             mat_cb.height_scale = mat->GetHeightScale();
-            
+
             ConstantBufferAllocation mat_alloc = {};
             if (cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
             {
@@ -242,9 +239,9 @@ void SkinnedMeshRenderer::Submit(RenderContext& context) const
     }
 }
 
-void SkinnedMeshRenderer::SubmitDepth(const RenderContext& context) const
+void SkinnedMeshRenderer::SubmitDepth( RenderContext& context, const FrameSnap& read_snap) const
 {
-    if (draw_commands_.empty())
+    if (read_snap.skinned_commands.empty())
     {
         return;
     }
@@ -252,7 +249,7 @@ void SkinnedMeshRenderer::SubmitDepth(const RenderContext& context) const
     // シャドウパスでは通常メッシュを三角形リストとして描画し、色は出さず深度だけを書き込む。
     command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
-    for (const SkinnedDrawCommand& command : draw_commands_)
+    for (const SkinnedDrawCommand& command : read_snap.skinned_commands)
     {
         CB::ShadowObjectCB obj = {};
         obj.wvp = Transpose(command.world * context.light_view_proj);
@@ -270,13 +267,13 @@ void SkinnedMeshRenderer::SubmitDepth(const RenderContext& context) const
         {
             bone.bones[i] = Identity();
         }
-        if (command.bone_palette != nullptr)
+        if (!command.bone_palette.empty())
         {
-            const int bone_count = static_cast<int>(std::min(command.bone_palette->size(),
+            const int bone_count = static_cast<int>(std::min(command.bone_palette.size(),
                                                              static_cast<size_t>(kMaxBones)));
             for (int i = 0; i < bone_count; ++i)
             {
-                bone.bones[i] = Transpose((*command.bone_palette)[static_cast<size_t>(i)]);
+                bone.bones[i] = Transpose((command.bone_palette)[static_cast<size_t>(i)]);
             }
         }
         ConstantBufferAllocation bone_alloc = {};

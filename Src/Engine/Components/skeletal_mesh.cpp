@@ -4,7 +4,6 @@
 #include "../../Resource/material_slot.h"
 #include "../../Resource/skeltal_mesh.h"
 #include "../actor.h"
-struct AABB;
 
 SkeletalMeshComponent::SkeletalMeshComponent(SkeletalMesh* skeletal_mesh, MaterialSlot* material_slot)
 {
@@ -57,7 +56,7 @@ void SkeletalMeshComponent::SetAnimation(const std::string& name, Animation* ani
 
 void SkeletalMeshComponent::DebugDraw() const
 {
-    const AABB& b = skeltal_mesh_->GetBounds();
+    const Box& b = skeltal_mesh_->GetBounds();
     const auto& tf = GetOwner()->GetTransform();
     Vec3 local_center = (b.min + b.max) * 0.5f;
     Vec3 size = (b.max - b.min);
@@ -70,7 +69,7 @@ void SkeletalMeshComponent::DebugDraw() const
                            Vec3(0, 0, 0));
 }
 
-SkeletalMesh* SkeletalMeshComponent::GetSkeltalMesh() const
+SkeletalMesh* SkeletalMeshComponent::GetSkeletalMesh() const
 {
     return skeltal_mesh_;
 }
