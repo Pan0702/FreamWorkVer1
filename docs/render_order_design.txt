@@ -1,0 +1,122 @@
+================================================================================
+ 描画順序 / Render Order 設計書（不透明パス / 半透明パスの2分割）
+ 対象プロジェクト: FreamWorkVer1 (C++ / DirectX 12)
+ ゴール: Sprite と Mesh の前後関係(手前/奥)を、型ごとの固定パスではなく
+         「オブジェクト単位」で制御できるようにする。
+         例: メッシュの手前にスプライト / スプライトの手前にメッシュ。
+ 方針: UE の考え方に合わせる。不透明はデプスバッファ任せ、半透明だけを
+       1本のパスに集めて sort_key でソートする。「共通の親クラス」は作らない
+       (既存 Component 基底で足りる。親クラスは順序を決めないため)。
+ スコープ: 設計のみ。実装は本人が書く(このドキュメントは規約・指針)。
+================================================================================
+
+--------------------------------------------------------------------------------
+0. 用語の定義（曖昧さを残さないため、ここで確定する）
+--------------------------------------------------------------------------------
+[Opaque(不透明)]    深度書き込み ON のドローコマンド。前後は GPU のデプス
+                    バッファが決める。手動ソートしない。
+                    現状該当: StaticMesh, SkinnedMesh
+[Translucent(半透明)] 深度書き込み OFF / αブレンド ON のドローコマンド。
+                    前後は sort_key で 奥→手前 に並べて決める。
+                    現状該当: Sprite (将来: 半透明マテリアルの Mesh)
+[Overlay]           深度テスト OFF。常に最前面。現状該当: UI, ImGui
+
+  ※分類の判定根拠は各 PSO のフラグ(既存・確定):
+    StaticMesh   : material 経由, depth_write=true(既定), blend=false … Opaque
+    SkinnedMesh  : SetDepthEnabled(true)+depth_write 既定 true, blend=false … Opaque
+    Sprite       : SetDepthEnabled(true), SetDepthWriteEnabled(false),
+                   SetAlphaBlendEnabled(true) … Translucent
+    UI           : SetDepthEnabled(false), blend=true … Overlay
+
+--------------------------------------------------------------------------------
+1. 現状の問題（コードで確定している事実のみ）
+--------------------------------------------------------------------------------
+現状 scene_renderer.cpp Render() の Submit 順:
+    Sky -> StaticMesh -> DebugLine -> Sprite -> SkinnedMesh -> UI -> ImGui
+
+これにより:
+ (済) StaticMesh vs ワールドSprite の前後 … 既に正しい。
+      StaticMesh が先に深度を書き、Sprite は深度テスト ON なので GPU が処理。
+ (問題1) SkinnedMesh vs ワールドSprite … SkinnedMesh が Sprite より後に
+      Submit され、不透明で色を上書きするため、Sprite は常にキャラの後ろ。
+      キャラの手前にスプライトを出せない。
+ (問題2) Sprite 同士の順序 … SpriteDrawCommand::sort_key も
+      SpriteComponent::sort_key も「定義はあるが代入されていない」(既定 0)。
+      sprite_renderer.cpp Collect() が component->sort_key をコピーしない。
+      結果、Sprite 同士の前後は登録順まかせで未定義。
+
+--------------------------------------------------------------------------------
+2. パス順序（確定・UE式の2分割）
+--------------------------------------------------------------------------------
+Render() の Submit を次の順に再編する:
+
+  (A) Opaque パス   : StaticMesh -> SkinnedMesh
+                      深度書き込み ON。順序は問わない(GPU 任せ)。
+  (B) Translucent パス: sort_key 昇順で Sprite (＋将来の半透明 Mesh)
+                      深度テスト ON / 深度書き込み OFF。
+  (C) Overlay       : UI -> ImGui (深度 OFF, 常に最前面)
+
+  DebugLine は従来どおり(深度テスト ON)。位置は Opaque の後・Translucent の
+  前あたりに置く(現状の debug の役割を変えない)。
+
+  具体差分: 現状 Sprite Submit が SkinnedMesh Submit より前 → SkinnedMesh の
+  後ろへ移す。これだけで Sprite が静的・スキン両方の深度に対してテストされ、
+  「不透明 Mesh vs ワールド Sprite」の前後がオブジェクト単位で正しくなる
+  (問題1 の解決)。
+
+--------------------------------------------------------------------------------
+3. sort_key の定義（確定・優先度→深度 / 昇順＝後に描画＝手前）
+--------------------------------------------------------------------------------
+既存の uint64 sort_key(draw_command.h の各コマンドが保持)をそのまま使う。
+新しい型は増やさない。ビットレイアウト:
+
+    bit [63 .. 48] (16bit)  layer / priority  : unsigned, 大きいほど後＝手前
+    bit [47 ..  0] (48bit)  depth key         : 半透明は「遠い＝先に描画」に
+                                                なるよう反転して格納
+
+  - layer は SpriteComponent::sort_key(現状 int)を流用。基準 0 にオフセット
+    して unsigned へ丸める(負値も扱えるように +offset)。
+    → UE の TranslucencySortPriority に相当。「深度を無視して常に手前」も
+      これで表現できる。
+  - depth key は視空間深度を量子化。半透明は奥→手前で描くので、
+    「遠い(z 大)＝小さいキー」になるよう反転する。
+
+  ソートは既存の std::ranges::sort(… a.sort_key < b.sort_key …)をそのまま
+  使える。昇順で「layer 小→大、同一 layer 内は 遠→近」。後に描くほど手前。
+
+--------------------------------------------------------------------------------
+4. 深度の計算元（確定）
+--------------------------------------------------------------------------------
+視空間深度 = (FrameSnap::camera.view * ワールド位置).z を使う。
+
+  - camera は AllCollect() で各 Collect() より前に snap へ代入済み。
+    Collect(FrameSnap& write_snap) から write_snap.camera.view を参照できる
+    (順序確認済み: AllCollect が camera 設定 → その後 各 Collect)。
+  - Sprite のワールド位置は SpriteDrawCommand::world_position(構造体に定義
+    済みだが現状未使用)へ格納して使う。現状 Collect は position(Vec2)しか
+    詰めていないので、ここへワールド位置を入れる小改修が要る。
+
+--------------------------------------------------------------------------------
+5. 影響を受けるコード（タッチポイント一覧・実装時の目印）
+--------------------------------------------------------------------------------
+ - Src/Renderer/scene_renderer.cpp Render()
+     : Submit 順の入替(Sprite を SkinnedMesh の後へ)。
+ - Src/Renderer/sprite_renderer.cpp Collect()
+     : command.world_position を代入。
+       command.sort_key を代入(layer=component->sort_key、
+       depth=視空間 z から生成)。
+ - Src/Renderer/draw_command.h
+     : 既存の sort_key / world_position を使うのみ(フィールド追加は不要)。
+       sort_key 生成ヘルパー(layer,depth -> uint64)を1つ足すと明快。
+ - (将来) 半透明 Mesh を足すとき
+     : MeshDrawCommand を Opaque / Translucent に振り分け、Translucent を
+       (B) パスへ合流。sort_key の定義はそのまま共有できる。
+
+--------------------------------------------------------------------------------
+6. スコープ外（やらないことを明記）
+--------------------------------------------------------------------------------
+ - 「Sprite と Mesh の共通の親クラス」は作らない。順序決定に不要で、既存の
+   Component 基底で足りるため。
+ - 不透明 Mesh の手動並び替えはしない(UE と同じく GPU 深度任せ)。
+ - 半透明 Mesh 用マテリアル/PSO の追加は今回のスコープ外(将来ステップ)。
+================================================================================
