@@ -1,7 +1,13 @@
-ï»¿#pragma once
+#pragma once
 #include "../Engine/level_base.h"
+/**
+ * @brief ƒŒƒxƒ‹‘I‘ğ‰æ–Ê‚É•K—v‚ÈƒAƒNƒ^[‚ğ¶¬‚·‚éB
+ */
 class SelectLevel : public LevelBase
 {
 public:
+    /**
+     * @brief ƒŒƒxƒ‹ŠJnŒã‚É‘I‘ğ‰æ–Ê‚ğ‰Šú‰»‚·‚éB
+     */
     void OnEnter() override;
 };

@@ -1,8 +1,14 @@
-ï»¿#pragma once
+#pragma once
 #include "../Engine/level_base.h"
 
+/**
+ * @brief ƒ^ƒCƒgƒ‹‰æ–ÊƒŒƒxƒ‹‚É•K—v‚ÈƒAƒNƒ^[‚ğ¶¬‚·‚éB
+ */
 class TitleLevel : public LevelBase
 {
 public:
+    /**
+     * @brief ƒŒƒxƒ‹ŠJnŒã‚Éƒ^ƒCƒgƒ‹‰æ–Ê‚ğ‰Šú‰»‚·‚éB
+     */
     void OnEnter() override;
 };

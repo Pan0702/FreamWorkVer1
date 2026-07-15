@@ -45,6 +45,9 @@ public:
      * いまのLevelの名前を返す
      * @return current_name_を返す。
      */
+    /**
+     * @brief 現在有効なレベル名を取得する。
+     */
     const std::string& GetCurrentLevelName() const ;
 private:
     /**

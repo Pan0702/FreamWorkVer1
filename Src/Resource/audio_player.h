@@ -4,6 +4,9 @@
 #include <vector>
 
 // AudioPlayer に関係する状態と振る舞いをまとめる型。
+/**
+ * @brief 音声データの再生を管理する。
+ */
 class AudioPlayer
 {
 public:

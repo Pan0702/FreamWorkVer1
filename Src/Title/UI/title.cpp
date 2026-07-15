@@ -1,4 +1,4 @@
-﻿#include "title.h"
+#include "title.h"
 
 #include "../../Core/common_data.h"
 #include "../../Engine/Components/sprite_component.h"

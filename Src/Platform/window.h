@@ -122,6 +122,9 @@ private:
      * @param lParam Windows メッセージの LPARAM。
      * @return Win32 に返すメッセージ処理結果。
      */
+    /**
+     * @brief Win32 メッセージを Window インスタンスへ振り分ける。
+     */
     static LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam);
     /**
      * @brief Window インスタンス側で Win32 メッセージを処理する。

@@ -2,6 +2,9 @@
 #include "collider_component.h"
 struct Box;
 // Actor に追加して使う BoxColliderComponent の状態と処理をまとめる。
+/**
+ * @brief ボックス形状の衝突判定を提供するコンポーネント。
+ */
 class BoxColliderComponent : public ColliderComponent
 {
 public:

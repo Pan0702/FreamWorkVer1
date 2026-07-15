@@ -86,8 +86,16 @@ public:
      */
     PipelineStateBuilder& SetDepthWriteEnabled(bool enabled);
 
+    /**
+     * @brief レンダーターゲット数を設定する。
+     * @param count 同時に使用するレンダーターゲット数。
+     * @return 設定を続けるためのビルダー自身。
+     */
     PipelineStateBuilder& SetNumRederTarget(UINT count);
     
+    /**
+     * @brief 深度バイアスと傾斜スケールバイアスを設定する。
+     */
     PipelineStateBuilder& SetDepthBias(int bias,float slope_scaled);
     
     /**

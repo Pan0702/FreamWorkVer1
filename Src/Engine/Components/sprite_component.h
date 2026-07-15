@@ -69,6 +69,9 @@ public:
      * 相対位置を使うかのフラグを返す
      * @return is_relative_pos_を返す。
      */
+    /**
+     * @brief サイズを画面に対する相対値として扱うかどうかを返す。
+     */
     bool GetRelativeSizeFlag() const;
 
     /**
@@ -81,17 +84,26 @@ public:
      * 相対位置を使うかのフラグを返す
      * @return is_relative_pos_を返す。
      */
+    /**
+     * @brief 座標を画面に対する相対値として扱うかどうかを返す。
+     */
     bool GetRelativePosFlag() const;
 
     /**
      * 現在の表示フラグを取得。
      * @return 
      */
+    /**
+     * @brief スプライトを表示するかどうかを返す。
+     */
     bool GetVisible() const;
 
     /**
      * 表示するかしないか
      * @param visible flag
+     */
+    /**
+     * @brief スプライトの表示状態を設定する。
      */
     void SetVisible(bool visible);
 

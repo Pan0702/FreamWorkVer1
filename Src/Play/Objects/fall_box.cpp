@@ -1,4 +1,4 @@
-﻿#include "fall_box.h"
+#include "fall_box.h"
 
 #include "../../Engine/Components/box_collider_component.h"
 #include "../../Game/GameMain.h"

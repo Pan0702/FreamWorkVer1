@@ -38,6 +38,7 @@ namespace
 
 void CollisionWorld::Collect()
 {
+    // このフレームの衝突ペアを収集し、必要な接触通知を発行する。
     dispatching_ = true;
     std::set<HitPair> cur_pairs; //今のフレーム重なってるペア
     for (int i = 0; i < colliders_.size(); ++i)
@@ -93,6 +94,7 @@ void CollisionWorld::Collect()
             p.collider2->InvokeEndOverlap(p.collider1);
         }
     }
+    // 次フレームの差分判定用に現在の接触ペアを保存する。
     prev_pairs_ = cur_pairs;
     dispatching_ = false;
     
@@ -149,6 +151,7 @@ bool CollisionWorld::ComputeContact(ColliderComponent* coll1, ColliderComponent*
     // 形状を kSphere < kBox < kCapsule < kMesh の正準順に並べ替え、逆順だったら最後に
     // 法線を反転する。正準順なら各 Contact の第1引数が coll1 に一致するので、
     // 分岐内での反転は要らない。//
+    // 形状の組み合わせを正準順へそろえ、対応する接触判定関数を選択する。
     ColliderShape s1 = coll1->GetColliderShape();
     ColliderShape s2 = coll2->GetColliderShape();
 

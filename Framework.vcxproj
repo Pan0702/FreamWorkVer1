@@ -255,7 +255,6 @@
   <ItemGroup>
    <None Include="Shaders\sky.vs.hlsl" />
     <None Include="Shaders\sky.ps.hlsl" />
-    <Content Include="NewFile1.txt" />
     <Content Include="Src\Platform\key_code.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

@@ -73,6 +73,7 @@ void Player::Tick(float dt)
         }
     }
 
+    // 入力から状態を選び、現在有効な状態コンポーネントを更新する。
     pl_input_ = Input(dt);
     SetState(BuildWantedState(pl_input_));
     // 有効な状態コンポーネントだけを更新して、入力を移動量へ反映する。//
@@ -99,6 +100,7 @@ void Player::Tick(float dt)
     transform_.position += pl_input_.move_amount;
     transform_.rotation.y = pl_input_.yaw;
 
+    // 接地状態と移動量から再生するアニメーションを選択する。
     const bool just_landed = is_grounded_ && !was_grounded_;
     const bool landing_playing = (animation_name_ == kLanding && animation_->IsPlaying());
     std::string anim_name;
@@ -131,6 +133,7 @@ PlayerInput Player::Input(float dt)
     PlayerInput input;
     input.yaw = pl_input_.yaw;
 
+    // キー入力をカメラ基準のローカル移動方向として集計する。
     Vec3 local = {0, 0, 0};
     if (game_main->GetInput().CheckKey(InputKey::kW, KeyState::kDown))
         local.z += 1.0f;
@@ -157,6 +160,7 @@ PlayerInput Player::Input(float dt)
         //進む方向へ体を向ける //
         input.yaw = atan2f(world_dir.x, world_dir.z);                                                    
     }
+    // 接地状態とスペースキー入力からジャンプ状態を決定する。
     const bool space = game_main->GetInput().CheckKey(InputKey::kSpace, KeyState::kDown);
     // 接地中にスペースを押している場合だけ、新しくジャンプ入力を立てる。//
     if (is_grounded_ && space)

@@ -55,6 +55,9 @@ public:
      * @param rotation 回転角度。
      * @param sort 描画順番。
      */
+    /**
+     * @brief 2D の塗りつぶし矩形を描画コマンドへ追加する。
+     */
     void DrawBox(const Vec2& position, const Vec2& size, const Vec4& color, float rotation = 0.0f, uint64 sort = 100.0f) const;
   
     /**
@@ -86,6 +89,9 @@ public:
      * @param rotation 回転角度。
      * @param fill 塗りつぶし描画を行うかどうか。
      */
+    /**
+     * @brief 3D のボックスをデバッグ描画コマンドへ追加する。
+     */
     void DrawBox3D(const Vec3& center, const Vec3& size, const Vec4& color, const Vec3& rotation, bool fill = true) const;
     /**
      * @brief 現在の状態をもとに描画コマンドを積む。
@@ -114,6 +120,9 @@ public:
      * @param src_pos 切り出し元の左上座標。
      * @param src_size 切り出し元のサイズ。
      * @param alpha 描画時の透明度。
+     */
+    /**
+     * @brief 3D 空間に配置するスプライトを描画コマンドへ追加する。
      */
     void DrawSprite3D(Texture2D* texture,const Mat& mat,const Vec2& size, const Vec2& src_pos, const Vec2& src_size, float alpha) const;
     /**

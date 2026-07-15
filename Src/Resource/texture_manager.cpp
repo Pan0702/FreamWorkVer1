@@ -93,7 +93,7 @@ Texture2D* TextureManager::LoadTexture(const wchar_t* path, const LoadedImage& i
     queue_->GetCommandQueue()->ExecuteCommandLists(1, command_lists);
     queue_->WaitIdle(); // アップロード完了まで待つ（upload_buffer はこの間生存）
 
-    // ? SRV ヒープに枠を確保
+    // Allocate an SRV descriptor slot after texture upload completes.
     UINT srv_index = 0;
     if (!srv_heap_->Allocate(srv_index))
     {

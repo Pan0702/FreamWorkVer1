@@ -1,4 +1,4 @@
-﻿#include "select.h"
+#include "select.h"
 
 #include <algorithm>
 

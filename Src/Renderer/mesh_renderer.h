@@ -45,6 +45,10 @@ public:
      */
     void Collect(FrameSnap& write_snap);
     
+    /**
+     * @brief 静的メッシュの描画コマンドを GPU コマンドリストへ記録する。
+     * @param context 描画に使用するコンテキスト。`r`n     * @param command 実行するメッシュ描画コマンド。`r`n     * @param cam 描画に使用するカメラ情報。
+     */
     void Submit(RenderContext& context, const MeshDrawCommand& command, const CameraSnap& cam);
 
 

@@ -1,4 +1,4 @@
-﻿#include "clear.h"
+#include "clear.h"
 
 #include <algorithm>
 

@@ -4,6 +4,9 @@
 struct Sphere;
 
 // Actor に追加して使う SphereColliderComponent の状態と処理をまとめる。
+/**
+ * @brief 球形状の衝突判定を提供するコンポーネント。
+ */
 class SphereColliderComponent : public ColliderComponent
 {
 public:

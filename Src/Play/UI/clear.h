@@ -1,21 +1,44 @@
-ï»¿#pragma once
+#pragma once
 #include "../../Engine/actor.h"
 
 class SpriteComponent;
 
+/**
+ * @brief ƒNƒŠƒA‰æ–Ê‚Å‘I‘ğ‚Å‚«‚é‘€ì‚ğ•\‚·B
+ */
 enum class ClearButton : uint8
 {
     kRestart = 0,
     kSelect,
 };
+/**
+ * @brief ƒXƒe[ƒWƒNƒŠƒA‰æ–Ê‚Ìƒ†[ƒU[ƒCƒ“ƒ^[ƒtƒF[ƒX‚ğ•\¦‚·‚éB
+ */
 class Clear : public Actor
 {
 public:
+    /**
+     * @brief ƒNƒŠƒA‰æ–Ê‚ÌƒAƒNƒ^[‚ÆƒXƒvƒ‰ƒCƒg‚ğ¶¬‚·‚éB
+     */
     Clear();
+    /**
+     * @brief ƒNƒŠƒA‰æ–Ê‚Ìƒ†[ƒU[ƒCƒ“ƒ^[ƒtƒF[ƒX‚ğ‰Šú‰»‚·‚éB
+     */
     void Begin() override;
+    /**
+     * @brief ƒNƒŠƒA‰æ–Ê‚ğXV‚µA“ü—Í‚ğˆ—‚·‚éB
+     * @param dt ‘OƒtƒŒ[ƒ€‚©‚ç‚ÌŒo‰ß•b”B
+     */
     void Tick(float dt) override;
+    /**
+     * @brief ƒNƒŠƒA‰æ–Ê‚ğ•\¦‚Ü‚½‚Í”ñ•\¦‚É‚·‚éB
+     * @param visible ƒNƒŠƒA‰æ–Ê‚ğ•\¦‚·‚éê‡‚Í trueB
+     */
     void SetVisible(bool visible);
 private:
+    /**
+     * @brief ƒvƒŒƒCƒ„[“ü—Í‚É‰‚¶‚Ä‘I‘ğ’†‚Ìƒ{ƒ^ƒ“‚ğ•ÏX‚·‚éB
+     */
     void Input() ;
     SpriteComponent* ui_ = nullptr;
     SpriteComponent* cur_texture_ = nullptr;

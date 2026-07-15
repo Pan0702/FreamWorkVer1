@@ -5,6 +5,9 @@
 class StateComponentBase;
 
 // プレイヤーが同時に持てる行動状態のビット。//
+/**
+ * @brief プレイヤーの状態を表すビットフラグ。
+ */
 enum class PlayerState : uint8_t
 {
     kIdle = 1 << 0,
@@ -34,6 +37,9 @@ inline bool IsSet(uint32_t bit, const PlayerState& state)
 }
 
 // 1 フレーム分のプレイヤー入力と、そこから計算した移動量をまとめる。//
+/**
+ * @brief 1フレーム分のプレイヤー入力と移動情報を保持する。
+ */
 struct PlayerInput
 {
     Vec3 move_amount = {0.0f, 0.0f, 0.0f};
@@ -44,6 +50,9 @@ struct PlayerInput
 
 
 // プレイヤー本体の描画、入力、状態遷移、当たり判定反応をまとめる。//
+/**
+ * @brief プレイヤー本体の描画、入力、状態遷移、衝突判定を管理する。
+ */
 class Player : public Actor
 {
 public:

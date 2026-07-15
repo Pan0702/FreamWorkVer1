@@ -1,12 +1,22 @@
-ï»¿#pragma once
+#pragma once
 #include "../../Engine/actor.h"
 
 class SpriteComponent;
 
+/**
+ * @brief ƒ^ƒCƒgƒ‹‰æ–Ê‚Ìƒ†[ƒU[ƒCƒ“ƒ^[ƒtƒF[ƒX‚ğ•\¦‚·‚éB
+ */
 class Title : public Actor
 {
 public:
+    /**
+     * @brief ƒ^ƒCƒgƒ‹‰æ–Ê‚ÌƒAƒNƒ^[‚ÆƒXƒvƒ‰ƒCƒg‚ğ¶¬‚·‚éB
+     */
     Title();
+    /**
+     * @brief ƒ^ƒCƒgƒ‹‰æ–Ê‚ÌƒAƒjƒ[ƒVƒ‡ƒ“‚Æ“ü—Íˆ—‚ğXV‚·‚éB
+     * @param dt ‘OƒtƒŒ[ƒ€‚©‚ç‚ÌŒo‰ß•b”B
+     */
     void Tick(float dt) override;
 private:
     SpriteComponent* ui_ = nullptr;

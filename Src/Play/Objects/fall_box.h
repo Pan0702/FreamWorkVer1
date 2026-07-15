@@ -1,9 +1,20 @@
-ï»¿#pragma once
+#pragma once
 #include "../../Engine/actor.h"
 
+/**
+ * @brief ƒvƒŒƒCƒ„[‚ğ—‰º‚Ü‚½‚ÍƒŠƒZƒbƒg‚³‚¹‚éƒgƒŠƒK[‚ğ•\‚·B
+ */
 class FallBox :public Actor
 {
 public:
+    /**
+     * @brief —‰ºƒgƒŠƒK[‚ÌƒAƒNƒ^[‚ğ¶¬‚·‚éB
+     */
     FallBox();
+    /**
+     * @brief ƒRƒ‰ƒCƒ_[‚ª—‰ºƒgƒŠƒK[‚Ö“ü‚Á‚½‚Æ‚«‚Ìˆ—‚ğs‚¤B
+     * @param my ‚±‚ÌƒAƒNƒ^[‚ÌƒRƒ‰ƒCƒ_[B
+     * @param other ƒgƒŠƒK[‚É“ü‚Á‚½ƒRƒ‰ƒCƒ_[B
+     */
     void OnBeginOverlap(const ColliderComponent* my,const ColliderComponent* other);
 };

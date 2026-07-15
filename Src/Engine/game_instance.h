@@ -9,7 +9,13 @@ class Option;
 class GameInstance
 {
 public:
+    /**
+     * @brief ゲームインスタンスを初期化する。
+     */
     GameInstance();
+    /**
+     * @brief ゲームインスタンスが保持するリソースを解放する。
+     */
     virtual ~GameInstance();
     /**
      * @brief 利用前に必要な参照とリソースを初期化する。
@@ -36,6 +42,9 @@ public:
     /**
      * Tick関数を使うかどうか
      * @param use_tick Flagを渡す
+     */
+    /**
+     * @brief 毎フレームの更新処理を実行するかどうかを設定する。
      */
     void SetUseTick(bool use_tick);
 private:

@@ -1,7 +1,10 @@
-ï»¿#pragma once
+#pragma once
 #include "../../Engine/actor.h"
 #include "../../Engine/game_instance.h"
 
+/**
+ * @brief ƒIƒvƒVƒ‡ƒ“ƒƒjƒ…[‚Å‘I‘ğ‚Å‚«‚é‘€ì‚ğ•\‚·B
+ */
 enum class OptionButton : uint8
 {
     kRestart = 0,
@@ -9,19 +12,53 @@ enum class OptionButton : uint8
     kExit,
 };
 class SpriteComponent;
+/**
+ * @brief ƒQ[ƒ€’†‚ÌƒIƒvƒVƒ‡ƒ“ƒƒjƒ…[‚ğŠÇ—‚·‚éB
+ */
 class Option : public GameInstance
 {
 public:
+    /**
+     * @brief ƒIƒvƒVƒ‡ƒ“ƒƒjƒ…[‚ÌƒŠƒ\[ƒX‚ğ¶¬‚·‚éB
+     */
     Option();
+    /**
+     * @brief ƒIƒvƒVƒ‡ƒ“ƒƒjƒ…[‚ÌƒŠƒ\[ƒX‚ğ‰ğ•ú‚·‚éB
+     */
     ~Option() override;
+    /**
+     * @brief ‚±‚Ìƒƒjƒ…[‚ğ‹¤—LƒGƒ“ƒWƒ“ƒT[ƒrƒX‚Ö“o˜^‚·‚éB
+     * @param context ƒƒjƒ…[‚ªg—p‚·‚éƒT[ƒrƒXB
+     */
     void OnAttach(const AttachContext& context) const;
+    /**
+     * @brief ‚±‚Ìƒƒjƒ…[‚ğ‹¤—LƒGƒ“ƒWƒ“ƒT[ƒrƒX‚©‚ç‰ğœ‚·‚éB
+     */
     void OnDetach() const;
+    /**
+     * @brief ƒƒjƒ…[‚Ì•\¦ó‘Ô‚Æ“ü—Í‚ğXV‚·‚éB
+     * @param dt ‘OƒtƒŒ[ƒ€‚©‚ç‚ÌŒo‰ß•b”B
+     */
     void Tick(float dt) override;
+    /**
+     * @brief ƒIƒvƒVƒ‡ƒ“ƒƒjƒ…[‚ª•\¦’†‚©‚Ç‚¤‚©‚ğ•Ô‚·B
+     * @return ƒIƒvƒVƒ‡ƒ“ƒƒjƒ…[‚ğ•\¦’†‚Ìê‡‚Í trueB
+     */
     bool IsVisible() const;
+    /**
+     * @brief ƒIƒvƒVƒ‡ƒ“ƒƒjƒ…[‚ğ•\¦‚Ü‚½‚Í”ñ•\¦‚É‚·‚éB
+     * @param visible ƒƒjƒ…[‚ğ•\¦‚·‚éê‡‚Í trueB
+     */
     void SetVisible(bool visible);
 
 private:
+    /**
+     * @brief ƒvƒŒƒCƒ„[“ü—Í‚É‰‚¶‚Ä‘I‘ğ’†‚Ì€–Ú‚ğ•ÏX‚·‚éB
+     */
     void Input();
+    /**
+     * @brief ƒIƒvƒVƒ‡ƒ“ƒƒjƒ…[‚Å‘I‘ğ‚³‚ê‚½‘€ì‚ğÀs‚·‚éB
+     */
     void SetOpen();
     std::unique_ptr<SpriteComponent> ui_ = nullptr;
     std::unique_ptr<SpriteComponent> cur_texture_ = nullptr;

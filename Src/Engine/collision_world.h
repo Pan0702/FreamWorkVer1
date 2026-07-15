@@ -13,6 +13,9 @@ struct Sphere;
 struct Ray;
 
 // 接触通知済みのコライダーペアを順序付きで保持するキー。//
+/**
+ * @brief 衝突した2つのコライダーの組を保持する。
+ */
 struct HitPair
 {
     ColliderComponent* collider1;
@@ -52,6 +55,9 @@ struct HitPair
 };
 
 // 登録されたコライダーの接触判定、通知、デバッグ描画をまとめる。//
+/**
+ * @brief コライダーの登録、衝突判定、通知を管理する。
+ */
 class CollisionWorld
 {
 public:

@@ -15,6 +15,9 @@ public:
      * @param shader_visible シェーダーから参照できるヒープにするかどうか。
      * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
+    /**
+     * @brief 指定した種類と容量のディスクリプタヒープを初期化する。
+     */
     bool Initialize(ID3D12Device* device, D3D12_DESCRIPTOR_HEAP_TYPE type, UINT capacity, bool shader_visible);
     /**
      * @brief CPU ディスクリプタハンドル を取得する。

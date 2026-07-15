@@ -1,4 +1,4 @@
-﻿#include "stage_2.h"
+#include "stage_2.h"
 
 #include "../Objects/cube.h"
 #include "../Objects/fall_box.h"

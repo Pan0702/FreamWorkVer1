@@ -31,6 +31,7 @@ bool Texture2D::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* cmd_
         return false;
     }
 
+    // アップロードヒープを作成し、行ピッチを D3D12 の配置要件に合わせる。
     // アップロードバッファー作成
     D3D12_HEAP_PROPERTIES upload_heap_props = {};
     upload_heap_props.Type = D3D12_HEAP_TYPE_UPLOAD;
@@ -61,6 +62,7 @@ bool Texture2D::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* cmd_
         return false;
     }
 
+    // CPU 側の RGBA8 ピクセルを、アラインメントを考慮してアップロードバッファへコピーする。
     // Map のデータを memcpy して Unmap
     uint8_t* mapped = nullptr;
     D3D12_RANGE read_range = {0, 0};
@@ -80,6 +82,7 @@ bool Texture2D::Initialize(ID3D12Device* device, ID3D12GraphicsCommandList* cmd_
     }
     upload_buffer_->Unmap(  0, nullptr);
 
+    // コピー元・コピー先の情報を組み立て、GPU コピーコマンドを記録する。
     // CopyTextureRegion を記録
     D3D12_TEXTURE_COPY_LOCATION src_loc = {};
     src_loc.pResource = upload_buffer_.Get();

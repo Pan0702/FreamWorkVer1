@@ -83,6 +83,9 @@ bool Contact(const Box& b1, const Box& b2, ContactInfo& out);
  * @param out 接触法線と貫通量を書き込む情報。
  * @return 球と三角形が重なっている場合は true。
  */
+/**
+ * @brief 球と三角形の接触を判定する。
+ */
 bool Contact(const Sphere& s, const Vec3& a, const Vec3& b, const Vec3& c, ContactInfo& out);
 
 /**
@@ -93,6 +96,9 @@ bool Contact(const Sphere& s, const Vec3& a, const Vec3& b, const Vec3& c, Conta
  * @param c 三角形の頂点 C。
  * @param out 接触法線と貫通量を書き込む情報。
  * @return AABB と三角形が重なっている場合は true。
+ */
+/**
+ * @brief ボックスと三角形の接触を判定する。
  */
 bool Contact(const Box& box, const Vec3& a, const Vec3& b, const Vec3& c, ContactInfo& out);
 
@@ -105,6 +111,9 @@ bool Contact(const Box& box, const Vec3& a, const Vec3& b, const Vec3& c, Contac
  * @param out ヒット距離と面法線を書き込む情報。
  * @return レイが距離範囲内で三角形に当たった場合は true。
  */
+/**
+ * @brief レイと三角形の交差を判定する。
+ */
 bool Contact(const Ray& ray, const Vec3& a, const Vec3& b, const Vec3& c, ContactInfo& out);
 
 /**
@@ -115,6 +124,9 @@ bool Contact(const Ray& ray, const Vec3& a, const Vec3& b, const Vec3& c, Contac
  * @param c 三角形の頂点 C。
  * @param out 接触法線と貫通量を書き込む情報。
  * @return カプセルと三角形が重なっている場合は true。
+ */
+/**
+ * @brief カプセルと三角形の接触を判定する。
  */
 bool Contact(const Capsule& capsule, const Vec3& a, const Vec3& b, const Vec3& c, ContactInfo& out);
 
@@ -134,6 +146,9 @@ Vec3 ClosestPointOnBox(const Vec3& p, const Box& box);
  * @param c 三角形の頂点 C。
  * @return 三角形上で p に最も近い点。
  */
+/**
+ * @brief 点から三角形上への最近接点を求める。
+ */
 Vec3 ClosestPointOnTriangle(const Vec3& p, const Vec3& a, const Vec3& b, const Vec3& c);
 
 /**
@@ -145,6 +160,9 @@ Vec3 ClosestPointOnTriangle(const Vec3& p, const Vec3& a, const Vec3& b, const V
  * @param out 線分上の最近接点を書き込む値。
  * @return 点が線分から radius 以内にある場合は true。
  */
+/**
+ * @brief カプセル中心と線分の交差を判定する。
+ */
 bool Intersect(const Vec3& capsule_pos, const Vec3& a, const Vec3& b, float radius, Vec3& out);
 
 /**
@@ -155,6 +173,9 @@ bool Intersect(const Vec3& capsule_pos, const Vec3& a, const Vec3& b, float radi
  * @param r カプセル半径。
  * @param out 接触法線と貫通量を書き込む情報。
  * @return カプセル軸線分が三角形の辺に r 以内で近づいた場合は true。
+ */
+/**
+ * @brief 線分と三角形の接触を判定する。
  */
 bool SegmentIntersect(const Vec3& start, const Vec3& end, const Triangle& t, float r, ContactInfo& out);
 
@@ -186,5 +207,8 @@ bool IsInTriangle(const Vec3& p, const Triangle& t);
  * @param r カプセル半径。
  * @param q 三角形平面上の射影点を書き込む値。
  * @return 射影点が三角形内にあり、点から平面までの距離が r 以下の場合は true。
+ */
+/**
+ * @brief 点から三角形表面までの距離を判定する。
  */
 bool PointToSurface(const Vec3& end, const Triangle& t, float r, Vec3& q);

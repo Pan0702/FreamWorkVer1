@@ -5,6 +5,9 @@ class SkeletalMesh;
 struct Capsule;
 
 // スケルタルメッシュに合わせたカプセルコライダーを扱うコンポーネント。//
+/**
+ * @brief カプセル形状の衝突判定を提供するコンポーネント。
+ */
 class CapsuleColliderComponent : public ColliderComponent
 {
 public:

@@ -1,4 +1,4 @@
-ï»¿#include "ibl_baker.h"
+#include "ibl_baker.h"
 #include "../Core/Math/my_math.h"
 #include <algorithm>
 
@@ -23,6 +23,7 @@ LoadedImage IBLBaker::BakeIrradianceMap(const LoadedImage& sky_srgb)
     constexpr int src_h = 32;
     constexpr float kMaxRGB = 255.0f;
     constexpr float kGamma = 2.2f;
+    // “ü—Í‚Ì‘S“V‹…‰æ‘œ‚ğ’á‰ğ‘œ“x‚ÌüŒ`F‹óŠÔƒTƒ“ƒvƒ‹‚Ö•ÏŠ·‚·‚éB
     std::vector<Vec3> src(src_h * src_w);
     for (int y = 0; y < src_h; ++y)
     {
@@ -39,6 +40,7 @@ LoadedImage IBLBaker::BakeIrradianceMap(const LoadedImage& sky_srgb)
         }
     }
 
+    // o—Í‚·‚é’á‰ğ‘œ“xƒCƒ‰ƒfƒBƒAƒ“ƒXƒ}ƒbƒv‚Ì—Ìˆæ‚ğŠm•Û‚·‚éB
     constexpr int dst_w = 32;
     constexpr int dst_h = 16;
     LoadedImage result;
@@ -47,6 +49,7 @@ LoadedImage IBLBaker::BakeIrradianceMap(const LoadedImage& sky_srgb)
     constexpr size_t kB = static_cast<size_t>(dst_w * dst_h) * 4;
     result.pixels.resize(kB);
 
+    // o—ÍƒeƒNƒZƒ‹‚²‚Æ‚É”¼‹…Ï•ª‚ğs‚¢AŠgU”½Ë—p‚ÌÆ“x‚ğ‹‚ß‚éB
     for (int oy = 0; oy < dst_h; ++oy)
     {
         for (int ox = 0; ox < dst_w; ++ox)
@@ -78,6 +81,7 @@ LoadedImage IBLBaker::BakeIrradianceMap(const LoadedImage& sky_srgb)
                 }
             }
 
+            // d‚İ•t‚«•½‹Ï‚ğƒKƒ“ƒ}‹óŠÔ‚Ö–ß‚µARGBA8 ‚Ìo—ÍƒsƒNƒZƒ‹‚ÖŠi”[‚·‚éB
             Vec3 irr = {};
             if (weight_sum > 0.0f)
             {

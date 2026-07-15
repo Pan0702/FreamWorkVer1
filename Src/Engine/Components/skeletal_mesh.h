@@ -25,6 +25,10 @@ public:
      */
     ~SkeletalMeshComponent() override;
     
+    /**
+     * @brief スケルタルメッシュコンポーネントを更新する。
+     * @param dt 前フレームからの経過秒数。
+     */
     void Tick(float dt) override;
 
     /**
@@ -49,6 +53,9 @@ public:
      */
     void SetAnimation(const std::string& name, Animation* animation);
     
+    /**
+     * @brief スケルタルメッシュのデバッグ情報を描画する。
+     */
     void DebugDraw() const;
     /**
      * @brief Skeltal Mesh を取得する。
@@ -61,6 +68,10 @@ public:
      */
     MaterialSlot* GetMaterialSlot() const;
 
+    /**
+     * @brief スケルタルメッシュを描画するかどうかを設定する。
+     * @param is_draw 描画を有効にする場合は true。
+     */
     void SetDraw(bool is_draw);
     
     int sort_key = 0;

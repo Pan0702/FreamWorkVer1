@@ -1,4 +1,4 @@
-﻿#include "moveing_explanation.h"
+#include "moveing_explanation.h"
 
 #include "../../Engine/Components/sprite_component.h"
 

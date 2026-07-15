@@ -84,6 +84,9 @@ private:
      * @brief フレーム時間から FPS 表示用の値を更新する。
      */
     void ClacFPS();
+    /**
+     * @brief 描画スレッドのメインループを実行する。
+     */
     void RenderThread();
 
     Window window_;

@@ -1,7 +1,15 @@
-ï»¿#pragma once
+#pragma once
 #include "../Resource/texture_loder.h"
+/**
+ * @brief ‹ó‰æ‘œ‚©‚çƒCƒ[ƒWƒx[ƒXƒhƒ‰ƒCƒeƒBƒ“ƒO—pƒeƒNƒXƒ`ƒƒ‚ğ¶¬‚·‚éB
+ */
 class IBLBaker
 {
 public:
+    /**
+     * @brief sRGB‚Ì‹ó‰æ‘œ‚©‚çŠgU”½Ë—p‚ÌƒCƒ‰ƒfƒBƒAƒ“ƒXƒ}ƒbƒv‚ğ¶¬‚·‚éB
+     * @param sky_srgb sRGBƒJƒ‰[ƒXƒy[ƒX‚Ì“ü—Í‹ó‰æ‘œB
+     * @return ¶¬‚µ‚½ƒCƒ‰ƒfƒBƒAƒ“ƒX‰æ‘œB
+     */
     static LoadedImage BakeIrradianceMap(const LoadedImage& sky_srgb);
 };

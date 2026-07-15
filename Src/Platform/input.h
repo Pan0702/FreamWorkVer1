@@ -56,6 +56,9 @@ public:
      * カーソルを隠す
      * @param lock Flag
      */
+    /**
+     * @brief マウスカーソルの固定状態を設定する。
+     */
     void SetMouseLock(bool lock);
 private:
     UINT key_to_vk_[256] = {};

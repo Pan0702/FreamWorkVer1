@@ -86,6 +86,10 @@ public:
      */
     const std::vector<SubMesh>& GetSubMeshes();
 
+    /**
+     * @brief スケルタルメッシュの境界ボックスを取得する。
+     * @return メッシュ全体を覆う境界ボックス。
+     */
     const Box& GetBounds() const;
 
 private:

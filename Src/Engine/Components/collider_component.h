@@ -146,11 +146,17 @@ public:
      * Triggerを設定
      * @param is_trigger 
      */
+    /**
+     * @brief コライダーをトリガーとして扱うかどうかを設定する。
+     */
     void SetTrigger(bool is_trigger);
 
     /**
      * Triggerの値を返す
      * @return is_trigger_を返す。
+     */
+    /**
+     * @brief コライダーがトリガーかどうかを返す。
      */
     bool IsTrigger() const;
     

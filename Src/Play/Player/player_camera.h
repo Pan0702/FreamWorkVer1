@@ -2,9 +2,15 @@
 #include "../../Game/GameMain.h"
 
 // PlayerCamera に関係する状態と振る舞いをまとめる型。
+/**
+ * @brief プレイヤーを追従するカメラを制御する。
+ */
 class PlayerCamera : public Actor
 {
 public:
+    /**
+     * @brief カメラのヨー角を取得する。
+     */
     float GetYaw() const;
 private:
     /**
@@ -16,6 +22,9 @@ private:
      * @param dt 前フレームからの経過秒数。
      */
     void Tick(float dt) override;
+    /**
+     * @brief マウス入力からカメラの回転量を更新する。
+     */
     void Input();
     Camera* camera_ = nullptr;
     class Player* player_ = nullptr;

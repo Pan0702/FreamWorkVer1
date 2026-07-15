@@ -10,6 +10,9 @@ class AudioPlayer;
 
 
 // AudioData に関係する状態と振る舞いをまとめる型。
+/**
+ * @brief 読み込んだ音声データと再生用情報を保持する。
+ */
 struct AudioData
 {
     std::unique_ptr<AudioPlayer> player = nullptr;
@@ -17,6 +20,9 @@ struct AudioData
 };
 
 // AudioManager が扱うリソースの生成と共有を管理する。
+/**
+ * @brief 音声データの読み込みと再生を管理する。
+ */
 class AudioManager
 {
 public:

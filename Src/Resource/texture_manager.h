@@ -39,6 +39,11 @@ public:
      * @return 指定リソースの読み込みが完了した場合は true。
      */
     Texture2D* Load(const wchar_t* path, bool is_srgb = true);
+    /**
+     * @brief 読み込み済み画像からテクスチャを作成または取得する。
+     * @param cache_key キャッシュに使用する識別子。`r`n     * @param image テクスチャ化する画像データ。`r`n     * @param is_srgb sRGB テクスチャとして扱う場合は true。
+     * @return 作成または取得したテクスチャ。失敗時は nullptr。
+     */
     Texture2D* CreateFromImage(const wchar_t* cache_key,const LoadedImage& image,bool is_srgb = false);
     /**
      * @brief TextureManager の共有インスタンスを取得する。
@@ -52,6 +57,9 @@ public:
 
 private:
     
+    /**
+     * @brief 読み込んだ画像からテクスチャを作成し、キャッシュへ登録する。
+     */
     Texture2D* LoadTexture(const wchar_t* path, const LoadedImage& image, bool is_srgb);
     
     ComPtr<ID3D12CommandAllocator> upload_allocator_;

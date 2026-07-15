@@ -10,6 +10,9 @@ class PipelineState;
 class Shader;
 class RootSignature;
 
+/**
+ * @brief シャドウマップへの深度描画を実行する。
+ */
 class ShadowRenderer
 {
 public:

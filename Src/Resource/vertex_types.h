@@ -1,9 +1,12 @@
 #pragma once
 #include "../Core/common.h"
 
-//////////////////////////////
-///Mesh ????
-//////////////////////////////
+
+
+
+/**
+ * @brief 静的メッシュ用の頂点1つを保持する。
+ */
 struct StaticVertex
 {
     float position[3];
@@ -42,9 +45,12 @@ static const D3D12_INPUT_ELEMENT_DESC kStaticVertexLayout[] =
     },
 };
 
-//////////////////////////////
-///Sprite ????
-//////////////////////////////
+
+
+
+/**
+ * @brief スプライト用の頂点1つを保持する。
+ */
 struct SpriteVertex
 {
     float position[2];
@@ -64,9 +70,12 @@ static constexpr D3D12_INPUT_ELEMENT_DESC kSpriteVertexLayout[] = {
     },
 };
 
-//////////////////////////////
-///Line ????
-//////////////////////////////
+
+
+
+/**
+ * @brief 色付きデバッグライン用の頂点1つを保持する。
+ */
 struct DebugLineVertex
 {
     float position[3];
@@ -84,9 +93,12 @@ static constexpr D3D12_INPUT_ELEMENT_DESC kDebugLineLayout[] = {
     },
 };
 
-//////////////////////////////
-///SkMesh ????
-//////////////////////////////
+
+
+
+/**
+ * @brief スキンメッシュ用の頂点1つを保持する。
+ */
 struct SkinnedVertex
 {
     float position[3];
@@ -136,12 +148,15 @@ static constexpr D3D12_INPUT_ELEMENT_DESC kSkinnedVertexLayout[] = {
     }
 };
 
-//////////////////////////////
-///SkySphere????
-//////////////////////////////
+
+
+
 static constexpr D3D12_INPUT_ELEMENT_DESC kSkyLayout[] = {
     { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
       D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
 };
 
+/**
+ * @brief 空メッシュ用の位置情報のみを持つ頂点1つを保持する。
+ */
 struct SkyVertex { float position[3]; };

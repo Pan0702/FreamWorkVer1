@@ -1,4 +1,4 @@
-﻿#include "stage_4.h"
+#include "stage_4.h"
 #include "../Objects/cube.h"
 #include "../Objects/fall_box.h"
 #include "../Objects/goal_flag.h"

@@ -4,6 +4,9 @@
 class Mesh;
 
 // Actor に追加して使う MeshColliderComponent の状態と処理をまとめる。
+/**
+ * @brief メッシュ形状の衝突判定を提供するコンポーネント。
+ */
 class MeshColliderComponent : public ColliderComponent
 {
 public:

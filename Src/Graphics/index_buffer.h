@@ -16,6 +16,9 @@ public:
      * @param format 表示またはリソース作成に使うフォーマット。
      * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
+    /**
+     * @brief インデックスデータから GPU 用バッファを初期化する。
+     */
     bool Initialize(ID3D12Device* device, const void* index_data, uint32_t total_size, DXGI_FORMAT format);
     /**
      * @brief インデックスバッファビュー を取得する。

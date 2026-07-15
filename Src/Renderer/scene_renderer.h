@@ -41,7 +41,13 @@ struct RendererData
 class SceneRenderer
 {
 public:
+    /**
+     * @brief シーンレンダラーに必要なリソースを初期化する。
+     */
     SceneRenderer();
+    /**
+     * @brief シーンレンダラーが保持するリソースを解放する。
+     */
     ~SceneRenderer();
     /**
      * @brief 利用前に必要な参照とリソースを初期化する。
@@ -60,12 +66,19 @@ public:
      */
     void Render(RendererData& renderer_data);
     
+    /**
+     * @brief 各レンダラーから1フレーム分の描画コマンドを収集する。
+     * @param c 描画情報を収集する基準となるカメラ。
+     */
     void AllCollect(Camera& c);
     /**
      * @brief 保持しているリソースと登録状態を解放する。
      */
     void Shutdown();
     
+    /**
+     * @brief 読み取り用と書き込み用のフレームスナップを入れ替える。
+     */
     void SwapFrame();
     /**
      * @brief MeshRenderer を取得する。

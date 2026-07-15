@@ -96,6 +96,9 @@ private:
         ComPtr<ID3D12CommandAllocator> command_allocator;
         ConstantBufferAllocator cb_allocator;
         uint64 fence_value = 0;
+    /**
+     * @brief フレームごとの定数バッファを初期化する。
+     */
         bool Initialize(ID3D12Device* device, uint32 cb_size);
     };
 

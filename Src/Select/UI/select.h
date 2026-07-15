@@ -1,13 +1,29 @@
-ï»¿#pragma once
+#pragma once
 #include "../../Engine/actor.h"
 class SpriteComponent;
+/**
+ * @brief ƒŒƒxƒ‹‘I‘ğ‰æ–Ê‚Ìƒ†[ƒU[ƒCƒ“ƒ^[ƒtƒF[ƒX‚ğ’ñ‹Ÿ‚·‚éB
+ */
 class Select : public Actor
 {
 public:
+    /**
+     * @brief ‘I‘ğ‰æ–Ê‚ÌƒAƒNƒ^[‚ÆƒXƒvƒ‰ƒCƒg‚ğ¶¬‚·‚éB
+     */
     Select();
+    /**
+     * @brief ‘I‘ğ‰æ–Ê‚Ìƒ†[ƒU[ƒCƒ“ƒ^[ƒtƒF[ƒX‚ğ‰Šú‰»‚·‚éB
+     */
     void Begin() override;
+    /**
+     * @brief ‘I‘ğ‰æ–Ê‚ğXV‚µA“ü—Í‚ğˆ—‚·‚éB
+     * @param dt ‘OƒtƒŒ[ƒ€‚©‚ç‚ÌŒo‰ß•b”B
+     */
     void Tick(float dt) override;
 private:
+    /**
+     * @brief ƒvƒŒƒCƒ„[“ü—Í‚É‰‚¶‚Ä‘I‘ğ’†‚Ìƒ{ƒ^ƒ“‚ğ•ÏX‚·‚éB
+     */
     void Input();
     int button_index_ = 0;
     SpriteComponent* ui_ = nullptr;

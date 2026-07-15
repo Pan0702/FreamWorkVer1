@@ -37,11 +37,17 @@ public:
      * 画像がsRGBかどうかを返す
      * @return is_srgb_をかす
      */
+    /**
+     * @brief テクスチャを sRGB として扱うかどうかを返す。
+     */
     bool IsSRGB() const;
 
     /**
      * is_srgb_にセットする
      * @param is_srgb  画像がsRGBだったらtrue
+     */
+    /**
+     * @brief テクスチャの sRGB 設定を変更する。
      */
     void SetSRGB(bool is_srgb);
 

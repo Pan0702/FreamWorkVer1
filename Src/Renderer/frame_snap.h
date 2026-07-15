@@ -3,6 +3,9 @@
 #include "draw_command.h"
 #include "../Resource/vertex_types.h"
 struct ImDrawData;
+/**
+ * @brief 1フレーム分の描画用カメラデータを保持する。
+ */
 struct CameraSnap
 {
     Mat view;
@@ -10,6 +13,9 @@ struct CameraSnap
     Vec3 pos;
 };
 
+/**
+ * @brief 1フレーム分の描画用ライトデータを保持する。
+ */
 struct LightSnap
 {
     Vec3 pos;
@@ -17,6 +23,9 @@ struct LightSnap
     Mat lvp;
 };
 
+/**
+ * @brief 描画項目を処理するレンダラーの種類を表す。
+ */
 enum class DrawType
 {
     kMesh,
@@ -27,6 +36,9 @@ enum class DrawType
     kDebugTriangle,
 };
 
+/**
+ * @brief 描画提出順に並ぶ1つのコマンドを参照する。
+ */
 struct SceneDrawItem
 {
     DrawType type;
@@ -35,6 +47,9 @@ struct SceneDrawItem
     uint64 sequence;
 };
 
+/**
+ * @brief 1フレーム分の描画データをまとめる。
+ */
 struct FrameSnap
 {
     std::vector<MeshDrawCommand>    mesh_commands;    

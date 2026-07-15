@@ -1,4 +1,4 @@
-﻿#include "title_level.h"
+#include "title_level.h"
 
 #include "UI/title.h"
 

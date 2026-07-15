@@ -1,8 +1,14 @@
-ï»¿#pragma once
+#pragma once
 #include "../../Engine/level_base.h"
 
+/**
+ * @brief ƒXƒe[ƒW 5 ‚ÌƒAƒNƒ^[‚Æ‰Šúİ’è‚ğ’è‹`‚·‚éB
+ */
 class Stage5 : public LevelBase
 {
 public:
+    /**
+     * @brief ƒŒƒxƒ‹ŠJnŒã‚ÉƒXƒe[ƒW‚ÌƒAƒNƒ^[‚ğ¶¬‚·‚éB
+     */
     void OnEnter() override;
 };

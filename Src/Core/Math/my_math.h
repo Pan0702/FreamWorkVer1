@@ -77,6 +77,9 @@ Mat LookAtRH(const XMVECTOR& eye, const XMVECTOR& at, const XMVECTOR& up);
  * @param zFar ファークリップ面の距離。
  * @return 左手座標系の透視投影行列。
  */
+/**
+ * @brief 左手座標系の透視投影行列を作成する。
+ */
 Mat PerspectiveFovLH(float fov, float aspect, float zNear, float zFar);
 /**
  * @brief 左手座標系の正射影行列を作成する。
@@ -85,6 +88,9 @@ Mat PerspectiveFovLH(float fov, float aspect, float zNear, float zFar);
  * @param zNear ニアクリップ面の距離。
  * @param zFar ファークリップ面の距離。
  * @return  射影行列
+ */
+/**
+ * @brief 左手座標系の正射影行列を作成する。
  */
 Mat OrthographicLH(float ViewWidth,float ViewHeight,float zNear,float zFar);
 /**
@@ -176,6 +182,9 @@ Vec3 Rotate(const Quat& q, const Vec3& v);
  * @param r 分解結果の回転クォータニオン。
  * @param t 補間率。
  * @return 行列を scale・rotation・translation に分解できた場合は true。
+ */
+/**
+ * @brief 行列を拡大縮小、回転、平行移動へ分解する。
  */
 bool Decompose(const Mat& m, Vec3& s, Quat& r, Vec3& t);
 

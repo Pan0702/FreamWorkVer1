@@ -1,10 +1,20 @@
-ï»¿#pragma once
+#pragma once
 #include "../../Engine/actor.h"
 
+/**
+ * @brief ˆÚ“®•û–@‚Ìà–¾‰æ‘œ‚ğ•\¦‚·‚éB
+ */
 class Explanation : public Actor
 {
 public:
+    /**
+     * @brief ‚±‚Ìà–¾‚Åg—p‚·‚é‰æ‘œƒpƒX‚ğ•Û‚·‚éB
+     * @param path à–¾‰æ‘œ‚Ö‚ÌƒpƒXB
+     */
     Explanation(std::wstring_view path);
+    /**
+     * @brief ƒAƒNƒ^[‚Ì—LŒø‰»Œã‚ÉƒXƒvƒ‰ƒCƒg‚ğ¶¬‚·‚éB
+     */
     void Begin() override;
 private:
     class SpriteComponent* explanation_ = nullptr;
