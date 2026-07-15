@@ -22,6 +22,7 @@
     <None Include="Shaders\shadow.vs.hlsl" />
     <None Include="Shaders\shadow_sk.vs.hlsl" />
     <ClCompile Include="Src\Debug\parformance.cpp" />
+    <ClCompile Include="Src\Engine\Components\instanced_static_mesh_component.cpp" />
     <ClCompile Include="Src\Graphics\shadow_map.cpp" />
     <ClCompile Include="Src\Play\Objects\fall_box.cpp" />
     <ClCompile Include="Src\Play\Objects\moving_cube.cpp" />
@@ -68,6 +69,7 @@
     <ClInclude Include="Src\Engine\Components\box_collider_component.h" />
     <ClInclude Include="Src\Engine\Components\capsule_collider_comp.h" />
     <ClInclude Include="Src\Engine\Components\collider_component.h" />
+    <ClInclude Include="Src\Engine\Components\instanced_static_mesh_component.h" />
     <ClInclude Include="Src\Engine\Components\mesh_collider_component.h" />
     <ClInclude Include="Src\Engine\Components\skeletal_mesh.h" />
     <ClInclude Include="Src\Engine\Components\sphere_collider_componet.h" />
