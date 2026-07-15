@@ -79,6 +79,14 @@ bool GameMain::Initialize(const wchar_t* title, int32_t width, int32_t height)
         return false;
     }
 
+#ifdef _DEBUG
+    if (!performance_profiler_.InitializeGpu(
+        render_system_->GetDevice(), render_system_->GetD3D12CommandQueue(), kFrameCount))
+    {
+        DEBUG_LOG("GPU performance timing is unavailable");
+    }
+#endif
+
     window_.SetResizeCallback([this](uint32_t w, uint32_t h)
     {
         if (w == 0 || h == 0)
@@ -114,7 +122,10 @@ void GameMain::Run()
             break;
         }
 
+#ifdef _DEBUG
+        performance_profiler_.BeginFrame();
         ClacFPS();
+#endif
         Tick();
 
         // Renderが前フレーム消費し終えるまで待つ
@@ -122,6 +133,9 @@ void GameMain::Run()
         render_system_->GetSceneRenderer()->SwapFrame();
         // Renderに投げる → 並列で次ループへ//
         frame_ready_.release();
+#ifdef _DEBUG
+        performance_profiler_.EndFrame();
+#endif
     }
     running_ = false;
     frame_ready_.release();
@@ -140,13 +154,25 @@ void GameMain::RenderThread()
         {
             break;
         }
-        render_system_->Render();
+#ifdef _DEBUG
+        render_system_->Render(&performance_profiler_);
+#else
+        render_system_->Render(nullptr);
+#endif
         render_done_.release();
     }
 }
 
 void GameMain::Shutdown()
 {
+#ifdef _DEBUG
+    if (render_system_ != nullptr)
+    {
+        render_system_->WaitForGPU();
+    }
+    performance_profiler_.ShutdownGpu();
+#endif
+
     Debug::Get().Shutdown();
     TextureManager::Get().Shutdown();
     MeshManager::Get().Shutdown();
@@ -163,13 +189,24 @@ void GameMain::Tick()
     auto* render_system = render_system_->GetSceneRenderer();
     delta_time_ = ClacDeltaTime();
     render_system->GetImGuiManager().BeginFrame();
+
+#ifdef _DEBUG
+    performance_profiler_.BeginCpuUpdate();
+#endif
+
     input_.Update();
     game_instance_.Tick(delta_time_);
+
+#ifdef _DEBUG
+    performance_profiler_.EndCpuUpdate();
+    performance_window_.Draw(performance_profiler_.GetSnapshot());
+#endif
+
     render_system->AllCollect(camera_);
 }
 
 
-void GameMain::ClacFPS()
+void GameMain::ClacFPS() const
 {
     static float fps_timer = 0.0f;
     static int frame = 0;

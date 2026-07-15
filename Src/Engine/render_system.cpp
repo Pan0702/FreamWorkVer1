@@ -11,6 +11,9 @@
 #include "../Renderer/debug_line_renderer.h"
 #include "../Renderer/scene_renderer.h"
 #include "../Debug/debug.h"
+#ifdef _DEBUG
+#include "../Debug/parformance.h"
+#endif
 #include "../Resource/mesh_manager.h"
 #include "../Resource/skeltal_mesh_manager.h"
 #include "../Graphics/graphics_config.h"
@@ -110,10 +113,19 @@ bool RenderSystem::Initialize(Window* window)
     return true;
 }
 
-void RenderSystem::Render()
+void RenderSystem::Render(PerformanceProfiler* performance_profiler)
 {
     uint32 index = frame_count_ % kFrameCount;
     command_queue_->WaitForFence(frames_[index].fence_value);
+
+#ifdef _DEBUG
+    if (performance_profiler != nullptr)
+    {
+        performance_profiler->ReadGpuFrame(index);
+    }
+#else
+    (void)performance_profiler;
+#endif
 
     frames_[index].command_allocator->Reset();
     command_list_->Reset(frames_[index].command_allocator.Get());
@@ -128,7 +140,25 @@ void RenderSystem::Render()
     renderer_data.swap_chain = swap_chain_.get();
     renderer_data.window = window_;
     frames_[index].cb_allocator.Reset();
+
+#ifdef _DEBUG
+    if (performance_profiler != nullptr)
+    {
+        performance_profiler->BeginCpuRender();
+        performance_profiler->BeginGpuFrame(command_list, index);
+    }
+#endif
+
     scene_renderer_->Render(renderer_data);
+
+#ifdef _DEBUG
+    if (performance_profiler != nullptr)
+    {
+        performance_profiler->EndGpuFrame(command_list, index);
+        performance_profiler->EndCpuRender();
+    }
+#endif
+
     if (!command_list_->Close())
     {
         MessageBox(nullptr, L"Failed to close command list", L"Error", MB_OK);
@@ -199,6 +229,11 @@ DepthStencil* RenderSystem::GetDepthStencil() const
 ID3D12Device* RenderSystem::GetDevice() const
 {
     return graphics_device_->GetDevice();
+}
+
+ID3D12CommandQueue* RenderSystem::GetD3D12CommandQueue() const
+{
+    return command_queue_->GetCommandQueue();
 }
 
 bool RenderSystem::FrameResource::Initialize(ID3D12Device* device, uint32 cb_size)

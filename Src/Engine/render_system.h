@@ -18,6 +18,7 @@ class GraphicsDevice;
 class CommandQueue;
 class SwapChain;
 class CommandList;
+class PerformanceProfiler;
 
 /**
  * @brief RenderSystemのデータと処理をまとめる型。
@@ -42,7 +43,7 @@ public:
     /**
      * @brief 現在の状態をもとに描画コマンドを積む。
      */
-    void Render();
+    void Render(PerformanceProfiler* performance_profiler);
     /**
      * @brief 保持しているリソースと登録状態を解放する。
      */
@@ -87,6 +88,7 @@ public:
      * @return 保持している D3D12 デバイス。未初期化なら nullptr。
      */
     ID3D12Device* GetDevice() const;
+    ID3D12CommandQueue* GetD3D12CommandQueue() const;
 
 private:
     static constexpr uint32 kFrameResource = kFrameCount;

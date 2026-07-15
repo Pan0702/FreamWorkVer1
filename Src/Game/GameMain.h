@@ -7,6 +7,9 @@
 #include "../Engine/camera.h"
 #include "../Engine/game_instance.h"
 #include "../Platform/input.h"
+#ifdef _DEBUG
+#include "../Debug/parformance.h"
+#endif
 class RenderSystem;
 
 /**
@@ -75,7 +78,7 @@ public:
      */
     float GetDeltaTime() const { return delta_time_; }
     /**
-     * @brief アプリケーションの終了を要求する。                            
+     * @brief アプリケーションの終了を要求する。
      */
     void Quit() { window_.Close(); }
 
@@ -83,7 +86,7 @@ private:
     /**
      * @brief フレーム時間から FPS 表示用の値を更新する。
      */
-    void ClacFPS();
+    void ClacFPS() const;
     /**
      * @brief 描画スレッドのメインループを実行する。
      */
@@ -93,6 +96,10 @@ private:
     Input input_;
     Camera camera_;
     std::unique_ptr<RenderSystem> render_system_;
+#ifdef _DEBUG
+    PerformanceProfiler performance_profiler_;
+    PerformanceWindow performance_window_;
+#endif
     GameInstance game_instance_;
     float delta_time_ = 0.0f;
     std::binary_semaphore frame_ready_{0};
