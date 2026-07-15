@@ -64,17 +64,19 @@ public:
     /**
      * @brief 収集済みコマンドを GPU コマンドリストへ書き込む。
      * @param context 描画や登録に使う共有コンテキスト。
+     * @param command
+     * @param cam
      */
-    void Submit(RenderContext& context,const FrameSnap& read_snap);
+    void Submit(const RenderContext& context, const SpriteDrawCommand& command, const CameraSnap& cam);
 
 private:
     /**
      * @brief 1 件分の描画コマンドを GPU コマンドリストへ書き込む。
      * @param context 描画や登録に使う共有コンテキスト。
      * @param command 描画キューへ積むスプライトコマンド。
-     * @param read_snap
+     * @param cam
      */
-    void SubmitCommand(RenderContext& context, const SpriteDrawCommand& command, const FrameSnap& read_snap);
+    void SubmitCommand(const RenderContext& context, const SpriteDrawCommand& command, const CameraSnap& cam);
 
     std::unique_ptr<VertexBuffer> quad_vb_;
     std::unique_ptr<IndexBuffer> quad_ib_;

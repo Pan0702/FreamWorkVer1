@@ -48,8 +48,10 @@ public:
     /**
      * @brief 収集済みコマンドを GPU コマンドリストへ書き込む。
      * @param context 描画や登録に使う共有コンテキスト。
+     * @param command
+     * @param cam
      */
-    void Submit(RenderContext& context,const FrameSnap& read_snap) const;
+    void Submit(RenderContext& context, const SkinnedDrawCommand& command, const CameraSnap& cam) const;
 
     /**
      * @brief 収集済みのメッシュをライト視点から描画する

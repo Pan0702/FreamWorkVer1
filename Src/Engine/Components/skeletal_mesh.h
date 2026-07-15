@@ -62,6 +62,8 @@ public:
     MaterialSlot* GetMaterialSlot() const;
 
     void SetDraw(bool is_draw);
+    
+    int sort_key = 0;
 private:
     std::unordered_map<std::string, Animation*> animations_;
     SkeletalMesh* skeltal_mesh_ = nullptr;

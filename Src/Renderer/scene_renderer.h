@@ -19,6 +19,8 @@ class DescriptorHeap;
 class SwapChain;
 class Window;
 class World;
+
+
 /**
  * @brief RendererDataのデータと処理をまとめる型。
  */
@@ -109,6 +111,13 @@ private:
      */
     void EndRenderTarget(const RendererData& renderer_data);
 
+    /**
+     * @brief カメラの情報やライトの情報を事前に計算しておく
+     * @param context 共有データ
+     * @param snap 共有データ
+     */
+    void PrepareLight(RenderContext& context, const FrameSnap& snap);
+    
     std::unique_ptr<MeshRenderer> mesh_renderer_;
     std::unique_ptr<SpriteRenderer> sprite_renderer_;
     std::unique_ptr<UIRenderer> ui_renderer_;

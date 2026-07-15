@@ -45,7 +45,7 @@ public:
      */
     void Collect(FrameSnap& write_snap);
     
-    void Submit(RenderContext& context, const FrameSnap& read_snap);
+    void Submit(RenderContext& context, const MeshDrawCommand& command, const CameraSnap& cam);
 
 
     /**

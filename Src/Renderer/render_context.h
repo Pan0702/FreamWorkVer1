@@ -13,6 +13,7 @@ struct RenderContext
     DescriptorHeap* srv_heap = nullptr;
     ConstantBufferAllocator* cb_allocator = nullptr;
     Vec2 screen_size = {0.0f, 0.0f};
+    D3D12_GPU_VIRTUAL_ADDRESS light_cb_address = 0;
     // シャドウマップを通常描画で参照するための SRVヒープインデックス
     uint32 shadow_srv_index = 0;
     uint32 irradiance_srv_index = 0;

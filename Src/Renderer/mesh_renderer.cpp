@@ -78,91 +78,83 @@ void MeshRenderer::Collect(FrameSnap& write_snap)
         command.mesh = component->GetMesh();
         command.world = world;
         command.material_slot = component->GetMaterialSlot();
+        command.sort_key = component->sort_key;
+        const uint32 command_index = static_cast<uint32>(
+            write_snap.mesh_commands.size());
         write_snap.mesh_commands.push_back(command);
+
+        SceneDrawItem draw_item = {};
+        draw_item.type = DrawType::kMesh;
+        draw_item.draw_order = component->sort_key;
+        draw_item.command_index = command_index;
+
+        write_snap.draw_items.push_back(draw_item);
     }
-    
-    std::ranges::sort(write_snap.mesh_commands,
-                      [](const MeshDrawCommand& a, const MeshDrawCommand& b)
-                      {
-                          return a.sort_key < b.sort_key;
-                      });
 }
 
-void MeshRenderer::Submit(RenderContext& context, const FrameSnap& read_snap)
+void MeshRenderer::Submit(RenderContext& context, const MeshDrawCommand& command, const CameraSnap& cam)
 {
-    ConstantBufferAllocation light_alloc = {};
-    CB::LightCB light_cb = {};
-    light_cb.light_pos = Vec4(read_snap.light.pos.x, read_snap.light.pos.y, read_snap.light.pos.z, 0.0f);
-    light_cb.light_color = Vec4(read_snap.light.color.x, read_snap.light.color.y, read_snap.light.color.z, 0.0f);
-    light_cb.camera_pos = Vec4(read_snap.camera.pos.x,read_snap.camera.pos.y, read_snap.camera.pos.z, 1.0f);
-    light_cb.light_view_proj = Transpose(read_snap.light.lvp);
-    const bool has_light = context.cb_allocator->Allocate(sizeof(light_cb), &light_alloc);
-    if (has_light)
-    {
-        memcpy(light_alloc.cpu, &light_cb, sizeof(light_cb));
-    }
     context.command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-    for (const MeshDrawCommand& command : read_snap.mesh_commands)
+
+    // オブジェクトごとの行列を Constant Buffer に詰める。
+    CB::MeshObjectCB obj = {};
+    obj.world = Transpose(command.world);
+    obj.wvp = Transpose(command.world * cam.view * cam.projection);
+    ConstantBufferAllocation alloc = {};
+    if (!context.cb_allocator->Allocate(sizeof(obj), &alloc))
     {
-        // オブジェクトごとの行列を Constant Buffer に詰める。
-        CB::MeshObjectCB obj = {};
-        obj.world = Transpose(command.world);
-        obj.wvp = Transpose(command.world * read_snap.camera.view * read_snap.camera.projection);
-        ConstantBufferAllocation alloc = {};
-        if (!context.cb_allocator->Allocate(sizeof(obj), &alloc))
+        return;
+    }
+    memcpy(alloc.cpu, &obj, sizeof(obj));
+
+    // 頂点とインデックスバッファをバインドして 1 サブメッシュを描画する。
+    D3D12_VERTEX_BUFFER_VIEW vbv = command.mesh->GetVertexBufferView();
+    context.command_list->IASetVertexBuffers(0, 1, &vbv);
+    D3D12_INDEX_BUFFER_VIEW ibv = command.mesh->GetIndexBufferView();
+    context.command_list->IASetIndexBuffer(&ibv);
+
+    // サブメッシュ単位でマテリアルを反映する。
+    for (const SubMesh& sub : command.mesh->GetSubMeshes())
+    {
+        Material* mat = command.material_slot->GetMaterial(sub.material_slot);
+        if (mat == nullptr)
         {
             continue;
         }
-        memcpy(alloc.cpu, &obj, sizeof(obj));
 
-        // 頂点とインデックスバッファをバインドして 1 サブメッシュを描画する。
-        D3D12_VERTEX_BUFFER_VIEW vbv = command.mesh->GetVertexBufferView();
-        context.command_list->IASetVertexBuffers(0, 1, &vbv);
-        D3D12_INDEX_BUFFER_VIEW ibv = command.mesh->GetIndexBufferView();
-        context.command_list->IASetIndexBuffer(&ibv);
+        mat->Apply(context.command_list, context.srv_heap);
 
-        // サブメッシュ単位でマテリアルを反映する。
-        for (const SubMesh& sub : command.mesh->GetSubMeshes())
+        // b0 には WVP と World 行列を設定する。
+        context.command_list->SetGraphicsRootConstantBufferView(0, alloc.gpu);
+        if (context.light_cb_address != 0)
         {
-            Material* mat = command.material_slot->GetMaterial(sub.material_slot);
-            if (mat == nullptr)
-            {
-                continue;
-            }
-
-            mat->Apply(context.command_list, context.srv_heap);
-
-            // b0 には WVP と World 行列を設定する。
-            context.command_list->SetGraphicsRootConstantBufferView(0, alloc.gpu);
-            if (has_light)
-            {
-                context.command_list->SetGraphicsRootConstantBufferView(1, light_alloc.gpu);
-            }
-            context.command_list->SetGraphicsRootDescriptorTable(
-                5, context.srv_heap->GetGpuHandle(context.shadow_srv_index));
-            context.command_list->SetGraphicsRootDescriptorTable(
-                6, context.srv_heap->GetGpuHandle(context.irradiance_srv_index));
-            // b2 にはサブメッシュのマテリアル定数を設定する。
-            CB::MaterialCB mat_cb = {};
-            mat_cb.base_color = mat->GetBaseColor();
-            mat_cb.flag = mat->GetHasFlag();
-            mat_cb.metallic = mat->GetMetallic();
-            mat_cb.roughness = mat->GetRoughness();
-            mat_cb.height_scale = mat->GetHeightScale();
-
-
-            ConstantBufferAllocation mat_alloc = {};
-            if (context.cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
-            {
-                memcpy(mat_alloc.cpu, &mat_cb, sizeof(mat_cb));
-                context.command_list->SetGraphicsRootConstantBufferView(2, mat_alloc.gpu);
-            }
-
-            // 現在のサブメッシュを描画する。
-            context.command_list->DrawIndexedInstanced(sub.index_count, 1, sub.index_start, 0, 0);
+            context.command_list->SetGraphicsRootConstantBufferView(1, context.light_cb_address);
         }
+        context.command_list->SetGraphicsRootDescriptorTable(
+            5, context.srv_heap->GetGpuHandle(context.shadow_srv_index));
+        context.command_list->SetGraphicsRootDescriptorTable(
+            6, context.srv_heap->GetGpuHandle(context.irradiance_srv_index));
+        // b2 にはサブメッシュのマテリアル定数を設定する。
+        CB::MaterialCB mat_cb = {};
+        mat_cb.base_color = mat->GetBaseColor();
+        mat_cb.flag = mat->GetHasFlag();
+        mat_cb.metallic = mat->GetMetallic();
+        mat_cb.roughness = mat->GetRoughness();
+        mat_cb.height_scale = mat->GetHeightScale();
+
+
+        ConstantBufferAllocation mat_alloc = {};
+        if (context.cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
+        {
+            memcpy(mat_alloc.cpu, &mat_cb, sizeof(mat_cb));
+            context.command_list->SetGraphicsRootConstantBufferView(2, mat_alloc.gpu);
+        }
+
+        // 現在のサブメッシュを描画する。
+        context.command_list->DrawIndexedInstanced(sub.index_count, 1, sub.index_start, 0, 0);
     }
 }
+
 
 void MeshRenderer::SubmitDepth(RenderContext& context, const FrameSnap& read_snap)
 {

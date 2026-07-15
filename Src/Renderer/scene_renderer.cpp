@@ -1,5 +1,8 @@
 #include "scene_renderer.h"
 
+#include <algorithm>
+
+#include "cb_file.h"
 #include "debug_line_renderer.h"
 #include "ibl_baker.h"
 #include "../Engine/camera.h"
@@ -11,8 +14,9 @@
 #include "render_context.h"
 #include "shadow_renderer.h"
 #include "../Resource/texture_manager.h"
+#include "../Graphics/constant_buffer_allocator.h"
 
-namespace 
+namespace
 {
     // 平行光には実際の位置がないため、LookAt 用の仮想カメラ距離として使う。
     constexpr float kShadowLightViewDistance = 30.0f;
@@ -23,6 +27,7 @@ namespace
     constexpr float kShadowNearZ = 0.1f;
     constexpr float kShadowFarZ = 100.0f;
 }
+
 SceneRenderer::SceneRenderer() = default;
 SceneRenderer::~SceneRenderer() = default;
 
@@ -81,58 +86,78 @@ bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQue
 
 void SceneRenderer::Render(RendererData& renderer_data)
 {
-    const int index =  1 - write_index_;
+    const int index = 1 - write_index_;
     RenderContext context = {};
     context.command_list = renderer_data.command_list->GetCommandList();
     context.srv_heap = renderer_data.srv_heap;
     context.cb_allocator = renderer_data.cb_allocator;
     context.screen_size = Vec2(static_cast<float>(renderer_data.window->GetWidth()),
                                static_cast<float>(renderer_data.window->GetHeight()));
+    
 
-    
     context.irradiance_srv_index = irradiance_texture_->GetSrvIndex();
-    
+
+    auto& s = frame_snaps_[index];
     //影はバックバッファに書くため、メインバッファに書き込む前に書き込む//
     shadow_renderer_->RenderShadowPass(context, mesh_renderer_.get(),
-                                       skinned_mesh_renderer_.get(), frame_snaps_[index]);
+                                       skinned_mesh_renderer_.get(), s);
     context.shadow_srv_index = shadow_renderer_->GetShadowMapIndex();
-    
+
     // ImGui::ShowDemoWindow();
     BeginRenderTarget(renderer_data);
-    sky_renderer_->Render(context, frame_snaps_[index]);
+    PrepareLight(context,s);
+    sky_renderer_->Render(context, s);
     
-    mesh_renderer_->Submit(context, frame_snaps_[index]);
-    debug_renderer_->Submit(context, frame_snaps_[index]);
-    sprite_renderer_->Submit(context, frame_snaps_[index]);
-    skinned_mesh_renderer_->Submit(context, frame_snaps_[index]);
-    ui_renderer_->Submit(context, frame_snaps_[index]);
-    
-    imgui_manager_.RenderCloneData(frame_snaps_[index].imgui_draw_data,context.command_list);
+    for (const auto& item : s.draw_items)
+    {
+        switch (item.type)
+        {
+        case DrawType::kSprite:
+            sprite_renderer_->Submit(context, s.sprite_commands[item.command_index], s.camera);
+            break;
+        case DrawType::kMesh:
+            mesh_renderer_->Submit(context, s.mesh_commands[item.command_index], s.camera);
+            break;
+        case DrawType::kSkinnedMesh:
+            skinned_mesh_renderer_->Submit(context, s.skinned_commands[item.command_index],s.camera);
+            break;
+        default:
+            break;
+        }
+    }
+    debug_renderer_->Submit(context, s);
+    ui_renderer_->Submit(context, s.ui_commands);
+
+    imgui_manager_.RenderCloneData(s.imgui_draw_data, context.command_list);
     EndRenderTarget(renderer_data);
 }
 
 void SceneRenderer::AllCollect(Camera& c)
 {
     FrameSnap& snap = frame_snaps_[write_index_];
+    snap.draw_items.clear();
     snap.camera.pos = c.pos_;
     snap.camera.view = c.GetViewMatrix();
     snap.camera.projection = c.GetProjectionMatrix();
-    snap.light.pos = Vec3(0.3f,-1.0f,0.5f).Normalized();
-    snap.light.color = Vec3(3.0f,3.0f,3.0f);
-    
+    snap.light.pos = Vec3(0.3f, -1.0f, 0.5f).Normalized();
+    snap.light.color = Vec3(3.0f, 3.0f, 3.0f);
+
     const Vec3 eye = Vec3(0, 0, 0) - snap.light.pos * kShadowLightViewDistance;
     const Mat light_view = LookAtLH(eye, Vec3(0, 0, 0), Vec3(0, 1, 0));
     // 平行光の影なので Perspective ではなく Orthographicを使う。
     // 幅・高さはシャドウを描きたい範囲に合わせて調整する。
     const Mat light_proj = OrthographicLH(kShadowOrthoWidth, kShadowOrthoHeight, kShadowNearZ, kShadowFarZ);
     snap.light.lvp = light_view * light_proj;
-    
+
     mesh_renderer_->Collect(snap);
     debug_renderer_->Collect(snap);
     sprite_renderer_->Collect(snap);
     skinned_mesh_renderer_->Collect(snap);
     ui_renderer_->Collect(snap);
-    
+
+    std::ranges::stable_sort(
+        snap.draw_items, {}, &SceneDrawItem::draw_order);
+
     imgui_manager_.FreeDrawData(snap.imgui_draw_data);
     snap.imgui_draw_data = imgui_manager_.CloneCurrentData();
 }
@@ -233,4 +258,23 @@ void SceneRenderer::EndRenderTarget(const RendererData& renderer_data)
     barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_RENDER_TARGET;
     barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PRESENT;
     command_list->ResourceBarrier(1, &barrier);
+}
+
+void SceneRenderer::PrepareLight(RenderContext& context, const FrameSnap& snap)
+{
+    context.light_cb_address = 0;
+    ConstantBufferAllocation light_alloc = {};
+    CB::LightCB light_cb = {};
+    light_cb.light_pos = Vec4(snap.light.pos.x, snap.light.pos.y, snap.light.pos.z, 0.0f);
+    light_cb.light_color = Vec4(snap.light.color.x, snap.light.color.y, snap.light.color.z, 0.0f);
+    light_cb.camera_pos = Vec4(snap.camera.pos.x, snap.camera.pos.y, snap.camera.pos.z, 1.0f);
+    light_cb.light_view_proj = Transpose(snap.light.lvp);
+    
+    const bool has_light = context.cb_allocator->Allocate(sizeof(light_cb), &light_alloc);
+    if (has_light)
+    {
+        memcpy(light_alloc.cpu, &light_cb, sizeof(light_cb));
+        context.light_cb_address = light_alloc.gpu;
+    }
+    
 }

@@ -119,20 +119,39 @@ void SpriteRenderer::Collect(FrameSnap& write_snap)
         command.color = component->color;
         command.src_rect = component->src_rect;
         command.use_texture = component->texture != nullptr;
+        const uint32 command_index = static_cast<uint32>(
+            write_snap.sprite_commands.size());
         write_snap.sprite_commands.push_back(command);
+
+        SceneDrawItem item = {};
+        item.type = DrawType::kSprite;
+        item.draw_order = component->sort_key;
+        item.command_index = command_index;
+
+        write_snap.draw_items.push_back(item);
     }
 
-    write_snap.sprite_commands.insert(write_snap.sprite_commands.end(), immediate_commands_.begin(),
-                                      immediate_commands_.end());
+    for (const SpriteDrawCommand& command : immediate_commands_)
+    {
+        const uint32 command_index =
+            static_cast<uint32>(
+                write_snap.sprite_commands.size());
+
+        write_snap.sprite_commands.push_back(command);
+
+        SceneDrawItem item = {};
+        item.type = DrawType::kSprite;
+        item.draw_order =
+            static_cast<int>(command.sort_key);
+        item.command_index = command_index;
+
+        write_snap.draw_items.push_back(item);
+    }
+
     immediate_commands_.clear();
-    std::ranges::sort(write_snap.sprite_commands,
-                      [](const SpriteDrawCommand& a, const SpriteDrawCommand& b)
-                      {
-                          return a.sort_key < b.sort_key;
-                      });
 }
 
-void SpriteRenderer::Submit(RenderContext& context, const FrameSnap& read_snap)
+void SpriteRenderer::Submit(const RenderContext& context, const SpriteDrawCommand& command, const CameraSnap& cam)
 {
     context.command_list->SetGraphicsRootSignature(root_signature_->GetRootSignature());
     context.command_list->SetPipelineState(pipeline_state_->GetPipelineState());
@@ -146,17 +165,15 @@ void SpriteRenderer::Submit(RenderContext& context, const FrameSnap& read_snap)
     ID3D12DescriptorHeap* heaps[] = {context.srv_heap->GetHeap()};
     context.command_list->SetDescriptorHeaps(1, heaps);
 
-    for (const SpriteDrawCommand& command : read_snap.sprite_commands)
-    {
-        SubmitCommand(context, command, read_snap);
-    }
+    SubmitCommand(context, command, cam);
 }
 
-void SpriteRenderer::SubmitCommand(RenderContext& context, const SpriteDrawCommand& command,const FrameSnap& read_snap)
+void SpriteRenderer::SubmitCommand(const RenderContext& context, const SpriteDrawCommand& command,
+                                   const CameraSnap& cam)
 {
     SpriteWorldCBData cb_data = {};
     const Mat world = Scale(Vec3(command.size.x, command.size.y, 1.0f)) * command.world;
-    cb_data.wvp = Transpose(read_snap.camera.view * read_snap.camera.projection);
+    cb_data.wvp = Transpose(world * cam.view * cam.projection);
     cb_data.color = command.color;
     cb_data.src_rect = command.src_rect;
     cb_data.options = Vec4(command.use_texture ? 1.0f : 0.0f, 0.0f, 0.0f, 0.0f);

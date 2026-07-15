@@ -139,7 +139,7 @@ void UIRenderer::Collect(FrameSnap& write_snap)
                   });
 }
 
-void UIRenderer::Submit(RenderContext& context, const FrameSnap& read_snap)
+void UIRenderer::Submit(const RenderContext& context, const std::vector<SpriteDrawCommand>& read_commands)
 {
     context.command_list->SetGraphicsRootSignature(root_signature_->GetRootSignature());
     context.command_list->SetPipelineState(pipeline_state_->GetPipelineState());
@@ -153,15 +153,15 @@ void UIRenderer::Submit(RenderContext& context, const FrameSnap& read_snap)
     ID3D12DescriptorHeap* heaps[] = {context.srv_heap->GetHeap()};
     context.command_list->SetDescriptorHeaps(1, heaps);
 
-    for (const SpriteDrawCommand& command : read_snap.ui_commands)
+    for (const SpriteDrawCommand& command : read_commands)
     {
         SubmitCommand(context, command);
     }
 }
 
-void UIRenderer::SubmitCommand(RenderContext& context, const SpriteDrawCommand& command)
+void UIRenderer::SubmitCommand(const RenderContext& context, const SpriteDrawCommand& command)
 {
-    struct UISpriteCBData cb_data = {};
+    UISpriteCBData cb_data = {};
     cb_data.sprite_pos = command.position;
     cb_data.sprite_size = command.size;
     cb_data.color = command.color;

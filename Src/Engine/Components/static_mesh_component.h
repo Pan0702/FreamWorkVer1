@@ -1,4 +1,6 @@
 #pragma once
+#include <cstdint>
+
 #include "../component.h"
 
 class MaterialSlot;
@@ -51,6 +53,8 @@ public:
      * @return マテリアルスロット。見つからない、または未作成の場合は nullptr。
      */
     MaterialSlot* GetMaterialSlot() const;
+    
+    int sort_key = 0;
 
 private:
     Mesh* mesh_ = nullptr;

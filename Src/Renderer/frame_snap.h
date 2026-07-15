@@ -17,6 +17,24 @@ struct LightSnap
     Mat lvp;
 };
 
+enum class DrawType
+{
+    kMesh,
+    kSkinnedMesh,
+    kSprite,
+    kUI,
+    kDebugLine,
+    kDebugTriangle,
+};
+
+struct SceneDrawItem
+{
+    DrawType type;
+    int draw_order;
+    uint32 command_index;
+    uint64 sequence;
+};
+
 struct FrameSnap
 {
     std::vector<MeshDrawCommand>    mesh_commands;    
@@ -25,6 +43,9 @@ struct FrameSnap
     std::vector<SpriteDrawCommand>  ui_commands;
     std::vector<DebugLineVertex> debug_lines;     
     std::vector<DebugLineVertex> debug_triangles; 
+    
+    std::vector<SceneDrawItem> draw_items;
+    
     CameraSnap camera;
     LightSnap light;
     ImDrawData* imgui_draw_data = nullptr;

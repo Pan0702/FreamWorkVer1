@@ -112,23 +112,25 @@ void SkinnedMeshRenderer::Collect(FrameSnap& write_snap)
         SkinnedDrawCommand command = {};
         command.mesh = component->GetSkeletalMesh();
         command.material_slot = component->GetMaterialSlot();
+        command.sort_key = component->sort_key;
         command.world = world;
         command.bone_palette = bone_palette;
+        const uint32 command_index = static_cast<uint32>(
+            write_snap.skinned_commands.size());
         write_snap.skinned_commands.push_back(command);
+
+        SceneDrawItem item = {};
+        item.type = DrawType::kSkinnedMesh;
+        item.draw_order = component->sort_key;
+        item.command_index = command_index;
+
+        write_snap.draw_items.push_back(item);
     }
-    std::ranges::sort(write_snap.skinned_commands,
-                      [](const SkinnedDrawCommand& a, const SkinnedDrawCommand& b)
-                      {
-                          return a.material_slot < b.material_slot;
-                      });
 }
 
-void SkinnedMeshRenderer::Submit(RenderContext& context, const FrameSnap& read_snap) const
+void SkinnedMeshRenderer::Submit(RenderContext& context, const SkinnedDrawCommand& command,
+                                 const CameraSnap& cam) const
 {
-    if (read_snap.skinned_commands.empty())
-    {
-        return;
-    }
     auto command_list = context.command_list;
     command_list->SetGraphicsRootSignature(root_signature_->GetRootSignature());
     command_list->SetPipelineState(pipeline_state_->GetPipelineState());
@@ -137,107 +139,93 @@ void SkinnedMeshRenderer::Submit(RenderContext& context, const FrameSnap& read_s
     command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
     auto cb_allocator = context.cb_allocator;
-    //Light
-    CB::LightCB light = {};
-    light.light_pos = Vec4(read_snap.light.pos);
-    light.light_color = Vec4(read_snap.light.color, 0.0f);
-    light.camera_pos = Vec4(read_snap.camera.pos, 1.0f);
-    light.light_view_proj = Transpose(read_snap.light.lvp);
-    ConstantBufferAllocation light_alloc = {};
-    bool has_light = cb_allocator->Allocate(sizeof(light), &light_alloc);
-    if (has_light)
+
+
+    //b0
+    CB::MeshObjectCB obj = {};
+    obj.world = Transpose(command.world);
+    obj.wvp = Transpose(command.world * cam.view * cam.projection);
+    ConstantBufferAllocation obj_alloc = {};
+    if (!cb_allocator->Allocate(sizeof(obj), &obj_alloc))
     {
-        memcpy(light_alloc.cpu, &light, sizeof(light));
+        return;
     }
+    memcpy(obj_alloc.cpu, &obj, sizeof(obj));
 
-    for (const SkinnedDrawCommand& command : read_snap.skinned_commands)
+    //b1 
+    CB::BoneCB bone = {};
+    for (int i = 0; i < kMaxBones; ++i)
     {
-        //b0
-        CB::MeshObjectCB obj = {};
-        obj.world = Transpose(command.world);
-        obj.wvp = Transpose(command.world *read_snap.camera.view * read_snap.camera.projection);
-        ConstantBufferAllocation obj_alloc = {};
-        if (!cb_allocator->Allocate(sizeof(obj), &obj_alloc))
+        bone.bones[i] = Identity();
+    }
+    if (!command.bone_palette.empty())
+    {
+        const int bone_count = static_cast<int>(std::min(command.bone_palette.size(),
+                                                         static_cast<size_t>(kMaxBones)));
+        for (int i = 0; i < bone_count; ++i)
+        {
+            bone.bones[i] = Transpose((command.bone_palette)[static_cast<size_t>(i)]);
+        }
+    }
+    ConstantBufferAllocation bone_alloc = {};
+    if (!cb_allocator->Allocate(sizeof(bone), &bone_alloc))
+    {
+        return;
+    }
+    memcpy(bone_alloc.cpu, &bone, sizeof(bone));
+    // b0
+    command_list->SetGraphicsRootConstantBufferView(0, obj_alloc.gpu);
+    // b1 vs
+    command_list->SetGraphicsRootConstantBufferView(1, bone_alloc.gpu);
+    if (context.light_cb_address != 0)
+    {
+        //b1 ps
+        command_list->SetGraphicsRootConstantBufferView(2, context.light_cb_address);
+    }
+    D3D12_VERTEX_BUFFER_VIEW vbv = command.mesh->GetVertexBufferView();
+    command_list->IASetVertexBuffers(0, 1, &vbv);
+    D3D12_INDEX_BUFFER_VIEW ibv = command.mesh->GetIndexBufferView();
+    command_list->IASetIndexBuffer(&ibv);
+
+    for (const SubMesh& sub : command.mesh->GetSubMeshes())
+    {
+        Material* mat = command.material_slot->GetMaterial(sub.material_slot);
+        if (!mat)
         {
             continue;
         }
-        memcpy(obj_alloc.cpu, &obj, sizeof(obj));
+        const uint32 diff = (mat->GetDiffuse() ? mat->GetDiffuse()->GetSrvIndex() : 0);
+        const uint32 norm = (mat->GetNormal() ? mat->GetNormal()->GetSrvIndex() : 0);
+        const uint32 specular = (mat->GetSpecular() ? mat->GetSpecular()->GetSrvIndex() : 0);
+        const uint32 height = (mat->GetHeight() ? mat->GetHeight()->GetSrvIndex() : 0);
 
-        //b1 
-        CB::BoneCB bone = {};
-        for (int i = 0; i < kMaxBones; ++i)
-        {
-            bone.bones[i] = Identity();
-        }
-        if (!command.bone_palette.empty())
-        {
-            const int bone_count = static_cast<int>(std::min(command.bone_palette.size(),
-                                                             static_cast<size_t>(kMaxBones)));
-            for (int i = 0; i < bone_count; ++i)
-            {
-                bone.bones[i] = Transpose((command.bone_palette)[static_cast<size_t>(i)]);
-            }
-        }
-        ConstantBufferAllocation bone_alloc = {};
-        if (!cb_allocator->Allocate(sizeof(bone), &bone_alloc))
-        {
-            continue;
-        }
-        memcpy(bone_alloc.cpu, &bone, sizeof(bone));
-        // b0
-        command_list->SetGraphicsRootConstantBufferView(0, obj_alloc.gpu);
-        // b1 vs
-        command_list->SetGraphicsRootConstantBufferView(1, bone_alloc.gpu);
-        if (has_light)
-        {
-            //b1 ps
-            command_list->SetGraphicsRootConstantBufferView(2, light_alloc.gpu);
-        }
-        D3D12_VERTEX_BUFFER_VIEW vbv = command.mesh->GetVertexBufferView();
-        command_list->IASetVertexBuffers(0, 1, &vbv);
-        D3D12_INDEX_BUFFER_VIEW ibv = command.mesh->GetIndexBufferView();
-        command_list->IASetIndexBuffer(&ibv);
+        command_list->SetGraphicsRootDescriptorTable(4, context.srv_heap->GetGpuHandle(diff));
+        command_list->SetGraphicsRootDescriptorTable(5, context.srv_heap->GetGpuHandle(norm));
+        command_list->SetGraphicsRootDescriptorTable(6, context.srv_heap->GetGpuHandle(context.shadow_srv_index));
+        command_list->SetGraphicsRootDescriptorTable(
+            7, context.srv_heap->GetGpuHandle(context.irradiance_srv_index));
+        command_list->SetGraphicsRootDescriptorTable(8, context.srv_heap->GetGpuHandle(specular));
+        command_list->SetGraphicsRootDescriptorTable(9, context.srv_heap->GetGpuHandle(height));
 
-        for (const SubMesh& sub : command.mesh->GetSubMeshes())
+        // b2
+        CB::MaterialCB mat_cb = {};
+        mat_cb.base_color = mat->GetBaseColor();
+        mat_cb.metallic = mat->GetMetallic();
+        mat_cb.roughness = mat->GetRoughness();
+        mat_cb.flag = mat->GetHasFlag();
+        mat_cb.height_scale = mat->GetHeightScale();
+
+        ConstantBufferAllocation mat_alloc = {};
+        if (cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
         {
-            Material* mat = command.material_slot->GetMaterial(sub.material_slot);
-            if (!mat)
-            {
-                continue;
-            }
-            const uint32 diff = (mat->GetDiffuse() ? mat->GetDiffuse()->GetSrvIndex() : 0);
-            const uint32 norm = (mat->GetNormal() ? mat->GetNormal()->GetSrvIndex() : 0);
-            const uint32 specular = (mat->GetSpecular() ? mat->GetSpecular()->GetSrvIndex() : 0);
-            const uint32 height = (mat->GetHeight() ? mat->GetHeight()->GetSrvIndex() : 0);
-
-            command_list->SetGraphicsRootDescriptorTable(4, context.srv_heap->GetGpuHandle(diff));
-            command_list->SetGraphicsRootDescriptorTable(5, context.srv_heap->GetGpuHandle(norm));
-            command_list->SetGraphicsRootDescriptorTable(6, context.srv_heap->GetGpuHandle(context.shadow_srv_index));
-            command_list->SetGraphicsRootDescriptorTable(
-                7, context.srv_heap->GetGpuHandle(context.irradiance_srv_index));
-            command_list->SetGraphicsRootDescriptorTable(8, context.srv_heap->GetGpuHandle(specular));
-            command_list->SetGraphicsRootDescriptorTable(9, context.srv_heap->GetGpuHandle(height));
-
-            // b2
-            CB::MaterialCB mat_cb = {};
-            mat_cb.base_color = mat->GetBaseColor();
-            mat_cb.metallic = mat->GetMetallic();
-            mat_cb.roughness = mat->GetRoughness();
-            mat_cb.flag = mat->GetHasFlag();
-            mat_cb.height_scale = mat->GetHeightScale();
-
-            ConstantBufferAllocation mat_alloc = {};
-            if (cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
-            {
-                memcpy(mat_alloc.cpu, &mat_cb, sizeof(mat_cb));
-                command_list->SetGraphicsRootConstantBufferView(3, mat_alloc.gpu);
-                command_list->DrawIndexedInstanced(sub.index_count, 1, sub.index_start, 0, 0);
-            }
+            memcpy(mat_alloc.cpu, &mat_cb, sizeof(mat_cb));
+            command_list->SetGraphicsRootConstantBufferView(3, mat_alloc.gpu);
+            command_list->DrawIndexedInstanced(sub.index_count, 1, sub.index_start, 0, 0);
         }
     }
 }
 
-void SkinnedMeshRenderer::SubmitDepth( RenderContext& context, const FrameSnap& read_snap) const
+void SkinnedMeshRenderer::SubmitDepth(RenderContext& context, const FrameSnap& read_snap) const
 {
     if (read_snap.skinned_commands.empty())
     {
