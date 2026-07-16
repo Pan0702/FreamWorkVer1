@@ -21,7 +21,7 @@ float PlayerCamera::GetYaw() const
 void PlayerCamera::Begin()
 {
     player_ = GetWorld()->FindActor<Player>();
-    
+    camera_ = &game_main->GetCamera();
     Actor::Begin();
 }
 
