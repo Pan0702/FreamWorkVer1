@@ -15,6 +15,8 @@ namespace LevelName
     inline constexpr std::string_view kTest = "Test";
     inline constexpr std::string_view kTitle = "Title";
     inline constexpr std::string_view kSelect = "Select";
+    inline constexpr std::string_view kTest2 = "Test2";
+    inline constexpr std::string_view kTest3 = "Test3";
 }
 
 /**

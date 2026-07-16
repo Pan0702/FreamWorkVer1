@@ -25,7 +25,7 @@ void InstancedStaticMeshComponent::OnDetach()
     }
 }
 
-int32_t InstancedStaticMeshComponent::AddInstance(const Mat& transform)
+InstancedID InstancedStaticMeshComponent::AddInstance(const Mat& transform)
 {
     const InstancedID id = next_id_++;
     InstanceData instanced = {};

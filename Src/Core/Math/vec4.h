@@ -2,6 +2,7 @@
 #include <cmath>
 #include <DirectXMath.h>
 #include <windows.h>
+#include "vec3.h"
 using namespace DirectX;
 
 /**

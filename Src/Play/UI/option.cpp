@@ -69,6 +69,15 @@ void Option::OnDetach() const
 
 void Option::Tick(float dt)
 {
+    if (game_main->GetInput().CheckKey(InputKey::kNum2, KeyState::kPressed))
+    {
+        game_main->GetGameInstance().GetLevelManager().OpenLevel(LevelName::kTest2);
+    }
+    if (game_main->GetInput().CheckKey(InputKey::kNum1, KeyState::kPressed))
+    {
+        game_main->GetGameInstance().GetLevelManager().OpenLevel(LevelName::kTest3);
+    }
+    
     if (game_main->GetInput().CheckKey(InputKey::kEsc, KeyState::kPressed))
     {
         AudioManager::GetInstance().Play(Sound::kOption);
