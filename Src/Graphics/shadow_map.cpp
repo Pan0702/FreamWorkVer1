@@ -55,7 +55,7 @@ bool ShadowMap::Create()
     //Shadowマップ用のＤＳＶを作成
     //最初の用とはシャドウパスで深度書き込みなのでDEPTH_WRITE状態で作成する。
     HRESULT hr = device_->CreateCommittedResource(&heap_properties, D3D12_HEAP_FLAG_NONE, &resource_desc,
-                                                 D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE, &clear_value, IID_PPV_ARGS(&texture_));
+                                                 D3D12_RESOURCE_STATE_DEPTH_WRITE, &clear_value, IID_PPV_ARGS(&texture_));
     if (FAILED(hr))
     {
         return false;

@@ -151,12 +151,13 @@ void SceneRenderer::AllCollect(Camera& c)
     snap.light.pos = Vec3(0.3f, -1.0f, 0.5f).Normalized();
     snap.light.color = Vec3(3.0f, 3.0f, 3.0f);
 
-    const Vec3 eye = Vec3(0, 0, 0) - snap.light.pos * kShadowLightViewDistance;
-    const Mat light_view = LookAtLH(eye, Vec3(0, 0, 0), Vec3(0, 1, 0));
+    const Vec3 shadow_center = snap.camera.pos;
+    const Vec3 eye = shadow_center - snap.light.pos * kShadowLightViewDistance;
+    const Mat light_view = LookAtLH(eye,shadow_center,Vec3(0,1,0));
     // 平行光の影なので Perspective ではなく Orthographicを使う。
     // 幅・高さはシャドウを描きたい範囲に合わせて調整する。
-    const Mat light_proj = OrthographicLH(kShadowOrthoWidth, kShadowOrthoHeight, kShadowNearZ, kShadowFarZ);
-    snap.light.lvp = light_view * light_proj;
+    const Mat light_proj = OrthographicLH(kShadowOrthoWidth, kShadowOrthoHeight, kShadowNearZ, kShadowFarZ); 
+        snap.light.lvp = light_view * light_proj;
 
     mesh_renderer_->Collect(snap);
     instanced_mesh_renderer_->Collect(snap);
