@@ -29,10 +29,20 @@ RootSignatureBuilder& RootSignatureBuilder::AddSrvTable(UINT shader_register, UI
     return *this;
 }
 
+RootSignatureBuilder& RootSignatureBuilder::AddSrv(UINT shader_register, D3D12_SHADER_VISIBILITY visivility)
+{
+    RootParameterSpec spec = {};
+    spec.type = RootParameterType::kSrv;
+    spec.shader_register = shader_register;
+    spec.visibility = visivility;
+    parameter_specs_.push_back(spec);
+    return *this;
+}
+
 RootSignatureBuilder& RootSignatureBuilder::AddStaticSampler(UINT shader_register, D3D12_SHADER_VISIBILITY visibility,
                                                              D3D12_TEXTURE_ADDRESS_MODE address_mode)
 {
-    D3D12_STATIC_SAMPLER_DESC sampler = {};
+    D3D12_STATIC_SAMPLER_DESC sampler;
     sampler.Filter = D3D12_FILTER_MIN_MAG_MIP_LINEAR;
     sampler.AddressU = address_mode;
     sampler.AddressV = address_mode;
@@ -51,7 +61,7 @@ RootSignatureBuilder& RootSignatureBuilder::AddStaticSampler(UINT shader_registe
 }
 
 RootSignatureBuilder& RootSignatureBuilder::AddComparisonSampler(UINT shader_register,
-    D3D12_SHADER_VISIBILITY visibility)
+                                                                 D3D12_SHADER_VISIBILITY visibility)
 {
     D3D12_STATIC_SAMPLER_DESC sampler = {};
     sampler.Filter = D3D12_FILTER_COMPARISON_MIN_MAG_MIP_LINEAR;
@@ -68,7 +78,7 @@ RootSignatureBuilder& RootSignatureBuilder::AddComparisonSampler(UINT shader_reg
     sampler.RegisterSpace = 0;
     sampler.ShaderVisibility = visibility;
     static_samplers_.push_back(sampler);
-    return *this;   
+    return *this;
 }
 
 bool RootSignatureBuilder::Build(ID3D12Device* device, RootSignature* out_root_signature) const
@@ -123,6 +133,12 @@ bool RootSignatureBuilder::Build(ID3D12Device* device, RootSignature* out_root_s
             root_parameter.ShaderVisibility = spec.visibility;
 
             ++srv_table_index;
+            break;
+        case RootParameterType::kSrv:
+            root_parameter.ParameterType = D3D12_ROOT_PARAMETER_TYPE_SRV;
+            root_parameter.Descriptor.ShaderRegister = spec.shader_register;
+            root_parameter.Descriptor.RegisterSpace = 0;
+            root_parameter.ShaderVisibility = spec.visibility;
             break;
         }
 

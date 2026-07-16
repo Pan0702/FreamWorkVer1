@@ -28,19 +28,17 @@ public:
     /**
      * @brief 内部で使用するリソースを作成する。
      * @param device 使用する D3D12 デバイス。
-     * @param vs_path 頂点シェーダーファイルのパス。
      * @param ps_path ピクセルシェーダーファイルのパス。
-     * @param input_layout 頂点入力レイアウト。
      * @return 対象リソースの作成が完了した場合は true。
      */
-    bool Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_t* ps_path,
-                std::span<const D3D12_INPUT_ELEMENT_DESC> input_layout);
+    bool Create(ID3D12Device* device, const wchar_t* ps_path);
     /**
      * @brief マテリアルに必要な GPU 状態とテクスチャを設定する。
      * @param command_list 描画コマンドを書き込むコマンドリスト。
      * @param descriptor_heap SRV/CBV/UAV などを保持するディスクリプタヒープ。
      */
     void Apply(ID3D12GraphicsCommandList* command_list, const DescriptorHeap* descriptor_heap) const;
+    void ApplyInstanced(ID3D12GraphicsCommandList* command, DescriptorHeap* heap) const;
     /**
      * @brief 指定された値を内部状態に反映する。
      * @param diffuse ディフューズテクスチャ。
@@ -128,10 +126,16 @@ public:
      */
     uint32 GetHasFlag() const;
 private:
+    bool CreateMeshPipelineState(ID3D12Device* device, const wchar_t* path, std::span<const D3D12_INPUT_ELEMENT_DESC> input_layout);
+    bool CreateInstancedMeshPipelineState(ID3D12Device* device, const wchar_t* path, std::span<const D3D12_INPUT_ELEMENT_DESC> input_element);
+    void BindResources(ID3D12GraphicsCommandList* command_list, const DescriptorHeap* descriptor_heap) const;
+    
     std::unique_ptr<Shader> vertex_shader_;
     std::unique_ptr<Shader> pixel_shader_;
+    std::unique_ptr<Shader> instanced_vertex_shader_;
     std::unique_ptr<RootSignature> root_signature_;
     std::unique_ptr<PipelineState> pipeline_state_;
+    std::unique_ptr<PipelineState> instanced_pipeline_state_;
     Texture2D* diffuse_ = nullptr;
     Texture2D* normal_ = nullptr;
     Texture2D* specular_ = nullptr;

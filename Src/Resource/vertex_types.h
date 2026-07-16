@@ -2,8 +2,6 @@
 #include "../Core/common.h"
 
 
-
-
 /**
  * @brief 静的メッシュ用の頂点1つを保持する。
  */
@@ -45,9 +43,6 @@ static const D3D12_INPUT_ELEMENT_DESC kStaticVertexLayout[] =
     },
 };
 
-
-
-
 /**
  * @brief スプライト用の頂点1つを保持する。
  */
@@ -71,8 +66,6 @@ static constexpr D3D12_INPUT_ELEMENT_DESC kSpriteVertexLayout[] = {
 };
 
 
-
-
 /**
  * @brief 色付きデバッグライン用の頂点1つを保持する。
  */
@@ -92,8 +85,6 @@ static constexpr D3D12_INPUT_ELEMENT_DESC kDebugLineLayout[] = {
         D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
     },
 };
-
-
 
 
 /**
@@ -133,30 +124,33 @@ static constexpr D3D12_INPUT_ELEMENT_DESC kSkinnedVertexLayout[] = {
     },
     {
         "BINORMAL", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0,
-        offsetof(SkinnedVertex,bitangent), 
+        offsetof(SkinnedVertex, bitangent),
         D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
     },
     {
-    "BLENDINDICES",0,DXGI_FORMAT_R32G32B32A32_UINT,0,
-    offsetof(SkinnedVertex,bone_ids),
+        "BLENDINDICES", 0, DXGI_FORMAT_R32G32B32A32_UINT, 0,
+        offsetof(SkinnedVertex, bone_ids),
         D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA
     },
     {
-        "BLENDWEIGHT",0,DXGI_FORMAT_R32G32B32A32_FLOAT,0,
-        offsetof(SkinnedVertex,bone_weights),
+        "BLENDWEIGHT", 0, DXGI_FORMAT_R32G32B32A32_FLOAT, 0,
+        offsetof(SkinnedVertex, bone_weights),
         D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA
     }
 };
 
 
-
-
 static constexpr D3D12_INPUT_ELEMENT_DESC kSkyLayout[] = {
-    { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
-      D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 },
+    {
+        "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0,
+        D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0
+    },
 };
 
 /**
  * @brief 空メッシュ用の位置情報のみを持つ頂点1つを保持する。
  */
-struct SkyVertex { float position[3]; };
+struct SkyVertex
+{
+    float position[3];
+};

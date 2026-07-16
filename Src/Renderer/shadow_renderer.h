@@ -1,5 +1,6 @@
 #pragma once
 #include "frame_snap.h"
+#include "instanced_mesh_renderer.h"
 #include "render_context.h"
 #include "../Graphics/command_list.h"
 #include "../Graphics/shadow_map.h"
@@ -30,10 +31,11 @@ public:
      * @param context 共通Context
      * @param mesh 深度描画するレンダラー
      * @param skinned 深度描画するスキンメッシュレンダラー
+     * @param instance
      * @param frame
      */
-    void RenderShadowPass( RenderContext& context, MeshRenderer* mesh,
-                          SkinnedMeshRenderer* skinned, FrameSnap& frame);
+    void RenderShadowPass(RenderContext& context, const MeshRenderer* mesh,
+                          const SkinnedMeshRenderer* skinned, const InstancedMeshRenderer* instance, const FrameSnap& frame) const;
 
     /**
      * @brief 作成したシャドウマップのSRVインデックスを取得する。
@@ -51,6 +53,11 @@ private:
     std::unique_ptr<RootSignature> shadow_sk_root_signature_;
     std::unique_ptr<Shader> shadow_sk_vs_;
     std::unique_ptr<PipelineState> shadow_sk_pso_;
+    
+    // instancedmesh用の深度描画パイプライン
+    std::unique_ptr<RootSignature> shadow_instanced_root_signature_;
+    std::unique_ptr<Shader> shadow_instanced_vs_;
+    std::unique_ptr<PipelineState> shadow_instanced_pso_;
 
     // スキンメッシュ用の深度描画パイプライン。
     ShadowMap shadow_map_;

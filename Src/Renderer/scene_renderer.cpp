@@ -5,6 +5,7 @@
 #include "cb_file.h"
 #include "debug_line_renderer.h"
 #include "ibl_baker.h"
+#include "instanced_mesh_renderer.h"
 #include "../Engine/camera.h"
 #include "../Engine/world.h"
 #include "../Graphics/command_list.h"
@@ -81,10 +82,15 @@ bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQue
         return false;
     }
 
+    instanced_mesh_renderer_ = std::make_unique<InstancedMeshRenderer>();
+    if (!instanced_mesh_renderer_->Initialize(device))
+    {
+        return false;
+    }
     return imgui_manager_.Initialize(hwnd, device, command_queue, static_cast<int>(frame_count));
 }
 
-void SceneRenderer::Render(RendererData& renderer_data)
+void SceneRenderer::Render(const RendererData& renderer_data)
 {
     const int index = 1 - write_index_;
     RenderContext context = {};
@@ -93,21 +99,21 @@ void SceneRenderer::Render(RendererData& renderer_data)
     context.cb_allocator = renderer_data.cb_allocator;
     context.screen_size = Vec2(static_cast<float>(renderer_data.window->GetWidth()),
                                static_cast<float>(renderer_data.window->GetHeight()));
-    
+
 
     context.irradiance_srv_index = irradiance_texture_->GetSrvIndex();
 
     auto& s = frame_snaps_[index];
     //影はバックバッファに書くため、メインバッファに書き込む前に書き込む//
     shadow_renderer_->RenderShadowPass(context, mesh_renderer_.get(),
-                                       skinned_mesh_renderer_.get(), s);
+                                       skinned_mesh_renderer_.get(), instanced_mesh_renderer_.get(), s);
     context.shadow_srv_index = shadow_renderer_->GetShadowMapIndex();
 
     // ImGui::ShowDemoWindow();
     BeginRenderTarget(renderer_data);
-    PrepareLight(context,s);
+    PrepareLight(context, s);
     sky_renderer_->Render(context, s);
-    
+
     for (const auto& item : s.draw_items)
     {
         switch (item.type)
@@ -119,7 +125,10 @@ void SceneRenderer::Render(RendererData& renderer_data)
             mesh_renderer_->Submit(context, s.mesh_commands[item.command_index], s.camera);
             break;
         case DrawType::kSkinnedMesh:
-            skinned_mesh_renderer_->Submit(context, s.skinned_commands[item.command_index],s.camera);
+            skinned_mesh_renderer_->Submit(context, s.skinned_commands[item.command_index], s.camera);
+            break;
+        case DrawType::kInstancedMesh:
+            instanced_mesh_renderer_->Submit(context, s.instanced_mesh_commands[item.command_index], s);
             break;
         default:
             break;
@@ -150,10 +159,12 @@ void SceneRenderer::AllCollect(Camera& c)
     snap.light.lvp = light_view * light_proj;
 
     mesh_renderer_->Collect(snap);
+    instanced_mesh_renderer_->Collect(snap);
     debug_renderer_->Collect(snap);
     sprite_renderer_->Collect(snap);
     skinned_mesh_renderer_->Collect(snap);
     ui_renderer_->Collect(snap);
+
 
     std::ranges::stable_sort(
         snap.draw_items, {}, &SceneDrawItem::draw_order);
@@ -205,6 +216,11 @@ SkinnedMeshRenderer* SceneRenderer::GetSkinnedMeshRenderer() const
 DebugLineRenderer* SceneRenderer::GetDebugLineRenderer() const
 {
     return debug_renderer_.get();
+}
+
+InstancedMeshRenderer* SceneRenderer::GetInstancedMeshRenderer() const
+{
+    return instanced_mesh_renderer_.get();
 }
 
 ImGuiManager& SceneRenderer::GetImGuiManager()
@@ -269,12 +285,11 @@ void SceneRenderer::PrepareLight(RenderContext& context, const FrameSnap& snap)
     light_cb.light_color = Vec4(snap.light.color.x, snap.light.color.y, snap.light.color.z, 0.0f);
     light_cb.camera_pos = Vec4(snap.camera.pos.x, snap.camera.pos.y, snap.camera.pos.z, 1.0f);
     light_cb.light_view_proj = Transpose(snap.light.lvp);
-    
+
     const bool has_light = context.cb_allocator->Allocate(sizeof(light_cb), &light_alloc);
     if (has_light)
     {
         memcpy(light_alloc.cpu, &light_cb, sizeof(light_cb));
         context.light_cb_address = light_alloc.gpu;
     }
-    
 }

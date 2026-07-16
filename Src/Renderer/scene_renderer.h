@@ -8,6 +8,7 @@
 #include "sprite_renderer.h"
 #include "ui_renderer.h"
 
+class InstancedMeshRenderer;
 class ShadowRenderer;
 class DebugLineRenderer;
 class Camera;
@@ -64,7 +65,7 @@ public:
      * @brief 現在の状態をもとに描画コマンドを積む。
      * @param renderer_data レンダラー初期化に使う共有データ。
      */
-    void Render(RendererData& renderer_data);
+    void Render(const RendererData& renderer_data);
     
     /**
      * @brief 各レンダラーから1フレーム分の描画コマンドを収集する。
@@ -105,13 +106,18 @@ public:
      * @return DebugLineRenderer。見つからない、または未作成の場合は nullptr。
      */
     DebugLineRenderer* GetDebugLineRenderer() const;
-
+    /**
+     * @brief InstancedMeshRendererを取得する。
+     * @return InstancedMeshRendererが見つからない、または未作成の場合はnullptr。
+     */
+    InstancedMeshRenderer* GetInstancedMeshRenderer() const;
     /**
      * @brief Im Gui Manager を取得する。
      * @return 保持している Im Gui Manager への参照。
      */
     ImGuiManager& GetImGuiManager();
 
+    
 private:
     /**
      * @brief 描画先をバックバッファと深度バッファへ切り替える。
@@ -134,6 +140,7 @@ private:
     std::unique_ptr<MeshRenderer> mesh_renderer_;
     std::unique_ptr<SpriteRenderer> sprite_renderer_;
     std::unique_ptr<UIRenderer> ui_renderer_;
+    std::unique_ptr<InstancedMeshRenderer> instanced_mesh_renderer_;
     std::unique_ptr<SkinnedMeshRenderer> skinned_mesh_renderer_;
     std::unique_ptr<DebugLineRenderer> debug_renderer_;
     std::unique_ptr<SkyRenderer> sky_renderer_;

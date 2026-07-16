@@ -61,4 +61,9 @@ namespace CB
     {
         Mat wvp;
     };
+    
+    struct InstacedCB
+    {
+        Mat vp;
+    };
 }

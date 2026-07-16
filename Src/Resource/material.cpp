@@ -13,8 +13,7 @@
 
 Material::Material()
 {
-    if (!Create(game_main->GetRenderSystem()->GetDevice(), L"Shaders/triangle.vs.hlsl", L"Shaders/triangle.ps.hlsl",
-                kStaticVertexLayout))
+    if (!Create(game_main->GetRenderSystem()->GetDevice(), L"Shaders/triangle.ps.hlsl"))
     {
         MessageBox(nullptr, L"Failed to create material", L"Error", MB_OK);
     }
@@ -22,8 +21,7 @@ Material::Material()
 
 Material::Material(const MeshMaterialDesc& desc)
 {
-    if (!Create(game_main->GetRenderSystem()->GetDevice(), L"Shaders/triangle.vs.hlsl", L"Shaders/triangle.ps.hlsl",
-                kStaticVertexLayout))
+    if (!Create(game_main->GetRenderSystem()->GetDevice(), L"Shaders/triangle.ps.hlsl"))
     {
         MessageBox(nullptr, L"Failed to create material", L"Error", MB_OK);
     }
@@ -85,8 +83,7 @@ Material::Material(const MeshMaterialDesc& desc)
     SetMetallic(desc.metallic);
 }
 
-bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_t* ps_path,
-                      std::span<const D3D12_INPUT_ELEMENT_DESC> input_layout)
+bool Material::Create(ID3D12Device* device, const wchar_t* ps_path)
 {
     base_color_ = Vec4(1.0f, 1.0f, 1.0f, 1.0f);
     root_signature_ = std::make_unique<RootSignature>();
@@ -101,18 +98,13 @@ bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_
         .AddSrvTable(3, 1, D3D12_SHADER_VISIBILITY_PIXEL) // t3 : irradiance
         .AddSrvTable(4, 1, D3D12_SHADER_VISIBILITY_PIXEL) // t4 : specular
         .AddSrvTable(5, 1, D3D12_SHADER_VISIBILITY_PIXEL) // t5 : height
+        .AddSrv(6, D3D12_SHADER_VISIBILITY_VERTEX)
         .AddStaticSampler(0, D3D12_SHADER_VISIBILITY_PIXEL, D3D12_TEXTURE_ADDRESS_MODE_WRAP)
         .AddComparisonSampler(1, D3D12_SHADER_VISIBILITY_PIXEL); // s1
 
     if (!builder.Build(device, root_signature_.get()))
     {
         MessageBox(nullptr, L"Failed to create root signature", L"Error", MB_OK);
-        return false;
-    }
-    vertex_shader_ = std::make_unique<Shader>();
-    if (!vertex_shader_->LoadFromFile(vs_path, "VSMain", "vs_5_0"))
-    {
-        MessageBox(nullptr, L"Failed to load vertex shader", L"Error", MB_OK);
         return false;
     }
 
@@ -123,12 +115,32 @@ bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_
         return false;
     }
 
+    if (!CreateMeshPipelineState(device, L"Shaders/triangle.vs.hlsl", kStaticVertexLayout))
+    {
+        MessageBox(nullptr, L"Failed to create pipeline state", L"Error", MB_OK);
+        return false;
+    }
+    if (!CreateInstancedMeshPipelineState(device, L"Shaders/instanced_mesh.vs.hlsl", kStaticVertexLayout))
+    {
+        MessageBox(nullptr, L"Failed to create pipeline state", L"Error", MB_OK);
+        return false;
+    }
+    return true;
+}
+
+bool Material::CreateMeshPipelineState(ID3D12Device* device, const wchar_t* path,
+                                       std::span<const D3D12_INPUT_ELEMENT_DESC> input_element)
+{
+    vertex_shader_ = std::make_unique<Shader>();
+    if (!vertex_shader_->LoadFromFile(path, "VSMain", "vs_5_0"))
+    {
+        MessageBox(nullptr, L"Failed to load vertex shader", L"Error", MB_OK);
+        return false;
+    }
     pipeline_state_ = std::make_unique<PipelineState>();
     D3D12_INPUT_LAYOUT_DESC layout_desc = {};
-    layout_desc.pInputElementDescs = input_layout.data();
-    layout_desc.NumElements =
-        static_cast<UINT>(input_layout.size());
-
+    layout_desc.pInputElementDescs = input_element.data();
+    layout_desc.NumElements = static_cast<UINT>(input_element.size());
     PipelineStateBuilder ps_builder;
     ps_builder
         .SetRootSignature(root_signature_->GetRootSignature())
@@ -145,16 +157,58 @@ bool Material::Create(ID3D12Device* device, const wchar_t* vs_path, const wchar_
     return true;
 }
 
+bool Material::CreateInstancedMeshPipelineState(ID3D12Device* device, const wchar_t* path,
+                                                std::span<const D3D12_INPUT_ELEMENT_DESC> input_element)
+{
+    instanced_vertex_shader_ = std::make_unique<Shader>();
+    if (!instanced_vertex_shader_->LoadFromFile(path, "VSMain", "vs_5_1"))
+    {
+        MessageBox(nullptr, L"Failed to load vertex shader", L"Error", MB_OK);
+        return false;
+    }
+
+    instanced_pipeline_state_ = std::make_unique<PipelineState>();
+
+    D3D12_INPUT_LAYOUT_DESC layout_desc = {};
+    layout_desc.pInputElementDescs = input_element.data();
+    layout_desc.NumElements = static_cast<UINT>(input_element.size());
+    PipelineStateBuilder ps_builder;
+    ps_builder
+        .SetRootSignature(root_signature_->GetRootSignature())
+        .SetVertexShader(instanced_vertex_shader_->GetBytecode())
+        .SetPixelShader(pixel_shader_->GetBytecode())
+        .SetInputLayout(layout_desc);
+
+    if (!ps_builder.Build(device, instanced_pipeline_state_.get()))
+    {
+        MessageBox(nullptr, L"Failed to create pipeline state", L"Error", MB_OK);
+        return false;
+    }
+    return true;
+}
+
 void Material::Apply(ID3D12GraphicsCommandList* command_list, const DescriptorHeap* descriptor_heap) const
 {
     command_list->SetGraphicsRootSignature(root_signature_->GetRootSignature());
     command_list->SetPipelineState(pipeline_state_->GetPipelineState());
+    BindResources(command_list, descriptor_heap);
+}
+
+void Material::ApplyInstanced(ID3D12GraphicsCommandList* command, DescriptorHeap* heap) const
+{
+    command->SetGraphicsRootSignature(root_signature_->GetRootSignature());
+    command->SetPipelineState(instanced_pipeline_state_->GetPipelineState());
+    BindResources(command, heap);
+}
+
+void Material::BindResources(ID3D12GraphicsCommandList* command_list, const DescriptorHeap* descriptor_heap) const
+{
     ID3D12DescriptorHeap* heaps[] = {descriptor_heap->GetHeap()};
     command_list->SetDescriptorHeaps(1, heaps);
-    
+
     const uint32_t srv_index = flag_ & kMatHasTexture ? diffuse_->GetSrvIndex() : 0;
     command_list->SetGraphicsRootDescriptorTable(3, descriptor_heap->GetGpuHandle(srv_index));
-    const uint32_t norm_index = flag_ & kMatHasNormalMap  ? normal_->GetSrvIndex() : 0;
+    const uint32_t norm_index = flag_ & kMatHasNormalMap ? normal_->GetSrvIndex() : 0;
     command_list->SetGraphicsRootDescriptorTable(4, descriptor_heap->GetGpuHandle(norm_index));
     const uint32_t spec_index = flag_ & kMatHasSpecular ? specular_->GetSrvIndex() : 0;
     command_list->SetGraphicsRootDescriptorTable(7, descriptor_heap->GetGpuHandle(spec_index));

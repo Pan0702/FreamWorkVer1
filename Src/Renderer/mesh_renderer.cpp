@@ -151,12 +151,13 @@ void MeshRenderer::Submit(RenderContext& context, const MeshDrawCommand& command
         }
 
         // 現在のサブメッシュを描画する。
-        context.command_list->DrawIndexedInstanced(sub.index_count, 1, sub.index_start, 0, 0);
+        context.command_list->DrawIndexedInstanced(sub.index_count, 1,
+                                                   sub.index_start, 0, 0);
     }
 }
 
 
-void MeshRenderer::SubmitDepth(RenderContext& context, const FrameSnap& read_snap)
+void MeshRenderer::SubmitDepth(const RenderContext& context, const FrameSnap& read_snap) const
 {
     context.command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     for (const MeshDrawCommand& command : read_snap.mesh_commands)
@@ -175,6 +176,7 @@ void MeshRenderer::SubmitDepth(RenderContext& context, const FrameSnap& read_sna
         D3D12_INDEX_BUFFER_VIEW ibv = command.mesh->GetIndexBufferView();
         context.command_list->IASetIndexBuffer(&ibv);
         context.command_list->SetGraphicsRootConstantBufferView(0, alloc.gpu);
-        context.command_list->DrawIndexedInstanced(command.mesh->GetIndexCount(), 1, 0, 0, 0);
+        context.command_list->DrawIndexedInstanced(command.mesh->GetIndexCount(), 1,
+                                                   0, 0, 0);
     }
 }

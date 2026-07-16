@@ -20,6 +20,7 @@ bool GameInstance::Initialize()
     attach_context.sprite_renderer = scene_renderer->GetSpriteRenderer();
     attach_context.ui_renderer = scene_renderer->GetUIRenderer();
     attach_context.skinned_mesh_renderer = scene_renderer->GetSkinnedMeshRenderer();
+    attach_context.instanced_mesh_renderer = scene_renderer->GetInstancedMeshRenderer();
     world_.SetAttachContext(attach_context);
     option_ = std::make_unique<Option>();
     option_->OnAttach(attach_context);

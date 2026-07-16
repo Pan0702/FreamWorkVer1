@@ -1,5 +1,6 @@
 #include "shadow_renderer.h"
 
+#include "instanced_mesh_renderer.h"
 #include "mesh_renderer.h"
 #include "skinned_mesh_renderer.h"
 #include "../Graphics/pipeline_state.h"
@@ -83,7 +84,42 @@ bool ShadowRenderer::Initialize(ID3D12Device* device, DescriptorHeap* srv_heap)
             return false;
         }
     }
-    
+    //instancedmesh
+    {
+        shadow_instanced_root_signature_ = std::make_unique<RootSignature>();
+        RootSignatureBuilder builder_instanced;
+        builder_instanced
+            .AddCbv(0, D3D12_SHADER_VISIBILITY_VERTEX)
+            .AddSrv(6, D3D12_SHADER_VISIBILITY_VERTEX);
+        if (!builder_instanced.Build(device, shadow_instanced_root_signature_.get()))
+        {
+            return false;
+        }
+        //シャドウマップはcolorを出力しないから深度専用VSを使う
+        shadow_instanced_vs_ = std::make_unique<Shader>();
+        if (!shadow_instanced_vs_->LoadFromFile(L"Shaders/shadow_instanced.vs.hlsl", "VSMain", "vs_5_1"))
+        {
+            return false;
+        }
+
+        //深度だけを書き込むPSOを作成する。
+        shadow_instanced_pso_ = std::make_unique<PipelineState>();
+        D3D12_INPUT_LAYOUT_DESC layout_desc = {};
+        layout_desc.pInputElementDescs = kStaticVertexLayout;
+        layout_desc.NumElements = _countof(kStaticVertexLayout);;
+        PipelineStateBuilder ps_builder;
+        ps_builder
+            .SetRootSignature(shadow_instanced_root_signature_->GetRootSignature())
+            .SetVertexShader(shadow_instanced_vs_->GetBytecode())
+            .SetInputLayout(layout_desc)
+            .SetNumRederTarget(0)
+            .SetDsvFormat(DXGI_FORMAT_D32_FLOAT)
+            .SetDepthBias(10000, 1.5f);
+        if (!ps_builder.Build(device, shadow_instanced_pso_.get()))
+        {
+            return false;
+        }
+    }
     //ライト視点の深度を書き込むShadowMapを作成する
     // ※2048は影の解像度で大きいと鮮明になるけど重くなる。
     constexpr uint32 kShadowMapSize = 2048;
@@ -94,8 +130,8 @@ bool ShadowRenderer::Initialize(ID3D12Device* device, DescriptorHeap* srv_heap)
     return true;
 }
 
-void ShadowRenderer::RenderShadowPass( RenderContext& context,  MeshRenderer* mesh,
-                                       SkinnedMeshRenderer* skinned,FrameSnap& frame) 
+void ShadowRenderer::RenderShadowPass( RenderContext& context, const MeshRenderer* mesh,
+                                       const SkinnedMeshRenderer* skinned, const InstancedMeshRenderer* instance, const FrameSnap& frame) const
 {
     auto* cmd = context.command_list;
     
@@ -137,6 +173,12 @@ void ShadowRenderer::RenderShadowPass( RenderContext& context,  MeshRenderer* me
         skinned->SubmitDepth(context, frame);
     }
 
+    cmd->SetGraphicsRootSignature(shadow_instanced_root_signature_->GetRootSignature());
+    cmd->SetPipelineState(shadow_instanced_pso_->GetPipelineState());
+    if (instance)
+    {
+        instance->SubmitDepth(context, frame);
+    }
     //描画のPSで影判定に使うためにSRVとして読める状態に戻す。
     D3D12_RESOURCE_BARRIER to_read = {};
     to_read.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;

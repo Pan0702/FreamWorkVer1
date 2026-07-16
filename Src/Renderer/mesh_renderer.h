@@ -51,12 +51,14 @@ public:
      */
     void Submit(RenderContext& context, const MeshDrawCommand& command, const CameraSnap& cam);
 
-
     /**
      * @brief 収集済みコマンドを GPU コマンドリストへ書き込む。
      * @param context 描画や登録に使う共有コンテキスト。
+     * @param read_snap
      */
-    void SubmitDepth( RenderContext& context, const FrameSnap& read_snap);
+    void SubmitDepth(const RenderContext& context, const FrameSnap& read_snap) const;
+
+
 private:
     std::vector<StaticMeshComponent*> registered_;
 

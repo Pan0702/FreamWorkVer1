@@ -49,4 +49,16 @@ struct SpriteDrawCommand
     bool use_texture = true;
     uint64_t sort_key = 0;
 };
+struct InstancedMeshDrawCommand
+{
+    Mesh* mesh = nullptr;
+    MaterialSlot* material_slot = nullptr;
+    uint32 instance_offset = 0;
+    uint32 instance_count = 0;
+    uint64 sort_key = 0;
+};
+struct GPUInstanceData
+{
+    Mat world;
+};
 

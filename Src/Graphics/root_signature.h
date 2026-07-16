@@ -44,6 +44,7 @@ public:
      */
     RootSignatureBuilder& AddSrvTable(UINT shader_register, UINT descriptor_count,
                                       D3D12_SHADER_VISIBILITY visibility);
+    RootSignatureBuilder& AddSrv(UINT shader_register, D3D12_SHADER_VISIBILITY visivility);
 
     /**
      * @brief RootSignature に静的サンプラを追加する。
@@ -78,6 +79,7 @@ private:
  */
     enum class RootParameterType {
         kCbv,
+        kSrv,
         kSrvTable,
     };
 

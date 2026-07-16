@@ -31,9 +31,7 @@ enum class DrawType
     kMesh,
     kSkinnedMesh,
     kSprite,
-    kUI,
-    kDebugLine,
-    kDebugTriangle,
+    kInstancedMesh,
 };
 
 /**
@@ -58,7 +56,8 @@ struct FrameSnap
     std::vector<SpriteDrawCommand>  ui_commands;
     std::vector<DebugLineVertex> debug_lines;     
     std::vector<DebugLineVertex> debug_triangles; 
-    
+    std::vector<GPUInstanceData> gpu_instances;  
+    std::vector<InstancedMeshDrawCommand> instanced_mesh_commands;
     std::vector<SceneDrawItem> draw_items;
     
     CameraSnap camera;
