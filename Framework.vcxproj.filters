@@ -1,0 +1,842 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Shaders">
+      <UniqueIdentifier>{68400090-5B49-4200-A88B-8B4415521B42}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src">
+      <UniqueIdentifier>{52C66982-2053-48AA-8D8B-AD5EAFE04D6E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Core">
+      <UniqueIdentifier>{CC26BA9C-CC0C-4755-814D-7FEB7AA69A6F}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Core\Math">
+      <UniqueIdentifier>{CBADD57F-7870-47BC-9A48-16BE7D7E4AC8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Debug">
+      <UniqueIdentifier>{D363B924-7156-4C3D-B57C-37575E79FEB7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Debug\ImGui">
+      <UniqueIdentifier>{09D70B26-3392-4651-B092-754CB0FBD204}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Engine">
+      <UniqueIdentifier>{229222E6-479A-4578-A3C3-3227EEFECCC3}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Engine\Components">
+      <UniqueIdentifier>{F5031A10-EB3E-4261-A5A4-E296D2C0C4D0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Engine\Transition">
+      <UniqueIdentifier>{F213B837-8098-444A-8DA7-C6735151ED9E}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Game">
+      <UniqueIdentifier>{E006AC83-EF3C-496C-8C6C-BD4C0EC644F7}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Game\test">
+      <UniqueIdentifier>{273FCBE3-EABE-41F6-B1D4-83210A85AF29}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Game\test\objects">
+      <UniqueIdentifier>{FB31A016-B64E-41E7-A55A-784A002FC9FF}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Graphics">
+      <UniqueIdentifier>{CB3A1E2B-B278-4FDB-A6C6-97DC6B413062}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Platform">
+      <UniqueIdentifier>{F55E4D48-5A4B-4B7A-BDAF-851BB181A0C9}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Play">
+      <UniqueIdentifier>{8358791C-6CEE-4868-A0B0-E6E80299D47B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Play\Objects">
+      <UniqueIdentifier>{A5805949-5735-4D93-B705-051B385865BB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Play\Player">
+      <UniqueIdentifier>{A20B5D87-73F2-41AB-9967-EF4CAD8EF4FB}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Play\Player\PlayerComponent">
+      <UniqueIdentifier>{D7878167-AC14-482F-ABF2-467A5C2E54F5}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Play\Stage">
+      <UniqueIdentifier>{026BF645-B97C-4D74-94AF-8C1BC404F326}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Play\UI">
+      <UniqueIdentifier>{1E0015F7-39C7-413A-9D01-1986A5734A9A}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Renderer">
+      <UniqueIdentifier>{1C67D4EA-8D17-4D5E-982A-C1FFB5D088E4}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Resource">
+      <UniqueIdentifier>{D0E66C6A-92A5-4182-914A-C7CBC1D0E959}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Select">
+      <UniqueIdentifier>{E6472E4D-812F-42C9-84ED-A19362C4270D}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Select\UI">
+      <UniqueIdentifier>{EDFA70F2-47DE-468E-890A-32B6AC872684}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Title">
+      <UniqueIdentifier>{8C6686D9-231D-4115-95A2-44B5B9633456}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Src\Title\UI">
+      <UniqueIdentifier>{03E3BF75-AE05-4690-9CFB-1154FAE05B8F}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="Src\Core\Math\intersect.cpp">
+      <Filter>Src\Core\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Core\Math\my_math.cpp">
+      <Filter>Src\Core\Math</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Debug\debug.cpp">
+      <Filter>Src\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Debug\debug_scene.cpp">
+      <Filter>Src\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Debug\ImGui\imgui.cpp">
+      <Filter>Src\Debug\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Debug\ImGui\imgui_demo.cpp">
+      <Filter>Src\Debug\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Debug\ImGui\imgui_draw.cpp">
+      <Filter>Src\Debug\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Debug\ImGui\imgui_impl_dx12.cpp">
+      <Filter>Src\Debug\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Debug\ImGui\imgui_impl_win32.cpp">
+      <Filter>Src\Debug\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Debug\ImGui\imgui_manager.cpp">
+      <Filter>Src\Debug\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Debug\ImGui\imgui_tables.cpp">
+      <Filter>Src\Debug\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Debug\ImGui\imgui_widgets.cpp">
+      <Filter>Src\Debug\ImGui</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Debug\parformance.cpp">
+      <Filter>Src\Debug</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\actor.cpp">
+      <Filter>Src\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\camera.cpp">
+      <Filter>Src\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\collision_world.cpp">
+      <Filter>Src\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\component.cpp">
+      <Filter>Src\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\Components\animation_component.cpp">
+      <Filter>Src\Engine\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\Components\box_collider_component.cpp">
+      <Filter>Src\Engine\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\Components\capsule_collider_comp.cpp">
+      <Filter>Src\Engine\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\Components\collider_component.cpp">
+      <Filter>Src\Engine\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\Components\instanced_static_mesh_component.cpp">
+      <Filter>Src\Engine\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\Components\mesh_collider_component.cpp">
+      <Filter>Src\Engine\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\Components\skeletal_mesh.cpp">
+      <Filter>Src\Engine\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\Components\sphere_collider_componet.cpp">
+      <Filter>Src\Engine\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\Components\sprite_component.cpp">
+      <Filter>Src\Engine\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\Components\static_mesh_component.cpp">
+      <Filter>Src\Engine\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\Components\transform_component.cpp">
+      <Filter>Src\Engine\Components</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\game_instance.cpp">
+      <Filter>Src\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\level_factory.cpp">
+      <Filter>Src\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\level_manager.cpp">
+      <Filter>Src\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\level_transition.cpp">
+      <Filter>Src\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\render_system.cpp">
+      <Filter>Src\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Engine\world.cpp">
+      <Filter>Src\Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Game\GameMain.cpp">
+      <Filter>Src\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Game\main.cpp">
+      <Filter>Src\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Game\test_level.cpp">
+      <Filter>Src\Game</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Game\test\objects\instance_trees.cpp">
+      <Filter>Src\Game\test\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Game\test\objects\plane.cpp">
+      <Filter>Src\Game\test\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Game\test\objects\tree.cpp">
+      <Filter>Src\Game\test\objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Game\test\test2.cpp">
+      <Filter>Src\Game\test</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Game\test\test3.cpp">
+      <Filter>Src\Game\test</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\command_list.cpp">
+      <Filter>Src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\command_queue.cpp">
+      <Filter>Src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\constant_buffer.cpp">
+      <Filter>Src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\constant_buffer_allocator.cpp">
+      <Filter>Src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\depth_stencil.cpp">
+      <Filter>Src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\descriptor_heap.cpp">
+      <Filter>Src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\graphics_device.cpp">
+      <Filter>Src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\index_buffer.cpp">
+      <Filter>Src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\pipeline_state.cpp">
+      <Filter>Src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\root_signature.cpp">
+      <Filter>Src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\shader.cpp">
+      <Filter>Src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\shadow_map.cpp">
+      <Filter>Src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\swap_chain.cpp">
+      <Filter>Src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Graphics\vertex_buffer.cpp">
+      <Filter>Src\Graphics</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Platform\input.cpp">
+      <Filter>Src\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Platform\window.cpp">
+      <Filter>Src\Platform</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\Objects\cube.cpp">
+      <Filter>Src\Play\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\Objects\fall_box.cpp">
+      <Filter>Src\Play\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\Objects\goal_flag.cpp">
+      <Filter>Src\Play\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\Objects\moving_cube.cpp">
+      <Filter>Src\Play\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\Objects\start_cube.cpp">
+      <Filter>Src\Play\Objects</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\Player\player.cpp">
+      <Filter>Src\Play\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\Player\player_camera.cpp">
+      <Filter>Src\Play\Player</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\Player\PlayerComponent\component_factor.cpp">
+      <Filter>Src\Play\Player\PlayerComponent</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\Player\PlayerComponent\jump.cpp">
+      <Filter>Src\Play\Player\PlayerComponent</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\Player\PlayerComponent\movement.cpp">
+      <Filter>Src\Play\Player\PlayerComponent</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\Stage\stage_1.cpp">
+      <Filter>Src\Play\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\Stage\stage_2.cpp">
+      <Filter>Src\Play\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\Stage\stage_3.cpp">
+      <Filter>Src\Play\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\Stage\stage_4.cpp">
+      <Filter>Src\Play\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\Stage\stage_5.cpp">
+      <Filter>Src\Play\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\Stage\stage_6.cpp">
+      <Filter>Src\Play\Stage</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\UI\clear.cpp">
+      <Filter>Src\Play\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\UI\moveing_explanation.cpp">
+      <Filter>Src\Play\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Play\UI\option.cpp">
+      <Filter>Src\Play\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Renderer\debug_line_renderer.cpp">
+      <Filter>Src\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Renderer\ibl_baker.cpp">
+      <Filter>Src\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Renderer\instanced_mesh_renderer.cpp">
+      <Filter>Src\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Renderer\mesh_renderer.cpp">
+      <Filter>Src\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Renderer\render_object.cpp">
+      <Filter>Src\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Renderer\scene_renderer.cpp">
+      <Filter>Src\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Renderer\shadow_renderer.cpp">
+      <Filter>Src\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Renderer\skinned_mesh_renderer.cpp">
+      <Filter>Src\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Renderer\sky_renderer.cpp">
+      <Filter>Src\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Renderer\sprite_renderer.cpp">
+      <Filter>Src\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Renderer\ui_renderer.cpp">
+      <Filter>Src\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Resource\animation.cpp">
+      <Filter>Src\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Resource\animator_manager.cpp">
+      <Filter>Src\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Resource\audio_manager.cpp">
+      <Filter>Src\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Resource\audio_player.cpp">
+      <Filter>Src\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Resource\material.cpp">
+      <Filter>Src\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Resource\material_slot.cpp">
+      <Filter>Src\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Resource\mesh.cpp">
+      <Filter>Src\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Resource\mesh_manager.cpp">
+      <Filter>Src\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Resource\skeleton.cpp">
+      <Filter>Src\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Resource\skeltal_mesh.cpp">
+      <Filter>Src\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Resource\skeltal_mesh_manager.cpp">
+      <Filter>Src\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Resource\texture_loder.cpp">
+      <Filter>Src\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Resource\texture_manager.cpp">
+      <Filter>Src\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Resource\texture2D.cpp">
+      <Filter>Src\Resource</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Select\select_level.cpp">
+      <Filter>Src\Select</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Select\UI\select.cpp">
+      <Filter>Src\Select\UI</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Title\title_level.cpp">
+      <Filter>Src\Title</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\Title\UI\title.cpp">
+      <Filter>Src\Title\UI</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Src\Core\common.h">
+      <Filter>Src\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Core\common_data.h">
+      <Filter>Src\Core</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Core\Math\intersect.h">
+      <Filter>Src\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Core\Math\mat.h">
+      <Filter>Src\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Core\Math\my_math.h">
+      <Filter>Src\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Core\Math\quat.h">
+      <Filter>Src\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Core\Math\vec2.h">
+      <Filter>Src\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Core\Math\vec3.h">
+      <Filter>Src\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Core\Math\vec4.h">
+      <Filter>Src\Core\Math</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Debug\debug.h">
+      <Filter>Src\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Debug\debug_scene.h">
+      <Filter>Src\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Debug\ImGui\imconfig.h">
+      <Filter>Src\Debug\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Debug\ImGui\imgui.h">
+      <Filter>Src\Debug\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Debug\ImGui\imgui_impl_dx12.h">
+      <Filter>Src\Debug\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Debug\ImGui\imgui_impl_win32.h">
+      <Filter>Src\Debug\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Debug\ImGui\imgui_internal.h">
+      <Filter>Src\Debug\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Debug\ImGui\imgui_manager.h">
+      <Filter>Src\Debug\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Debug\ImGui\imstb_rectpack.h">
+      <Filter>Src\Debug\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Debug\ImGui\imstb_textedit.h">
+      <Filter>Src\Debug\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Debug\ImGui\imstb_truetype.h">
+      <Filter>Src\Debug\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Debug\parformance.h">
+      <Filter>Src\Debug</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\actor.h">
+      <Filter>Src\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\attach_context.h">
+      <Filter>Src\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\camera.h">
+      <Filter>Src\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\collision_world.h">
+      <Filter>Src\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\component.h">
+      <Filter>Src\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\Components\animation_component.h">
+      <Filter>Src\Engine\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\Components\box_collider_component.h">
+      <Filter>Src\Engine\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\Components\capsule_collider_comp.h">
+      <Filter>Src\Engine\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\Components\collider_component.h">
+      <Filter>Src\Engine\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\Components\instanced_static_mesh_component.h">
+      <Filter>Src\Engine\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\Components\mesh_collider_component.h">
+      <Filter>Src\Engine\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\Components\skeletal_mesh.h">
+      <Filter>Src\Engine\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\Components\sphere_collider_componet.h">
+      <Filter>Src\Engine\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\Components\sprite_component.h">
+      <Filter>Src\Engine\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\Components\static_mesh_component.h">
+      <Filter>Src\Engine\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\Components\transform_component.h">
+      <Filter>Src\Engine\Components</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\game_instance.h">
+      <Filter>Src\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\level_base.h">
+      <Filter>Src\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\level_factory.h">
+      <Filter>Src\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\level_manager.h">
+      <Filter>Src\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\level_transition.h">
+      <Filter>Src\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\render_system.h">
+      <Filter>Src\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\Transition\fade.h">
+      <Filter>Src\Engine\Transition</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\Transition\transition_effect.h">
+      <Filter>Src\Engine\Transition</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Engine\world.h">
+      <Filter>Src\Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Game\GameMain.h">
+      <Filter>Src\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Game\test_level.h">
+      <Filter>Src\Game</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Game\test\objects\constant.h">
+      <Filter>Src\Game\test\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Game\test\objects\instance_trees.h">
+      <Filter>Src\Game\test\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Game\test\objects\plane.h">
+      <Filter>Src\Game\test\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Game\test\objects\tree.h">
+      <Filter>Src\Game\test\objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Game\test\test2.h">
+      <Filter>Src\Game\test</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Game\test\test3.h">
+      <Filter>Src\Game\test</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\command_list.h">
+      <Filter>Src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\command_queue.h">
+      <Filter>Src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\constant_buffer.h">
+      <Filter>Src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\constant_buffer_allocator.h">
+      <Filter>Src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\depth_stencil.h">
+      <Filter>Src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\descriptor_heap.h">
+      <Filter>Src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\graphics_config.h">
+      <Filter>Src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\graphics_device.h">
+      <Filter>Src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\index_buffer.h">
+      <Filter>Src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\pipeline_state.h">
+      <Filter>Src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\root_signature.h">
+      <Filter>Src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\shader.h">
+      <Filter>Src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\shadow_map.h">
+      <Filter>Src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\swap_chain.h">
+      <Filter>Src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Graphics\vertex_buffer.h">
+      <Filter>Src\Graphics</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Platform\input.h">
+      <Filter>Src\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Platform\window.h">
+      <Filter>Src\Platform</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Objects\cube.h">
+      <Filter>Src\Play\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Objects\fall_box.h">
+      <Filter>Src\Play\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Objects\goal_flag.h">
+      <Filter>Src\Play\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Objects\moving_cube.h">
+      <Filter>Src\Play\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Objects\start_cube.h">
+      <Filter>Src\Play\Objects</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Player\player.h">
+      <Filter>Src\Play\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Player\player_camera.h">
+      <Filter>Src\Play\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Player\player_common.h">
+      <Filter>Src\Play\Player</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Player\PlayerComponent\component_factor.h">
+      <Filter>Src\Play\Player\PlayerComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Player\PlayerComponent\jump.h">
+      <Filter>Src\Play\Player\PlayerComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Player\PlayerComponent\movement.h">
+      <Filter>Src\Play\Player\PlayerComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Player\PlayerComponent\state_component.h">
+      <Filter>Src\Play\Player\PlayerComponent</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Stage\stage_1.h">
+      <Filter>Src\Play\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Stage\stage_2.h">
+      <Filter>Src\Play\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Stage\stage_3.h">
+      <Filter>Src\Play\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Stage\stage_4.h">
+      <Filter>Src\Play\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Stage\stage_5.h">
+      <Filter>Src\Play\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\Stage\stage_6.h">
+      <Filter>Src\Play\Stage</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\UI\clear.h">
+      <Filter>Src\Play\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\UI\moveing_explanation.h">
+      <Filter>Src\Play\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Play\UI\option.h">
+      <Filter>Src\Play\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\cb_file.h">
+      <Filter>Src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\debug_line_renderer.h">
+      <Filter>Src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\draw_command.h">
+      <Filter>Src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\frame_snap.h">
+      <Filter>Src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\ibl_baker.h">
+      <Filter>Src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\instanced_mesh_renderer.h">
+      <Filter>Src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\mesh_renderer.h">
+      <Filter>Src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\render_context.h">
+      <Filter>Src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\render_object.h">
+      <Filter>Src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\scene_renderer.h">
+      <Filter>Src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\shadow_renderer.h">
+      <Filter>Src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\skinned_mesh_renderer.h">
+      <Filter>Src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\sky_renderer.h">
+      <Filter>Src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\sprite_renderer.h">
+      <Filter>Src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Renderer\ui_renderer.h">
+      <Filter>Src\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\animation.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\animator_manager.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\audio_manager.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\audio_player.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\material.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\material_slot.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\mesh.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\mesh_data.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\mesh_file.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\mesh_format_common.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\mesh_manager.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\skeleton.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\skeltal_mesh.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\skeltal_mesh_manager.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\skmesh_file.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\texture_loder.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\texture_manager.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\texture2D.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Resource\vertex_types.h">
+      <Filter>Src\Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Select\select_level.h">
+      <Filter>Src\Select</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Select\UI\select.h">
+      <Filter>Src\Select\UI</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Title\title_level.h">
+      <Filter>Src\Title</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Title\UI\title.h">
+      <Filter>Src\Title\UI</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\debug_line.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\debug_line.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\instanced_mesh.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\shadow.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\shadow_instanced.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\shadow_sk.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\skinned.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\sky.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\sky.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\sprite.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\sprite.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\sprite_world.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\sprite_world.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\triangle.ps.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+    <None Include="Shaders\triangle.vs.hlsl">
+      <Filter>Shaders</Filter>
+    </None>
+  </ItemGroup>
+</Project>
