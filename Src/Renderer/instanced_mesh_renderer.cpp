@@ -6,6 +6,7 @@
 #include "../Engine/Components/instanced_static_mesh_component.h"
 #include "../Graphics/constant_buffer_allocator.h"
 #include "../Graphics/descriptor_heap.h"
+#include "../Graphics/pipeline_state.h"
 
 bool InstancedMeshRenderer::Initialize(const ID3D12Device* device)
 {
@@ -33,7 +34,6 @@ void InstancedMeshRenderer::Unregister(InstancedStaticMeshComponent* object)
 
 void InstancedMeshRenderer::Collect(FrameSnap& write_snap) const
 {
-    
     write_snap.gpu_instances.clear();
     write_snap.instanced_mesh_commands.clear();
 
@@ -78,7 +78,8 @@ void InstancedMeshRenderer::Collect(FrameSnap& write_snap) const
 void InstancedMeshRenderer::Submit(const RenderContext& context, const InstancedMeshDrawCommand& command,
                                    const FrameSnap& read_snap)
 {
-    if (context.command_list == nullptr || context.cb_allocator == nullptr ||
+    auto* command_list = context.command_list;
+    if (command_list == nullptr || context.cb_allocator == nullptr ||
         command.mesh == nullptr || command.material_slot == nullptr || command.instance_count == 0)
     {
         return;
@@ -93,7 +94,7 @@ void InstancedMeshRenderer::Submit(const RenderContext& context, const Instanced
         return;
     }
 
-    context.command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+    command_list->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
     //Upload領域の確保
     const uint32 buffer_size = sizeof(GPUInstanceData) * command.instance_count;
     ConstantBufferAllocation allocation = {};
@@ -111,10 +112,10 @@ void InstancedMeshRenderer::Submit(const RenderContext& context, const Instanced
 
     const D3D12_VERTEX_BUFFER_VIEW vbv = command.mesh->GetVertexBufferView();
 
-    context.command_list->IASetVertexBuffers(0, 1, &vbv);
+    command_list->IASetVertexBuffers(0, 1, &vbv);
 
     const D3D12_INDEX_BUFFER_VIEW ibv = command.mesh->GetIndexBufferView();
-    context.command_list->IASetIndexBuffer(&ibv);
+    command_list->IASetIndexBuffer(&ibv);
 
     CB::InstacedCB cb = {};
     cb.vp = Transpose(read_snap.camera.view * read_snap.camera.projection);
@@ -132,19 +133,29 @@ void InstancedMeshRenderer::Submit(const RenderContext& context, const Instanced
             continue;
         }
 
-        //Instance専用のVS/PSOを設定
-        mat->ApplyInstanced(context.command_list, context.srv_heap);
+        command_list->SetGraphicsRootSignature(
+            context.pso_cache->GetRootSignature(VertexFactoryId::kInstanced));
+        command_list->SetPipelineState(
+            context.pso_cache->Get(mat->GetShaderId(), VertexFactoryId::kInstanced)->GetPipelineState());
+        ID3D12DescriptorHeap* heaps[] = {context.srv_heap->GetHeap()};
+        command_list->SetDescriptorHeaps(1, heaps);
+
+        // テクスチャ SRV をバインド。
+        const MaterialBinding b = mat->GetBinding();
+        BindMaterialTexture(command_list, context.srv_heap, b,
+                             ToIndex(SkinnedRootParam::kDiffuse), ToIndex(SkinnedRootParam::kNormal),
+                             ToIndex(SkinnedRootParam::kSpecular), ToIndex(SkinnedRootParam::kHeight));
 
         //b0 
-        context.command_list->SetGraphicsRootConstantBufferView(0, cb_alloc.gpu);
+        command_list->SetGraphicsRootConstantBufferView(0, cb_alloc.gpu);
 
         //t6 InstanceData
-        context.command_list->SetGraphicsRootShaderResourceView(9, allocation.gpu);
+        command_list->SetGraphicsRootShaderResourceView(9, allocation.gpu);
 
         //b1 light
         if (context.light_cb_address != 0)
         {
-            context.command_list->SetGraphicsRootConstantBufferView(1, context.light_cb_address);
+            command_list->SetGraphicsRootConstantBufferView(1, context.light_cb_address);
         }
 
         //b2 Material
@@ -160,17 +171,17 @@ void InstancedMeshRenderer::Submit(const RenderContext& context, const Instanced
             return;
         }
         memcpy(mat_alloc.cpu, &mat_cb, sizeof(mat_cb));
-        context.command_list->SetGraphicsRootConstantBufferView(2, mat_alloc.gpu);
+        command_list->SetGraphicsRootConstantBufferView(2, mat_alloc.gpu);
 
         //ShadowMap
-        context.command_list->SetGraphicsRootDescriptorTable(
+        command_list->SetGraphicsRootDescriptorTable(
             5, context.srv_heap->GetGpuHandle(context.shadow_srv_index));
 
         // Irradiance Map
-        context.command_list->SetGraphicsRootDescriptorTable(6, context.srv_heap->GetGpuHandle(
+        command_list->SetGraphicsRootDescriptorTable(6, context.srv_heap->GetGpuHandle(
                                                                  context.irradiance_srv_index));
 
-        context.command_list->DrawIndexedInstanced(sub.index_count, command.instance_count,
+        command_list->DrawIndexedInstanced(sub.index_count, command.instance_count,
                                                    sub.index_start, 0, 0);
     }
 }
@@ -179,7 +190,6 @@ void InstancedMeshRenderer::SubmitDepth(const RenderContext& context, const Fram
 {
     for (const InstancedMeshDrawCommand& command : read_snap.instanced_mesh_commands)
     {
-
         if (command.mesh == nullptr || command.instance_count == 0)
         {
             continue;
@@ -199,7 +209,7 @@ void InstancedMeshRenderer::SubmitDepth(const RenderContext& context, const Fram
         ConstantBufferAllocation allocation = {};
         if (!context.cb_allocator->Allocate(buffer_size, &allocation))
         {
-          continue;
+            continue;
         }
 
         auto* destination = static_cast<GPUInstanceData*>(allocation.cpu);
@@ -217,7 +227,7 @@ void InstancedMeshRenderer::SubmitDepth(const RenderContext& context, const Fram
         context.command_list->IASetIndexBuffer(&ibv);
 
         CB::InstacedCB cb = {};
-        cb.vp = Transpose(read_snap.light.lvp );
+        cb.vp = Transpose(read_snap.light.lvp);
         ConstantBufferAllocation cb_alloc = {};
         if (!context.cb_allocator->Allocate(sizeof(cb), &cb_alloc))
         {

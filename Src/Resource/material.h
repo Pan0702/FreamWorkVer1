@@ -1,15 +1,27 @@
 #pragma once
-#include <cstdint>
-#include <memory>
-#include <span>
 
 #include "mesh.h"
 #include "../Core/Math/vec4.h"
-#include "../Graphics/pipeline_state.h"
-#include "../Graphics/root_signature.h"
-#include  "../Graphics/shader.h"
+#include "../Graphics/pipeline_state_cache.h"
+#include "../Renderer/cb_file.h"
 class DescriptorHeap;
 class Texture2D;
+
+/**
+ * @brief マテリアルが GPU へ渡すデータをまとめた値。
+ *
+ * ルートパラメータのインデックスは含めない。どのスロットへ置くかは
+ * レイアウトを知っているレンダラー側が決める。
+ */
+struct MaterialBinding
+{
+    uint32 diffuse_srv = 0;
+    uint32 normal_srv = 0;
+    uint32 specular_srv = 0;
+    uint32 height_srv = 0;
+    CB::MaterialCB cb = {};
+};
+
 /**
  * @brief Materialのデータと処理をまとめる型。
  */
@@ -25,20 +37,7 @@ public:
      * @param desc マテリアル作成に使う設定。
      */
     Material(const MeshMaterialDesc& desc);
-    /**
-     * @brief 内部で使用するリソースを作成する。
-     * @param device 使用する D3D12 デバイス。
-     * @param ps_path ピクセルシェーダーファイルのパス。
-     * @return 対象リソースの作成が完了した場合は true。
-     */
-    bool Create(ID3D12Device* device, const wchar_t* ps_path);
-    /**
-     * @brief マテリアルに必要な GPU 状態とテクスチャを設定する。
-     * @param command_list 描画コマンドを書き込むコマンドリスト。
-     * @param descriptor_heap SRV/CBV/UAV などを保持するディスクリプタヒープ。
-     */
-    void Apply(ID3D12GraphicsCommandList* command_list, const DescriptorHeap* descriptor_heap) const;
-    void ApplyInstanced(ID3D12GraphicsCommandList* command, DescriptorHeap* heap) const;
+
     /**
      * @brief 指定された値を内部状態に反映する。
      * @param diffuse ディフューズテクスチャ。
@@ -84,7 +83,7 @@ public:
      * @return 高さ。見つからない、または未作成の場合は nullptr。
      */
     Texture2D* GetHeight() const;
-    
+
     /**
      * @brief ベースカラーを取得する。
      * @return マテリアルのベースカラー。
@@ -125,24 +124,23 @@ public:
      * @return テクスチャの有無を示すフラグ。
      */
     uint32 GetHasFlag() const;
+
+    /**
+     * @brief 描画に必要なテクスチャ SRV と定数をまとめて取得する。
+     * @return マテリアルのバインド情報。未設定のテクスチャは SRV 0 を返す。
+     */
+    MaterialBinding GetBinding() const;
+    ShaderId GetShaderId() const;
+
 private:
-    bool CreateMeshPipelineState(ID3D12Device* device, const wchar_t* path, std::span<const D3D12_INPUT_ELEMENT_DESC> input_layout);
-    bool CreateInstancedMeshPipelineState(ID3D12Device* device, const wchar_t* path, std::span<const D3D12_INPUT_ELEMENT_DESC> input_element);
-    void BindResources(ID3D12GraphicsCommandList* command_list, const DescriptorHeap* descriptor_heap) const;
-    
-    std::unique_ptr<Shader> vertex_shader_;
-    std::unique_ptr<Shader> pixel_shader_;
-    std::unique_ptr<Shader> instanced_vertex_shader_;
-    std::unique_ptr<RootSignature> root_signature_;
-    std::unique_ptr<PipelineState> pipeline_state_;
-    std::unique_ptr<PipelineState> instanced_pipeline_state_;
     Texture2D* diffuse_ = nullptr;
     Texture2D* normal_ = nullptr;
     Texture2D* specular_ = nullptr;
     Texture2D* height_ = nullptr;
     Vec4 base_color_;
     uint32 flag_ = 0;
+    ShaderId shader_id_ = ShaderId::kPbr;
     float roughness_ = 0.8f;
-    float metallic_ = 0.0f;   
+    float metallic_ = 0.0f;
     float height_scale_ = 1.0f;
 };

@@ -8,6 +8,7 @@
 #include "sprite_renderer.h"
 #include "ui_renderer.h"
 
+class PipelineStateCache;
 class InstancedMeshRenderer;
 class ShadowRenderer;
 class DebugLineRenderer;
@@ -145,6 +146,7 @@ private:
     std::unique_ptr<DebugLineRenderer> debug_renderer_;
     std::unique_ptr<SkyRenderer> sky_renderer_;
     std::unique_ptr<ShadowRenderer> shadow_renderer_;
+    std::unique_ptr<PipelineStateCache> pso_cache_;
     Texture2D* irradiance_texture_ = nullptr;
     ImGuiManager imgui_manager_;
     FrameSnap frame_snaps_[2];

@@ -14,8 +14,11 @@
 #include "render_object.h"
 #include "../Resource/material_slot.h"
 #include "cb_file.h"
-
+#include "../Renderer/render_context.h"
 #include "../Graphics/descriptor_heap.h"
+#include "../Graphics/root_param.h"
+#include "../Graphics/pipeline_state_cache.h"
+#include "../Graphics/pipeline_state.h"
 
 bool MeshRenderer::Initialize(const ID3D12Device* device)
 {
@@ -30,7 +33,6 @@ void MeshRenderer::Render(ID3D12GraphicsCommandList* command_list, const std::ve
     for (auto& object : render_objects)
     {
         Mat wvp = Transpose(object->GetTransform() * camera->GetViewMatrix() * camera->GetProjectionMatrix());
-        object->GetMaterial()->Apply(command_list, descriptor_heap);
         (void)wvp;
 
         D3D12_VERTEX_BUFFER_VIEW vbv = object->GetMesh()->GetVertexBufferView();
@@ -122,18 +124,33 @@ void MeshRenderer::Submit(RenderContext& context, const MeshDrawCommand& command
             continue;
         }
 
-        mat->Apply(context.command_list, context.srv_heap);
+        // PSO と RootSignature はキャッシュから引く。シェーダは Material が決める。
+        context.command_list->SetGraphicsRootSignature(
+            context.pso_cache->GetRootSignature(VertexFactoryId::kStatic));
+        context.command_list->SetPipelineState(
+            context.pso_cache->Get(mat->GetShaderId(), VertexFactoryId::kStatic)->GetPipelineState());
+        ID3D12DescriptorHeap* heaps[] = {context.srv_heap->GetHeap()};
+        context.command_list->SetDescriptorHeaps(1, heaps);
+        
+        const MaterialBinding binding = mat->GetBinding();
+        
+        BindMaterialTexture(context.command_list, context.srv_heap, binding,
+                                     ToIndex(StaticRootParam::kDiffuse), ToIndex(StaticRootParam::kNormal),
+                                     ToIndex(StaticRootParam::kSpecular), ToIndex(StaticRootParam::kHeight));
 
         // b0 には WVP と World 行列を設定する。
-        context.command_list->SetGraphicsRootConstantBufferView(0, alloc.gpu);
+        context.command_list->SetGraphicsRootConstantBufferView(ToIndex(StaticRootParam::kObjectCB), alloc.gpu);
         if (context.light_cb_address != 0)
         {
-            context.command_list->SetGraphicsRootConstantBufferView(1, context.light_cb_address);
+            context.command_list->SetGraphicsRootConstantBufferView(ToIndex(StaticRootParam::kLightCB),
+                                                                    context.light_cb_address);
         }
-        context.command_list->SetGraphicsRootDescriptorTable(
-            5, context.srv_heap->GetGpuHandle(context.shadow_srv_index));
-        context.command_list->SetGraphicsRootDescriptorTable(
-            6, context.srv_heap->GetGpuHandle(context.irradiance_srv_index));
+        context.command_list->SetGraphicsRootDescriptorTable(ToIndex(StaticRootParam::kShadow)
+                                                             , context.srv_heap->GetGpuHandle(
+                                                                 context.shadow_srv_index));
+        context.command_list->SetGraphicsRootDescriptorTable(ToIndex(StaticRootParam::kIrradiance)
+                                                             , context.srv_heap->GetGpuHandle(
+                                                                 context.irradiance_srv_index));
         // b2 にはサブメッシュのマテリアル定数を設定する。
         CB::MaterialCB mat_cb = {};
         mat_cb.base_color = mat->GetBaseColor();
@@ -147,7 +164,8 @@ void MeshRenderer::Submit(RenderContext& context, const MeshDrawCommand& command
         if (context.cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
         {
             memcpy(mat_alloc.cpu, &mat_cb, sizeof(mat_cb));
-            context.command_list->SetGraphicsRootConstantBufferView(2, mat_alloc.gpu);
+            context.command_list->SetGraphicsRootConstantBufferView(ToIndex(StaticRootParam::kMaterialCB),
+                                                                    mat_alloc.gpu);
         }
 
         // 現在のサブメッシュを描画する。
@@ -175,7 +193,8 @@ void MeshRenderer::SubmitDepth(const RenderContext& context, const FrameSnap& re
         context.command_list->IASetVertexBuffers(0, 1, &vbv);
         D3D12_INDEX_BUFFER_VIEW ibv = command.mesh->GetIndexBufferView();
         context.command_list->IASetIndexBuffer(&ibv);
-        context.command_list->SetGraphicsRootConstantBufferView(0, alloc.gpu);
+        context.command_list->SetGraphicsRootConstantBufferView(ToIndex(ShadowRootParam::kObjectCB)
+                                                                , alloc.gpu);
         context.command_list->DrawIndexedInstanced(command.mesh->GetIndexCount(), 1,
                                                    0, 0, 0);
     }

@@ -16,6 +16,7 @@
 #include "shadow_renderer.h"
 #include "../Resource/texture_manager.h"
 #include "../Graphics/constant_buffer_allocator.h"
+#include "../Graphics/pipeline_state_cache.h"
 
 namespace
 {
@@ -35,6 +36,12 @@ SceneRenderer::~SceneRenderer() = default;
 bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQueue* command_queue,
                                uint32_t frame_count, DescriptorHeap* srv_heap)
 {
+    pso_cache_ = std::make_unique<PipelineStateCache>();
+    if (!pso_cache_->Initialize(device))
+    {
+        return false;
+    }
+    
     shadow_renderer_ = std::make_unique<ShadowRenderer>();
     if (!shadow_renderer_->Initialize(device, srv_heap))
     {
@@ -97,6 +104,7 @@ void SceneRenderer::Render(const RendererData& renderer_data)
     context.command_list = renderer_data.command_list->GetCommandList();
     context.srv_heap = renderer_data.srv_heap;
     context.cb_allocator = renderer_data.cb_allocator;
+    context.pso_cache = pso_cache_.get();
     context.screen_size = Vec2(static_cast<float>(renderer_data.window->GetWidth()),
                                static_cast<float>(renderer_data.window->GetHeight()));
 

@@ -17,6 +17,7 @@
 #include "../Resource/material_slot.h"
 #include "../Resource/texture2D.h"
 #include "../Engine/Components/animation_component.h"
+#include "../Graphics/root_param.h"
 
 bool SkinnedMeshRenderer::Initialize(ID3D12Device* device)
 {
@@ -174,13 +175,15 @@ void SkinnedMeshRenderer::Submit(RenderContext& context, const SkinnedDrawComman
     }
     memcpy(bone_alloc.cpu, &bone, sizeof(bone));
     // b0
-    command_list->SetGraphicsRootConstantBufferView(0, obj_alloc.gpu);
+    command_list->SetGraphicsRootConstantBufferView(ToIndex(SkinnedRootParam::kObjectCB),
+                                                    obj_alloc.gpu);
     // b1 vs
-    command_list->SetGraphicsRootConstantBufferView(1, bone_alloc.gpu);
+    command_list->SetGraphicsRootConstantBufferView(ToIndex(SkinnedRootParam::kBoneCB),
+                                                    bone_alloc.gpu);
     if (context.light_cb_address != 0)
     {
         //b1 ps
-        command_list->SetGraphicsRootConstantBufferView(2, context.light_cb_address);
+        command_list->SetGraphicsRootConstantBufferView(ToIndex(SkinnedRootParam::kLightCB), context.light_cb_address);
     }
     D3D12_VERTEX_BUFFER_VIEW vbv = command.mesh->GetVertexBufferView();
     command_list->IASetVertexBuffers(0, 1, &vbv);
@@ -194,32 +197,16 @@ void SkinnedMeshRenderer::Submit(RenderContext& context, const SkinnedDrawComman
         {
             continue;
         }
-        const uint32 diff = (mat->GetDiffuse() ? mat->GetDiffuse()->GetSrvIndex() : 0);
-        const uint32 norm = (mat->GetNormal() ? mat->GetNormal()->GetSrvIndex() : 0);
-        const uint32 specular = (mat->GetSpecular() ? mat->GetSpecular()->GetSrvIndex() : 0);
-        const uint32 height = (mat->GetHeight() ? mat->GetHeight()->GetSrvIndex() : 0);
-
-        command_list->SetGraphicsRootDescriptorTable(4, context.srv_heap->GetGpuHandle(diff));
-        command_list->SetGraphicsRootDescriptorTable(5, context.srv_heap->GetGpuHandle(norm));
-        command_list->SetGraphicsRootDescriptorTable(6, context.srv_heap->GetGpuHandle(context.shadow_srv_index));
-        command_list->SetGraphicsRootDescriptorTable(
-            7, context.srv_heap->GetGpuHandle(context.irradiance_srv_index));
-        command_list->SetGraphicsRootDescriptorTable(8, context.srv_heap->GetGpuHandle(specular));
-        command_list->SetGraphicsRootDescriptorTable(9, context.srv_heap->GetGpuHandle(height));
-
-        // b2
-        CB::MaterialCB mat_cb = {};
-        mat_cb.base_color = mat->GetBaseColor();
-        mat_cb.metallic = mat->GetMetallic();
-        mat_cb.roughness = mat->GetRoughness();
-        mat_cb.flag = mat->GetHasFlag();
-        mat_cb.height_scale = mat->GetHeightScale();
-
+        const MaterialBinding b = mat->GetBinding();
+        BindMaterialTexture(command_list, context.srv_heap, b,
+                            ToIndex(SkinnedRootParam::kDiffuse), ToIndex(SkinnedRootParam::kNormal),
+                            ToIndex(SkinnedRootParam::kSpecular), ToIndex(SkinnedRootParam::kHeight));
         ConstantBufferAllocation mat_alloc = {};
-        if (cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
+        if (cb_allocator->Allocate(sizeof(b.cb), &mat_alloc))
         {
-            memcpy(mat_alloc.cpu, &mat_cb, sizeof(mat_cb));
-            command_list->SetGraphicsRootConstantBufferView(3, mat_alloc.gpu);
+            memcpy(mat_alloc.cpu, &b.cb, sizeof(b.cb));
+            command_list->SetGraphicsRootConstantBufferView(ToIndex(SkinnedRootParam::kMaterialCB),
+                                                            mat_alloc.gpu);
             command_list->DrawIndexedInstanced(sub.index_count, 1, sub.index_start, 0, 0);
         }
     }
@@ -269,14 +256,15 @@ void SkinnedMeshRenderer::SubmitDepth(RenderContext& context, const FrameSnap& r
         }
         memcpy(bone_alloc.cpu, &bone, sizeof(bone));
 
-        command_list->SetGraphicsRootConstantBufferView(0, alloc.gpu);
-        command_list->SetGraphicsRootConstantBufferView(1, bone_alloc.gpu);
+        command_list->SetGraphicsRootConstantBufferView(ToIndex(SkinnedShadowParam::kObjectCB), alloc.gpu);
+        command_list->SetGraphicsRootConstantBufferView(ToIndex(SkinnedShadowParam::kBoneCB), bone_alloc.gpu);
 
         // 通常メッシュの頂点・インデックスを使い、シャドウ用 PSO で深度だけを描画する。
         D3D12_VERTEX_BUFFER_VIEW vbv = command.mesh->GetVertexBufferView();
         command_list->IASetVertexBuffers(0, 1, &vbv);
         D3D12_INDEX_BUFFER_VIEW ibv = command.mesh->GetIndexBufferView();
         command_list->IASetIndexBuffer(&ibv);
-        command_list->DrawIndexedInstanced(command.mesh->GetIndexCount(), 1, 0, 0, 0);
+        command_list->DrawIndexedInstanced(command.mesh->GetIndexCount(), 1,
+                                           0, 0, 0);
     }
 }

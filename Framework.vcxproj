@@ -30,6 +30,7 @@
     <ClCompile Include="Src\Game\test\objects\tree.cpp" />
     <ClCompile Include="Src\Game\test\test2.cpp" />
     <ClCompile Include="Src\Game\test\test3.cpp" />
+    <ClCompile Include="Src\Graphics\pipeline_state_cache.cpp" />
     <ClCompile Include="Src\Graphics\shadow_map.cpp" />
     <ClCompile Include="Src\Play\Objects\fall_box.cpp" />
     <ClCompile Include="Src\Play\Objects\moving_cube.cpp" />
@@ -111,6 +112,8 @@
     <ClInclude Include="Src\Graphics\graphics_device.h" />
     <ClInclude Include="Src\Graphics\index_buffer.h" />
     <ClInclude Include="Src\Graphics\pipeline_state.h" />
+    <ClInclude Include="Src\Graphics\pipeline_state_cache.h" />
+    <ClInclude Include="Src\Graphics\root_param.h" />
     <ClInclude Include="Src\Graphics\root_signature.h" />
     <ClInclude Include="Src\Graphics\shader.h" />
     <ClInclude Include="Src\Graphics\shadow_map.h" />
