@@ -13,6 +13,7 @@ enum class StaticRootParam : uint32
     kIrradiance, // t3
     kSpecular, // t4
     kHeight, // t5
+    kInstanceMatrics,
     kCount
 };
 
@@ -34,6 +35,7 @@ enum class SkinnedRootParam : uint32
 enum class ShadowRootParam : uint32
 {
     kObjectCB = 0,
+    kInstanceMatrices,
     kCount,
 };
 

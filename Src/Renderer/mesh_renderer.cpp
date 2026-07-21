@@ -132,9 +132,9 @@ void MeshRenderer::Submit(RenderContext& context, const MeshDrawCommand& command
         ID3D12DescriptorHeap* heaps[] = {context.srv_heap->GetHeap()};
         context.command_list->SetDescriptorHeaps(1, heaps);
         
-        const MaterialBinding binding = mat->GetBinding();
+        const MaterialBinding b = mat->GetBinding();
         
-        BindMaterialTexture(context.command_list, context.srv_heap, binding,
+        BindMaterialTexture(context.command_list, context.srv_heap, b,
                                      ToIndex(StaticRootParam::kDiffuse), ToIndex(StaticRootParam::kNormal),
                                      ToIndex(StaticRootParam::kSpecular), ToIndex(StaticRootParam::kHeight));
 
@@ -151,19 +151,12 @@ void MeshRenderer::Submit(RenderContext& context, const MeshDrawCommand& command
         context.command_list->SetGraphicsRootDescriptorTable(ToIndex(StaticRootParam::kIrradiance)
                                                              , context.srv_heap->GetGpuHandle(
                                                                  context.irradiance_srv_index));
-        // b2 にはサブメッシュのマテリアル定数を設定する。
-        CB::MaterialCB mat_cb = {};
-        mat_cb.base_color = mat->GetBaseColor();
-        mat_cb.flag = mat->GetHasFlag();
-        mat_cb.metallic = mat->GetMetallic();
-        mat_cb.roughness = mat->GetRoughness();
-        mat_cb.height_scale = mat->GetHeightScale();
 
 
         ConstantBufferAllocation mat_alloc = {};
-        if (context.cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
+        if (context.cb_allocator->Allocate(sizeof(b), &mat_alloc))
         {
-            memcpy(mat_alloc.cpu, &mat_cb, sizeof(mat_cb));
+            memcpy(mat_alloc.cpu, &b, sizeof(b));
             context.command_list->SetGraphicsRootConstantBufferView(ToIndex(StaticRootParam::kMaterialCB),
                                                                     mat_alloc.gpu);
         }

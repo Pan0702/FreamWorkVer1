@@ -143,42 +143,34 @@ void InstancedMeshRenderer::Submit(const RenderContext& context, const Instanced
         // テクスチャ SRV をバインド。
         const MaterialBinding b = mat->GetBinding();
         BindMaterialTexture(command_list, context.srv_heap, b,
-                             ToIndex(SkinnedRootParam::kDiffuse), ToIndex(SkinnedRootParam::kNormal),
-                             ToIndex(SkinnedRootParam::kSpecular), ToIndex(SkinnedRootParam::kHeight));
+                             ToIndex(StaticRootParam::kDiffuse), ToIndex(StaticRootParam::kNormal),
+                             ToIndex(StaticRootParam::kSpecular), ToIndex(StaticRootParam::kHeight));
 
         //b0 
-        command_list->SetGraphicsRootConstantBufferView(0, cb_alloc.gpu);
+        command_list->SetGraphicsRootConstantBufferView(ToIndex(StaticRootParam::kObjectCB), cb_alloc.gpu);
 
         //t6 InstanceData
-        command_list->SetGraphicsRootShaderResourceView(9, allocation.gpu);
+        command_list->SetGraphicsRootShaderResourceView(ToIndex(StaticRootParam::kInstanceMatrics), allocation.gpu);
 
         //b1 light
         if (context.light_cb_address != 0)
         {
-            command_list->SetGraphicsRootConstantBufferView(1, context.light_cb_address);
+            command_list->SetGraphicsRootConstantBufferView(ToIndex(StaticRootParam::kLightCB), context.light_cb_address);
         }
 
-        //b2 Material
-        CB::MaterialCB mat_cb = {};
-        mat_cb.base_color = mat->GetBaseColor();
-        mat_cb.flag = mat->GetHasFlag();
-        mat_cb.metallic = mat->GetMetallic();
-        mat_cb.roughness = mat->GetRoughness();
-        mat_cb.height_scale = mat->GetHeightScale();
         ConstantBufferAllocation mat_alloc = {};
-        if (!context.cb_allocator->Allocate(sizeof(mat_cb), &mat_alloc))
+        if (context.cb_allocator->Allocate(sizeof(b.cb), &mat_alloc))
         {
-            return;
+            memcpy(mat_alloc.cpu, &b.cb, sizeof(b.cb));
+            context.command_list->SetGraphicsRootConstantBufferView(
+                ToIndex(StaticRootParam::kMaterialCB), mat_alloc.gpu);
         }
-        memcpy(mat_alloc.cpu, &mat_cb, sizeof(mat_cb));
-        command_list->SetGraphicsRootConstantBufferView(2, mat_alloc.gpu);
-
         //ShadowMap
         command_list->SetGraphicsRootDescriptorTable(
-            5, context.srv_heap->GetGpuHandle(context.shadow_srv_index));
+            ToIndex(StaticRootParam::kShadow), context.srv_heap->GetGpuHandle(context.shadow_srv_index));
 
         // Irradiance Map
-        command_list->SetGraphicsRootDescriptorTable(6, context.srv_heap->GetGpuHandle(
+        command_list->SetGraphicsRootDescriptorTable(ToIndex(StaticRootParam::kIrradiance), context.srv_heap->GetGpuHandle(
                                                                  context.irradiance_srv_index));
 
         command_list->DrawIndexedInstanced(sub.index_count, command.instance_count,
@@ -238,10 +230,10 @@ void InstancedMeshRenderer::SubmitDepth(const RenderContext& context, const Fram
         auto* command_list = context.command_list;
         // 全インスタンス共通のライトVP
         // Root Parameter 0
-        command_list->SetGraphicsRootConstantBufferView(0, cb_alloc.gpu);
+        command_list->SetGraphicsRootConstantBufferView(ToIndex(ShadowRootParam::kObjectCB), cb_alloc.gpu);
 
         // Root Parameter 1
-        command_list->SetGraphicsRootShaderResourceView(1, allocation.gpu);
+        command_list->SetGraphicsRootShaderResourceView (ToIndex(ShadowRootParam::kInstanceMatrices), allocation.gpu);
 
         command_list->DrawIndexedInstanced(command.mesh->GetIndexCount(),
                                            command.instance_count, 0,
