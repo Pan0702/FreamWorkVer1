@@ -159,12 +159,13 @@ void InstancedMeshRenderer::Submit(const RenderContext& context, const Instanced
         }
 
         ConstantBufferAllocation mat_alloc = {};
-        if (context.cb_allocator->Allocate(sizeof(b.cb), &mat_alloc))
+        if (!context.cb_allocator->Allocate(sizeof(b.cb), &mat_alloc))
         {
-            memcpy(mat_alloc.cpu, &b.cb, sizeof(b.cb));
-            context.command_list->SetGraphicsRootConstantBufferView(
-                ToIndex(StaticRootParam::kMaterialCB), mat_alloc.gpu);
+            return;
         }
+        memcpy(mat_alloc.cpu, &b.cb, sizeof(b.cb));
+        context.command_list->SetGraphicsRootConstantBufferView(
+            ToIndex(StaticRootParam::kMaterialCB), mat_alloc.gpu);
         //ShadowMap
         command_list->SetGraphicsRootDescriptorTable(
             ToIndex(StaticRootParam::kShadow), context.srv_heap->GetGpuHandle(context.shadow_srv_index));

@@ -154,9 +154,9 @@ void MeshRenderer::Submit(RenderContext& context, const MeshDrawCommand& command
 
 
         ConstantBufferAllocation mat_alloc = {};
-        if (context.cb_allocator->Allocate(sizeof(b), &mat_alloc))
+        if (context.cb_allocator->Allocate(sizeof(b.cb), &mat_alloc))
         {
-            memcpy(mat_alloc.cpu, &b, sizeof(b));
+            memcpy(mat_alloc.cpu, &b.cb, sizeof(b.cb));
             context.command_list->SetGraphicsRootConstantBufferView(ToIndex(StaticRootParam::kMaterialCB),
                                                                     mat_alloc.gpu);
         }
