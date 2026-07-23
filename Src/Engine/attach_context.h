@@ -1,5 +1,6 @@
 #pragma once
 
+class NavigationSystem;
 class InstancedMeshRenderer;
 class SkinnedMeshRenderer;
 class MeshRenderer;
@@ -12,6 +13,7 @@ class CollisionWorld;
  */
 struct AttachContext
 {
+    NavigationSystem* navigation_system = nullptr;
     MeshRenderer* mesh_renderer = nullptr;
     SpriteRenderer* sprite_renderer = nullptr;
     UIRenderer* ui_renderer = nullptr;

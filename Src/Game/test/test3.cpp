@@ -17,7 +17,7 @@ void Test3::OnEnter()
     SpawnActor<Player>();
     SpawnActor<PlayerCamera>();
     SpawnActor<Plane>();
-    SpawnActor<InstanceTrees>();
+
     LevelBase::OnEnter();
 }
 

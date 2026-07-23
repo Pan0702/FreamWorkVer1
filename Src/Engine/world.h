@@ -3,7 +3,7 @@
 
 #include "attach_context.h"
 #include "collision_world.h"
-
+#include "Navigation/navigation_system.h"
 /**
  * @brief Worldのデータと処理をまとめる型。
  */
@@ -64,6 +64,11 @@ public:
      */
     CollisionWorld& GetCollisionWorld() { return collision_world_; }
 
+    /**
+     * @brief NavigationSystem を取得する。
+     * @return 保持している NavigationSystem への参照。
+     */
+    NavigationSystem& GetNavigationSystem() { return navigation_system_; }
     template <class T = Actor>
     T* FindActor()
     {
@@ -82,4 +87,5 @@ private:
     std::vector<Actor*> actors_;
     AttachContext attach_context_ = {};
     CollisionWorld collision_world_;
+    NavigationSystem navigation_system_;
 };

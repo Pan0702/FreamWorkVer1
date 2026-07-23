@@ -23,8 +23,13 @@
     <None Include="Shaders\shadow_sk.vs.hlsl" />
     <None Include="Shaders\instanced_mesh.vs.hlsl" />
     <None Include="Shaders\shadow_instanced.vs.hlsl" />
+    <ClCompile Include="Src\Debug\navigation_debug_renderer.cpp" />
     <ClCompile Include="Src\Debug\parformance.cpp" />
     <ClCompile Include="Src\Engine\Components\instanced_static_mesh_component.cpp" />
+    <ClCompile Include="Src\Engine\Components\navigation_source_component.cpp" />
+    <ClCompile Include="Src\Engine\Navigation\navigation_heightfield.cpp" />
+    <ClCompile Include="Src\Engine\Navigation\navigation_mesh_builder.cpp" />
+    <ClCompile Include="Src\Engine\Navigation\navigation_system.cpp" />
     <ClCompile Include="Src\Game\test\objects\instance_trees.cpp" />
     <ClCompile Include="Src\Game\test\objects\plane.cpp" />
     <ClCompile Include="Src\Game\test\objects\tree.cpp" />
@@ -68,6 +73,7 @@
     <ClInclude Include="Src\Debug\ImGui\imstb_rectpack.h" />
     <ClInclude Include="Src\Debug\ImGui\imstb_textedit.h" />
     <ClInclude Include="Src\Debug\ImGui\imstb_truetype.h" />
+    <ClInclude Include="Src\Debug\navigation_debug_renderer.h" />
     <ClInclude Include="Src\Debug\parformance.h" />
     <ClInclude Include="Src\Engine\actor.h" />
     <ClInclude Include="Src\Engine\attach_context.h" />
@@ -80,6 +86,7 @@
     <ClInclude Include="Src\Engine\Components\collider_component.h" />
     <ClInclude Include="Src\Engine\Components\instanced_static_mesh_component.h" />
     <ClInclude Include="Src\Engine\Components\mesh_collider_component.h" />
+    <ClInclude Include="Src\Engine\Components\navigation_source_component.h" />
     <ClInclude Include="Src\Engine\Components\skeletal_mesh.h" />
     <ClInclude Include="Src\Engine\Components\sphere_collider_componet.h" />
     <ClInclude Include="Src\Engine\Components\sprite_component.h" />
@@ -89,6 +96,12 @@
     <ClInclude Include="Src\Engine\level_base.h" />
     <ClInclude Include="Src\Engine\level_factory.h" />
     <ClInclude Include="Src\Engine\level_manager.h" />
+    <ClInclude Include="Src\Engine\Navigation\navigation_config.h" />
+    <ClInclude Include="Src\Engine\Navigation\navigation_geometry.h" />
+    <ClInclude Include="Src\Engine\Navigation\navigation_heightfield.h" />
+    <ClInclude Include="Src\Engine\Navigation\navigation_mesh_builder.h" />
+    <ClInclude Include="Src\Engine\Navigation\navigation_system.h" />
+    <ClInclude Include="Src\Engine\Navigation\navigation_type.h" />
     <ClInclude Include="Src\Engine\render_system.h" />
     <ClInclude Include="Src\Engine\level_transition.h" />
     <ClInclude Include="Src\Engine\Transition\fade.h" />

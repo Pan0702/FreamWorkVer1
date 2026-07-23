@@ -19,6 +19,7 @@ void World::SetAttachContext(const AttachContext& context)
 {
     attach_context_ = context;
     attach_context_.collision_world = &collision_world_;
+    attach_context_.navigation_system = &navigation_system_;
 }
 
 AttachContext World::GetAttachContext() const
