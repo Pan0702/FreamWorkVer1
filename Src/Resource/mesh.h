@@ -45,9 +45,9 @@ public:
     const std::vector<D3D12_INPUT_ELEMENT_DESC>& GetInputLayout();
     /**
      * @brief 指定された値を内部状態に反映する。
-     * @param material_descs 描画に使用するマテリアル。
+     * @param material_desc 描画に使用するマテリアル。
      */
-    void SetMaterialDescs(std::span<const MeshMaterialDesc> material_descs);
+    void SetMaterialDescs(std::span<const MeshMaterialDesc> material_desc);
     /**
      * @brief 指定された値を内部状態に反映する。
      * @param sub_meshes 描画単位に分割されたサブメッシュ配列。
@@ -57,7 +57,7 @@ public:
      * @brief Material Decs を取得する。
      * @return 保持している Material Decs への参照。
      */
-    const std::vector<MeshMaterialDesc>& GetMaterialDecs();
+    const std::vector<MeshMaterialDesc>& GetMaterialDesc();
     /**
      * @brief Sub Meshes を取得する。
      * @return 保持している Sub Meshes への参照。

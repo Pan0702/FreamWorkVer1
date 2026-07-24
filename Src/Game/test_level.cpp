@@ -27,7 +27,7 @@ TestLevel::~TestLevel() = default;
 void TestLevel::OnEnter()
 {
     Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/box1.mesh");
-    material_slot_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDecs());
+    material_slot_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDesc());
     material_slot_->GetMaterial(0)->SetDiffuse(TextureManager::Get().Load(L"Assets/Texture/NormalMap.png"));
   //  material_slot_->GetMaterial(0)->SetNormal(TextureManager::Get().Load(L"Assets/Texture/NormalMap.png"));
     
@@ -37,7 +37,7 @@ void TestLevel::OnEnter()
     t->position = Vec3(0, 0, 0);
     
     Mesh* mesh2 = MeshManager::Get().Load("Assets/Mesh/box1.mesh");
-    material_slot_2_ = std::make_unique<MaterialSlot>(mesh2->GetMaterialDecs());
+    material_slot_2_ = std::make_unique<MaterialSlot>(mesh2->GetMaterialDesc());
     material_slot_2_->GetMaterial(0)->SetDiffuse(TextureManager::Get().Load(L"Assets/Texture/NormalMap.png", false));
     
     Actor* a2 = SpawnActor();

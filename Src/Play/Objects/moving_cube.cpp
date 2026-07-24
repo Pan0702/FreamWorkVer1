@@ -27,7 +27,7 @@ MovingCube::MovingCube(const Vec3& pos, const Vec3& target)
 void MovingCube::Init()
 {
     Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/cube.mesh");
-    materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDecs());
+    materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDesc());
     AddComponent<StaticMeshComponent>(mesh, materials_.get());
     AddComponent<MeshColliderComponent>(mesh);
 }

@@ -10,7 +10,7 @@
 GoalFlag::GoalFlag()
 {
     Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/GoalFlag.mesh");
-    materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDecs());
+    materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDesc());
     AddComponent<StaticMeshComponent>(mesh, materials_.get());
     auto* m = AddComponent<MeshColliderComponent>(mesh);
     m->SetOnBeginOverlap(this,&GoalFlag::OnBeginOverlap);
@@ -21,7 +21,7 @@ GoalFlag::GoalFlag()
 GoalFlag::GoalFlag(const Vec3& pos)
 {
     Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/GoalFlag.mesh");
-    materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDecs());
+    materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDesc());
     AddComponent<StaticMeshComponent>(mesh, materials_.get());
     auto* m = AddComponent<MeshColliderComponent>(mesh);
     m->SetOnBeginOverlap(this,&GoalFlag::OnBeginOverlap);

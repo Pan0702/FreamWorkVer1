@@ -14,7 +14,7 @@ namespace
 Cube::Cube()
 {
     Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/Cube.mesh");
-    materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDecs());
+    materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDesc());
     AddComponent<StaticMeshComponent>(mesh, materials_.get());
     AddComponent<MeshColliderComponent>(mesh);
     transform_.position = kDefaultCubePosition;
@@ -23,7 +23,7 @@ Cube::Cube()
 Cube::Cube(const Vec3& pos, const Vec3& scale)
 {
     Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/Cube.mesh");
-    materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDecs());
+    materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDesc());
     AddComponent<StaticMeshComponent>(mesh, materials_.get());
     AddComponent<MeshColliderComponent>(mesh);
     transform_.position = pos + kDefaultCubePosition;
@@ -32,7 +32,7 @@ Cube::Cube(const Vec3& pos, const Vec3& scale)
 Cube::Cube(const std::string& name)
 {
     Mesh* mesh = MeshManager::Get().Load(name);
-    materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDecs());
+    materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDesc());
     AddComponent<StaticMeshComponent>(mesh, materials_.get());
     AddComponent<MeshColliderComponent>(mesh);
     transform_.position = kDefaultCubePosition;

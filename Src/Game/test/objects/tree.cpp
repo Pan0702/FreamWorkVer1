@@ -3,7 +3,7 @@
 Tree::Tree(const Vec3& position)
 {
     Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/tree.mesh");
-    materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDecs());
+    materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDesc());
     AddComponent<StaticMeshComponent>(mesh, materials_.get());
     AddComponent<MeshColliderComponent>(mesh);
     transform_.position = position;

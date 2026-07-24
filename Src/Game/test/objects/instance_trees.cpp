@@ -5,7 +5,7 @@
 InstanceTrees::InstanceTrees()
 {
     Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/tree.mesh");
-    slot_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDecs());
+    slot_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDesc());
     
     auto* ism = AddComponent<InstancedStaticMeshComponent>(mesh, slot_.get());
 

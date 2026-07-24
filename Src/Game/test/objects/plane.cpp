@@ -3,7 +3,7 @@
 Plane::Plane()
 {
     Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/plane.mesh");
-    materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDecs());
+    materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDesc());
     AddComponent<StaticMeshComponent>(mesh, materials_.get());
     AddComponent<MeshColliderComponent>(mesh);
 }

@@ -208,6 +208,7 @@ struct Vec2 : public XMFLOAT2
      */
     void Normalize() { *this = Normalized(); }
 };
+
 /**
  * @brief 演算子 operator* で値を扱う。
  * @param n 各成分に適用するスカラー値。

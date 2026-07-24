@@ -1,5 +1,8 @@
 ﻿#include "navigation_system.h"
 #include <algorithm>
+
+#include "../Components/navigation_source_component.h"
+
 uint32 NavigationSystem::RegisterSource(NavigationSourceComponent* component)
 {
     if (component == nullptr)
@@ -14,7 +17,7 @@ uint32 NavigationSystem::RegisterSource(NavigationSourceComponent* component)
         }
     }
     
-    RegisteredSource r = {};
+    RegisteredSource r;
     r.id = next_id_;
     r.component = component;
     sources_.push_back(r);
@@ -33,4 +36,22 @@ void NavigationSystem::UnregisterSource(uint32 source_id)
     {
         sources_.erase(it);
     }
+}
+
+std::vector<NavigationGeometry> NavigationSystem::CollectGeometries() const
+{
+    std::vector<NavigationGeometry> geometries;
+    for (const auto& s : sources_)
+    {
+        if (s.component == nullptr)
+        {
+            continue;
+        }
+        const NavigationGeometry geo = s.component->GetGeometry();
+        if (geo.indices.size() % 3 == 0 && !geo.indices.empty()&& !geo.vertices.empty())
+        {
+            geometries.push_back(geo);
+        }
+    }
+    return geometries;   
 }
