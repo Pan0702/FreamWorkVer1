@@ -37,6 +37,7 @@ bool NavigationMeshBuilder::Build(const std::vector<NavigationGeometry>& geometr
         success_flag |= RasterizeGeometry(geometry, config, heightfield);
     }
     heightfield.MergeSpans();
+    FilterLowCeilingSpans(heightfield, config);
     return success_flag;
 }
 
@@ -91,6 +92,46 @@ bool NavigationMeshBuilder::RasterizeTriangle(const Triangle& tri, const Navigat
         }
     }
     return is_push_back;
+}
+
+void NavigationMeshBuilder::FilterLedgeSpans(NavigationHeightfield& heightfield, const NavigationConfig& config)
+{
+    for (int x = 0; x < heightfield.GetWidth(); ++x)
+    {
+        for (int z = 0; z < heightfield.GetDepth(); ++z)
+        {
+            auto cell = heightfield.GetCell(x,z);
+            for (int c = 0; c + 1 < cell->spans.size(); ++c)
+            {
+                if (!cell->spans[c].is_walk)
+                {
+                    continue;
+                }
+                
+            }
+        }
+    }
+}
+
+void NavigationMeshBuilder::FilterLowCeilingSpans(NavigationHeightfield& heightfield, const NavigationConfig& config)
+{
+    for (int x = 0; x < heightfield.GetWidth(); ++x)
+    {
+        for (int z = 0; z < heightfield.GetDepth(); ++z)
+        {
+            auto cell = heightfield.GetCell(x,z);
+            for (int c = 0; c + 1 < cell->spans.size(); ++c)
+            {
+                auto& span = cell->spans[c];
+                auto& next_span = cell->spans[c + 1];
+                const float height = (next_span.min_height - span.max_height) * heightfield.GetCellHeight();
+                if (height < config.agent_height)
+                {
+                    span.is_walk = false;
+                }
+            }
+        }
+    }
 }
 
 bool NavigationMeshBuilder::CreateSpanFromHeightRange(float min_y, float max_y,

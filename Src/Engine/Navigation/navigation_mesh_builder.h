@@ -18,7 +18,10 @@ public:
                            NavigationHeightfield& height) const;
     bool RasterizeTriangle(const Triangle& tri, const NavigationConfig& config, NavigationHeightfield& height) const;
 
+
 private:
+    void FilterLedgeSpans(NavigationHeightfield& heightfield, const NavigationConfig& config);
+    void FilterLowCeilingSpans(NavigationHeightfield& heightfield, const NavigationConfig& config);
     bool CreateSpanFromHeightRange(float min_y, float max_y, const NavigationHeightfield& height,
                                    bool is_walk, NavigationSpan& span) const;
 
