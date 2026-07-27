@@ -101,13 +101,27 @@ void NavigationMeshBuilder::FilterLedgeSpans(NavigationHeightfield& heightfield,
         for (int z = 0; z < heightfield.GetDepth(); ++z)
         {
             auto cell = heightfield.GetCell(x,z);
-            for (int c = 0; c + 1 < cell->spans.size(); ++c)
+            for (int c = 0; c < cell->spans.size(); ++c)
             {
                 if (!cell->spans[c].is_walk)
                 {
                     continue;
                 }
-                
+                const std::vector<Vec2> dir = 
+                    {Vec2(1,0),Vec2(0,1),Vec2(-1,0),Vec2(0,-1)};
+                for (const Vec2& d : dir)
+                {
+                    const int32 neighbor_x = d.x + x;
+                    const int32 neighbor_z = d.y + z;
+                    if (neighbor_x < 0 || neighbor_x >= heightfield.GetWidth() ||
+                        neighbor_z< 0 || neighbor_z >= heightfield.GetDepth())
+                    {
+                        continue;
+                    }
+
+                    auto neighbor_cell = heightfield.GetCell(neighbor_x,neighbor_z);
+                    const uint32 current_floor = cell->spans[c].max_height;
+                }
             }
         }
     }
