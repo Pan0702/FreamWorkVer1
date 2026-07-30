@@ -126,10 +126,10 @@ void GameMain::Run()
         performance_profiler_.BeginFrame();
         ClacFPS();
 #endif
-        Tick();
-
         // Renderが前フレーム消費し終えるまで待つ
         render_done_.acquire();
+        Tick();
+        
         render_system_->GetSceneRenderer()->SwapFrame();
         // Renderに投げる → 並列で次ループへ//
         frame_ready_.release();

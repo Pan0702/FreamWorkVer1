@@ -261,3 +261,13 @@ void Debug::Watch(const char* name, float value)
 {
     Log("%s: %.3f", name, value);
 }
+
+void Debug::DrawTriangle3D(const Vec3& a, const Vec3& b, const Vec3& c, const Vec4& color) const
+{
+    if (line_renderer_ == nullptr)
+    {
+        return;
+    }
+
+    line_renderer_->AddTriangle(a, b, c, color);
+}

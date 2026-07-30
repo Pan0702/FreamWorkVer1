@@ -35,4 +35,5 @@ void World::Tick(float dt)
     }
     collision_world_.Collect();
     collision_world_.DrawDebug();
+    navigation_system_.DrawDebug();
 }

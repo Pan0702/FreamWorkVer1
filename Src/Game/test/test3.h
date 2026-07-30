@@ -21,4 +21,6 @@ public:
      * @param dt 前フレームからの経過秒数。
      */
     void Tick(float dt) override;
+private:
+    std::vector<Vec3> navigation_path_;
 };

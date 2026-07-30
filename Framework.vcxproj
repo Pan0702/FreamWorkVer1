@@ -26,9 +26,12 @@
     <ClCompile Include="Src\Debug\navigation_debug_renderer.cpp" />
     <ClCompile Include="Src\Debug\parformance.cpp" />
     <ClCompile Include="Src\Engine\Components\instanced_static_mesh_component.cpp" />
+    <ClCompile Include="Src\Engine\Components\navigation_agent_component.cpp" />
     <ClCompile Include="Src\Engine\Components\navigation_source_component.cpp" />
+    <ClCompile Include="Src\Engine\Navigation\navigation_compact_heightfield.cpp" />
     <ClCompile Include="Src\Engine\Navigation\navigation_heightfield.cpp" />
     <ClCompile Include="Src\Engine\Navigation\navigation_mesh_builder.cpp" />
+    <ClCompile Include="Src\Engine\Navigation\navigation_mesh_query.cpp" />
     <ClCompile Include="Src\Engine\Navigation\navigation_system.cpp" />
     <ClCompile Include="Src\Game\test\objects\instance_trees.cpp" />
     <ClCompile Include="Src\Game\test\objects\plane.cpp" />
@@ -86,6 +89,7 @@
     <ClInclude Include="Src\Engine\Components\collider_component.h" />
     <ClInclude Include="Src\Engine\Components\instanced_static_mesh_component.h" />
     <ClInclude Include="Src\Engine\Components\mesh_collider_component.h" />
+    <ClInclude Include="Src\Engine\Components\navigation_agent_component.h" />
     <ClInclude Include="Src\Engine\Components\navigation_source_component.h" />
     <ClInclude Include="Src\Engine\Components\skeletal_mesh.h" />
     <ClInclude Include="Src\Engine\Components\sphere_collider_componet.h" />
@@ -97,11 +101,14 @@
     <ClInclude Include="Src\Engine\level_factory.h" />
     <ClInclude Include="Src\Engine\level_manager.h" />
     <ClInclude Include="Src\Engine\Navigation\navigation_cell_range.h" />
+    <ClInclude Include="Src\Engine\Navigation\navigation_compact_heightfield.h" />
     <ClInclude Include="Src\Engine\Navigation\navigation_config.h" />
+    <ClInclude Include="Src\Engine\Navigation\navigation_contour.h" />
     <ClInclude Include="Src\Engine\Navigation\navigation_geometry.h" />
     <ClInclude Include="Src\Engine\Navigation\navigation_heightfield.h" />
     <ClInclude Include="Src\Engine\Navigation\navigation_heightfield_cell.h" />
     <ClInclude Include="Src\Engine\Navigation\navigation_mesh_builder.h" />
+    <ClInclude Include="Src\Engine\Navigation\navigation_mesh_query.h" />
     <ClInclude Include="Src\Engine\Navigation\navigation_span.h" />
     <ClInclude Include="Src\Engine\Navigation\navigation_system.h" />
     <ClInclude Include="Src\Engine\Navigation\navigation_type.h" />
