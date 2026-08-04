@@ -4,6 +4,7 @@
 #include "../attach_context.h"
 #include "../Navigation/navigation_system.h"
 #include "../../Debug/debug.h"
+#include "../../Debug/navigation_debug_renderer.h"
 
 void NavigationAgentComponent::OnAttach(const AttachContext& context)
 {
@@ -39,7 +40,8 @@ bool NavigationAgentComponent::SetDestination(const Vec3& destination)
     }
 
     const Vec3 start_position = owner->GetTransform().position;
-    if (!navigation_system_->FindPath(start_position, destination, path_))
+    if (!navigation_system_->FindPath(start_position, destination,
+                                      path_, &corridor_polygon_indices_))
     {
         ClearPath();
         return false;
@@ -52,12 +54,18 @@ bool NavigationAgentComponent::SetDestination(const Vec3& destination)
 void NavigationAgentComponent::ClearPath()
 {
     path_.clear();
+    corridor_polygon_indices_.clear();
     current_path_index_ = 0;
 }
 
 const std::vector<Vec3>& NavigationAgentComponent::GetPath() const
 {
     return path_;
+}
+
+const std::vector<uint32>& NavigationAgentComponent::GetCorridorPolygonIndices() const
+{
+    return corridor_polygon_indices_;
 }
 
 uint32 NavigationAgentComponent::GetCurrentPathIndex() const
@@ -80,6 +88,16 @@ bool NavigationAgentComponent::IsDebugDrawEnabled() const
     return debug_draw_enabled_;
 }
 
+void NavigationAgentComponent::SetDebugDrawCorridorEnabled(bool enabled)
+{
+    debug_draw_corridor_enabled_ = enabled;
+}
+
+bool NavigationAgentComponent::IsDebugDrawCorridorEnabled() const
+{
+    return debug_draw_corridor_enabled_;
+}
+
 void NavigationAgentComponent::SetDebugDrawColor(const Vec4& color)
 {
     debug_draw_color_ = color;
@@ -95,6 +113,32 @@ void NavigationAgentComponent::SetDebugPointRadius(float radius)
     debug_point_radius_ = radius;
 }
 
+bool NavigationAgentComponent::TryGetCurrentWaypoint(Vec3& out_waypoint) const
+{
+    if (current_path_index_ >= path_.size())
+    {
+        return false;   // åoòHÇ»Çµ or ëñîjçœÇ›
+    }
+    out_waypoint = path_[current_path_index_];
+    return true;
+}
+
+void NavigationAgentComponent::AdvanceWaypointIfReached(const Vec3& position, float radius)
+{
+    const float radius_sq = radius * radius;
+    while (current_path_index_ < path_.size())
+    {
+        const Vec3& way_point = path_[current_path_index_];
+        const float dx = way_point.x - position.x;
+        const float dz = way_point.z - position.z;
+        if (dx * dx + dz * dz > radius_sq)
+        {
+            break;
+        }
+        ++current_path_index_;
+    }
+}
+
 void NavigationAgentComponent::DrawDebug() const
 {
     if (path_.empty())
@@ -103,6 +147,17 @@ void NavigationAgentComponent::DrawDebug() const
     }
 
     const Vec3 draw_offset(0.0f, debug_draw_height_offset_, 0.0f);
+
+    if (debug_draw_corridor_enabled_ &&
+        navigation_system_ != nullptr &&
+        !corridor_polygon_indices_.empty())
+    {
+        NavigationDebugRenderer renderer;
+        renderer.DrawCorridor(
+            navigation_system_->GetMeshData(),
+            corridor_polygon_indices_,
+            debug_draw_height_offset_ * 0.5f);
+    }
 
     for (uint32 i = 0; i + 1 < path_.size(); ++i)
     {

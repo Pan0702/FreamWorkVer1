@@ -23,39 +23,39 @@ class PipelineStateCache
 {
 public:
     /**
-     * @brief Rootsignatureã‚’2æœ¬ä½œã£ãŸå¾Œã€ShaderIdã¨VertexFactoryIdã®ã™ã¹ã¦ã®çµ„ã¿åˆã‚ã›ã®PSOã‚’
-     * äº‹å‰ç”Ÿæˆã—ã¦é…åˆ—ã«æ ¼ç´
-     * @param device ä½¿ç”¨ã™ã‚‹D3D12ã§ã°ã„ã™
-     * @return RootSignatureã¨PSOã®ç”Ÿæˆã«æˆåŠŸã—ãŸå ´åˆã¯ï¼´ï½’ï½•ï½…
+     * @brief Rootsignature‚ğ2–{ì‚Á‚½ŒãAShaderId‚ÆVertexFactoryId‚Ì‚·‚×‚Ä‚Ì‘g‚İ‡‚í‚¹‚ÌPSO‚ğ
+     * –‘O¶¬‚µ‚Ä”z—ñ‚ÉŠi”[
+     * @param device g—p‚·‚éD3D12‚Å‚Î‚¢‚·
+     * @return RootSignature‚ÆPSO‚Ì¶¬‚É¬Œ÷‚µ‚½ê‡‚ÍTrue
      */
     bool Initialize(ID3D12Device* device);
     /**
-     * @brief VertexFactoryã«å¯¾å¿œã™ã‚‹RootSignatureã‚’è¿”ã™
-     * @param factory å–å¾—ã—ãŸã„RootSignatureã®VertexFactory
-     * @return å¯¾å¿œã™ã‚‹RootSignatureã€‚ãªã‘ã‚Œã°Nullptr
+     * @brief VertexFactory‚É‘Î‰‚·‚éRootSignature‚ğ•Ô‚·
+     * @param factory æ“¾‚µ‚½‚¢RootSignature‚ÌVertexFactory
+     * @return ‘Î‰‚·‚éRootSignatureB‚È‚¯‚ê‚ÎNullptr
      */
     ID3D12RootSignature* GetRootSignature(VertexFactoryId factory);
     /**
-     * @brief ç”Ÿæˆæ¸ˆã¿ã®é…åˆ—ã‹ã‚‰æŒ‡å®šã—ãŸçµ„ã¿åˆã‚ã›ã®PSOã‚’è¿”ã™ã€‚
-     * @param shader ä½¿ç”¨ã™ã‚‹Shader
-     * @param factory ä½¿ç”¨ã™ã‚‹VertexFactory
-     * @return å¯¾å¿œã™ã‚‹PSO
+     * @brief ¶¬Ï‚İ‚Ì”z—ñ‚©‚çw’è‚µ‚½‘g‚İ‡‚í‚¹‚ÌPSO‚ğ•Ô‚·B
+     * @param shader g—p‚·‚éShader
+     * @param factory g—p‚·‚éVertexFactory
+     * @return ‘Î‰‚·‚éPSO
      */
     PipelineState* Get(ShaderId shader,VertexFactoryId factory);
     
 private:
     /**
-     * @brief Staticç³»Meshã¨Skinnedç”¨ã®RootSignatureã‚’1æœ¬ãšã¤ç”Ÿæˆ
-     * @param device ä½¿ç”¨ã™ã‚‹device
-     * @return ä¸¡æ–¹ã®RootSignatureã‚’è¿”ã™
+     * @brief StaticŒnMesh‚ÆSkinned—p‚ÌRootSignature‚ğ1–{‚¸‚Â¶¬
+     * @param device g—p‚·‚édevice
+     * @return —¼•û‚ÌRootSignature‚ğ•Ô‚·
      */
     bool BuidRootSignature(ID3D12Device* device);
     /**
-     * @brief ä¸€çµ„ã®PSOã‚’ç”Ÿæˆã—ã¦PSOã‚’ç®¡ç†ã™ã‚‹é…åˆ—ã«æ ¼ç´ã™ã‚‹
-     * @param device ä½¿ç”¨ã™ã‚‹device
-     * @param shader PSã‚’æ±ºã‚ã‚‹ã‚·ã‚§ãƒ¼ãƒ€ãƒ¼
-     * @param factory VSã¨å…¥åŠ›ãƒ¬ã‚¤ã‚¢ã‚¦ãƒˆã‚’æ±ºã‚ã‚‹VertexFactory
-     * @return ç”Ÿæˆã«æˆåŠŸã—ãŸã‚‰ï¼´ï½’ï½•ï½…
+     * @brief ˆê‘g‚ÌPSO‚ğ¶¬‚µ‚ÄPSO‚ğŠÇ—‚·‚é”z—ñ‚ÉŠi”[‚·‚é
+     * @param device g—p‚·‚édevice
+     * @param shader PS‚ğŒˆ‚ß‚éƒVƒF[ƒ_[
+     * @param factory VS‚Æ“ü—ÍƒŒƒCƒAƒEƒg‚ğŒˆ‚ß‚éVertexFactory
+     * @return ¶¬‚É¬Œ÷‚µ‚½‚çTrue
      */
     bool BuildPipelineState(ID3D12Device* device,ShaderId shader,VertexFactoryId factory);
     

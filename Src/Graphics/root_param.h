@@ -1,5 +1,4 @@
 #pragma once
-#include <cstdint>
 #include "../Core/Math/my_math.h"
 
 enum class StaticRootParam : uint32
@@ -21,7 +20,7 @@ enum class SkinnedRootParam : uint32
 {
     kObjectCB = 0, // b0 (VS)
     kBoneCB, // b1 (VS)
-    kLightCB, // b1 (PS) VS ã® b1 ã¨ã¯ visibility ãŒé•ã†ãŸã‚åˆ¥ã‚¹ãƒ­ãƒƒãƒˆ
+    kLightCB, // b1 (PS) VS ‚Ì b1 ‚Æ‚Í visibility ‚ªˆá‚¤‚½‚ß•ÊƒXƒƒbƒg
     kMaterialCB, // b2 (PS)
     kDiffuse, // t0
     kNormal, // t1

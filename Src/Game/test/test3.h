@@ -24,5 +24,4 @@ public:
 
 private:
     class Player* player = nullptr;
-    class NavigationAgentComponent* navigation_agent = nullptr;
 };

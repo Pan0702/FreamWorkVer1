@@ -1,5 +1,7 @@
 ﻿#include "navigation_mesh_query.h"
+#include <algorithm>
 #include <cfloat>
+#include <cmath>
 #include <list>
 
 bool NavigationMeshQuery::FindNearestPolygon(const NavigationMeshData& mesh_data, const Vec3& position,
@@ -50,6 +52,7 @@ bool NavigationMeshQuery::FindNearestPolygon(const NavigationMeshData& mesh_data
 }
 
 bool NavigationMeshQuery::FindPolygonPath(const NavigationMeshData& mesh_data, uint32 start_poly, uint32 goal_poly,
+                                          const Vec3& start_position, const Vec3& goal_position,
                                           std::vector<uint32>& out_poly) const
 {
     out_poly.clear();
@@ -64,24 +67,16 @@ bool NavigationMeshQuery::FindPolygonPath(const NavigationMeshData& mesh_data, u
         return true;
     }
 
-    std::vector<Node> nodes;
+    std::vector<Node> nodes(mesh_data.polygons.size());
     std::vector<uint32> open;
     bool find_path = false;
-    const Vec3 goal_poly_center = CalcPolygonCenter(mesh_data, goal_poly);
 
-    for (uint32 p = 0; p < mesh_data.polygons.size(); ++p)
-    {
-        Node node;
-        node.h_cost = (goal_poly_center - CalcPolygonCenter(mesh_data, p)).Length();
-        if (p == start_poly)
-        {
-            node.g_cost = 0.0f;
-            node.f_cost = node.h_cost + node.g_cost;
-            node.state = State::kOpen;
-        }
-
-        nodes.push_back(node);
-    }
+    Node& start_node = nodes[start_poly];
+    start_node.position = start_position;
+    start_node.g_cost = 0.0f;
+    start_node.h_cost = (goal_position - start_position).Length();
+    start_node.f_cost = start_node.h_cost;
+    start_node.state = State::kOpen;
 
     open.push_back(start_poly);
 
@@ -118,12 +113,28 @@ bool NavigationMeshQuery::FindPolygonPath(const NavigationMeshData& mesh_data, u
                 continue;
             }
 
-            const float g_cost = (CalcPolygonCenter(mesh_data, neighbor_index) -
-                CalcPolygonCenter(mesh_data, cur_index)).Length() + nodes[cur_index].g_cost;
+            Vec3 edge_a;
+            Vec3 edge_b;
+            if (!TryGetSharedEdge(mesh_data, cur_index, neighbor_index, edge_a, edge_b))
+            {
+                continue;
+            }
+
+            Vec3 neighbor_position = CalcBestPortalPoint(
+                nodes[cur_index].position, goal_position, edge_a, edge_b);
+            if (neighbor_index == goal_poly)
+            {
+                neighbor_position = goal_position;
+            }
+
+            const float g_cost = nodes[cur_index].g_cost +
+                (neighbor_position - nodes[cur_index].position).Length();
             if (g_cost < nodes[neighbor_index].g_cost || nodes[neighbor_index].state == State::kUnvisited)
             {
                 nodes[neighbor_index].parent_index = cur_index;
+                nodes[neighbor_index].position = neighbor_position;
                 nodes[neighbor_index].g_cost = g_cost;
+                nodes[neighbor_index].h_cost = (goal_position - neighbor_position).Length();
                 nodes[neighbor_index].f_cost = nodes[neighbor_index].g_cost + nodes[neighbor_index].h_cost;
                 if (nodes[neighbor_index].state == State::kUnvisited)
                 {
@@ -144,7 +155,7 @@ bool NavigationMeshQuery::FindPolygonPath(const NavigationMeshData& mesh_data, u
             parent = nodes[parent].parent_index;
         }
 
-        std::reverse(out_poly.begin(), out_poly.end());
+        std::ranges::reverse(out_poly);
         return true;
     }
     else
@@ -322,9 +333,14 @@ bool NavigationMeshQuery::FindNearestPolygon(const NavigationMeshData& mesh_data
 }
 
 bool NavigationMeshQuery::FindPath(const NavigationMeshData& mesh_data, const Vec3& start_pos,
-                                   const Vec3& goal_pos, std::vector<Vec3>& out_path) const
+                                   const Vec3& goal_pos, std::vector<Vec3>& out_path,
+                                   std::vector<uint32>* out_polygon_path) const
 {
     out_path.clear();
+    if (out_polygon_path != nullptr)
+    {
+        out_polygon_path->clear();
+    }
 
     uint32 start_polygon_index = UINT32_MAX;
     uint32 goal_polygon_index = UINT32_MAX;
@@ -343,20 +359,417 @@ bool NavigationMeshQuery::FindPath(const NavigationMeshData& mesh_data, const Ve
         return false;
     }
 
+    if (TraceSegmentAcrossNavMesh(mesh_data, start_polygon_index, goal_polygon_index,
+                                  nearest_start_position, nearest_goal_position,
+                                  out_path, out_polygon_path))
+    {
+        return true;
+    }
+
     std::vector<uint32> polygon_path;
 
-    if (!FindPolygonPath(mesh_data, start_polygon_index, goal_polygon_index, polygon_path))
+    if (!FindPolygonPath(mesh_data, start_polygon_index, goal_polygon_index,
+                         nearest_start_position, nearest_goal_position, polygon_path))
     {
         return false;
     }
 
-    if (!FindStraightPath(mesh_data, polygon_path, nearest_start_position, nearest_goal_position, out_path))
+    std::vector<Vec3> funnel_path;
+    if (!FindStraightPath(mesh_data, polygon_path,
+                          nearest_start_position, nearest_goal_position, funnel_path))
     {
         out_path.clear();
         return false;
     }
 
+    std::vector<Vec3> optimized_path;
+    std::vector<uint32> optimized_polygon_path;
+    if (OptimizePathVisibility(mesh_data, funnel_path, polygon_path,
+                               optimized_path, optimized_polygon_path))
+    {
+        out_path.swap(optimized_path);
+        if (out_polygon_path != nullptr)
+        {
+            // デバッグ表示では、平滑化前にA*が選んだコリドーを残す。
+            // これにより、経路線がコリドー外を直進して改善されたことも確認できる。
+            *out_polygon_path = polygon_path;
+        }
+    }
+    else
+    {
+        out_path.swap(funnel_path);
+        if (out_polygon_path != nullptr)
+        {
+            *out_polygon_path = polygon_path;
+        }
+    }
+
     return true;
+}
+
+bool NavigationMeshQuery::TraceSegmentAcrossNavMesh(
+    const NavigationMeshData& mesh_data,
+    uint32 start_polygon_index, uint32 goal_polygon_index,
+    const Vec3& start_position, const Vec3& goal_position,
+    std::vector<Vec3>& out_path,
+    std::vector<uint32>* out_polygon_path) const
+{
+    constexpr float kTraversalEpsilon = 0.0001f;
+
+    struct TraversalState
+    {
+        uint32 polygon_index = UINT32_MAX;
+        float path_t = 0.0f;
+        uint32 parent_state_index = UINT32_MAX;
+        Vec3 crossing_position;
+    };
+
+    out_path.clear();
+    if (out_polygon_path != nullptr)
+    {
+        out_polygon_path->clear();
+    }
+
+    if (start_polygon_index >= mesh_data.polygons.size() ||
+        goal_polygon_index >= mesh_data.polygons.size())
+    {
+        return false;
+    }
+
+    out_path.push_back(start_position);
+    if (start_polygon_index == goal_polygon_index)
+    {
+        if (out_polygon_path != nullptr)
+        {
+            out_polygon_path->push_back(start_polygon_index);
+        }
+
+        if (!IsSamePointXZ(start_position, goal_position))
+        {
+            out_path.push_back(goal_position);
+        }
+        return true;
+    }
+
+    const Vec3 path_direction = goal_position - start_position;
+    std::vector<TraversalState> traversal_states;
+    std::vector<uint32> open_state_indices;
+    std::vector<float> furthest_path_t(mesh_data.polygons.size(), -FLT_MAX);
+    std::vector<uint32> connected_polygons;
+
+    traversal_states.push_back({start_polygon_index, 0.0f, UINT32_MAX, start_position});
+
+    CollectConnectedPolygonsAtPoint(mesh_data, start_polygon_index,
+                                    start_position, connected_polygons);
+
+    const float start_probe_t = (std::min)(1.0f, kTraversalEpsilon);
+    const Vec3 start_probe = start_position + path_direction * start_probe_t;
+    for (const uint32 polygon_index : connected_polygons)
+    {
+        if (!IsPointInsidePolygonXZ(mesh_data, polygon_index, start_probe))
+        {
+            continue;
+        }
+
+        if (polygon_index == start_polygon_index)
+        {
+            open_state_indices.push_back(0);
+        }
+        else
+        {
+            traversal_states.push_back({polygon_index, 0.0f, 0, start_position});
+            open_state_indices.push_back(static_cast<uint32>(traversal_states.size() - 1));
+        }
+        furthest_path_t[polygon_index] = 0.0f;
+    }
+
+    const size_t max_step_count = mesh_data.polygons.size() * 4;
+    size_t step_count = 0;
+    while (!open_state_indices.empty() && step_count < max_step_count)
+    {
+        ++step_count;
+
+        const uint32 current_state_index = open_state_indices.back();
+        open_state_indices.pop_back();
+        const TraversalState current_state = traversal_states[current_state_index];
+
+        bool reaches_goal_polygon = current_state.polygon_index == goal_polygon_index;
+        if (!reaches_goal_polygon &&
+            IsPointInsidePolygonXZ(mesh_data, current_state.polygon_index, goal_position))
+        {
+            CollectConnectedPolygonsAtPoint(mesh_data, current_state.polygon_index,
+                                            goal_position, connected_polygons);
+            reaches_goal_polygon = std::find(connected_polygons.begin(), connected_polygons.end(),
+                                             goal_polygon_index) != connected_polygons.end();
+        }
+
+        if (reaches_goal_polygon)
+        {
+            std::vector<uint32> ordered_state_indices;
+            for (uint32 state_index = current_state_index;
+                 state_index != UINT32_MAX;
+                 state_index = traversal_states[state_index].parent_state_index)
+            {
+                ordered_state_indices.push_back(state_index);
+            }
+            std::reverse(ordered_state_indices.begin(), ordered_state_indices.end());
+
+            out_path.clear();
+            out_path.push_back(start_position);
+            for (const uint32 state_index : ordered_state_indices)
+            {
+                const Vec3& crossing_position = traversal_states[state_index].crossing_position;
+                if ((crossing_position - out_path.back()).Length() > 0.001f)
+                {
+                    out_path.push_back(crossing_position);
+                }
+            }
+            if ((goal_position - out_path.back()).Length() > 0.001f)
+            {
+                out_path.push_back(goal_position);
+            }
+
+            if (out_polygon_path != nullptr)
+            {
+                for (const uint32 state_index : ordered_state_indices)
+                {
+                    out_polygon_path->push_back(traversal_states[state_index].polygon_index);
+                }
+
+                if (out_polygon_path->empty() || out_polygon_path->front() != start_polygon_index)
+                {
+                    out_polygon_path->insert(out_polygon_path->begin(), start_polygon_index);
+                }
+                if (out_polygon_path->back() != goal_polygon_index)
+                {
+                    out_polygon_path->push_back(goal_polygon_index);
+                }
+
+                const auto unique_end = std::unique(out_polygon_path->begin(), out_polygon_path->end());
+                out_polygon_path->erase(unique_end, out_polygon_path->end());
+            }
+            return true;
+        }
+
+        const NavigationMeshPolygon& polygon = mesh_data.polygons[current_state.polygon_index];
+        const uint32 vertex_count = static_cast<uint32>(polygon.vertex_indices.size());
+        if (vertex_count < 3 || polygon.neighbor_polygon_indices.size() != vertex_count)
+        {
+            continue;
+        }
+
+        float nearest_path_t = FLT_MAX;
+        Vec3 nearest_crossing_position;
+
+        for (uint32 edge_index = 0; edge_index < vertex_count; ++edge_index)
+        {
+            const uint32 next_edge_index = (edge_index + 1) % vertex_count;
+            const uint32 edge_start_index = polygon.vertex_indices[edge_index];
+            const uint32 edge_end_index = polygon.vertex_indices[next_edge_index];
+            if (edge_start_index >= mesh_data.vertices.size() ||
+                edge_end_index >= mesh_data.vertices.size())
+            {
+                continue;
+            }
+
+            float path_t = 0.0f;
+            float edge_t = 0.0f;
+            if (!CalcSegmentIntersectionXZ(start_position, goal_position,
+                                           mesh_data.vertices[edge_start_index],
+                                           mesh_data.vertices[edge_end_index], path_t, edge_t) ||
+                path_t <= current_state.path_t + kTraversalEpsilon)
+            {
+                continue;
+            }
+
+            if (path_t < nearest_path_t)
+            {
+                nearest_path_t = path_t;
+                const float clamped_edge_t = (std::max)(0.0f, (std::min)(1.0f, edge_t));
+                const Vec3& edge_start = mesh_data.vertices[edge_start_index];
+                const Vec3& edge_end = mesh_data.vertices[edge_end_index];
+                nearest_crossing_position =
+                    edge_start + (edge_end - edge_start) * clamped_edge_t;
+            }
+        }
+
+        if (nearest_path_t == FLT_MAX)
+        {
+            continue;
+        }
+
+        const Vec3 crossing_position = start_position + path_direction * nearest_path_t;
+        CollectConnectedPolygonsAtPoint(mesh_data, current_state.polygon_index,
+                                        crossing_position, connected_polygons);
+
+        const float probe_t = (std::min)(1.0f, nearest_path_t + kTraversalEpsilon);
+        const Vec3 probe_position = start_position + path_direction * probe_t;
+        for (const uint32 polygon_index : connected_polygons)
+        {
+            if (polygon_index >= mesh_data.polygons.size() ||
+                !IsPointInsidePolygonXZ(mesh_data, polygon_index, probe_position) ||
+                nearest_path_t <= furthest_path_t[polygon_index] + kTraversalEpsilon)
+            {
+                continue;
+            }
+
+            furthest_path_t[polygon_index] = nearest_path_t;
+            traversal_states.push_back(
+                {polygon_index, nearest_path_t, current_state_index, nearest_crossing_position});
+            open_state_indices.push_back(static_cast<uint32>(traversal_states.size() - 1));
+        }
+    }
+
+    out_path.clear();
+    return false;
+}
+
+bool NavigationMeshQuery::OptimizePathVisibility(
+    const NavigationMeshData& mesh_data,
+    const std::vector<Vec3>& path,
+    const std::vector<uint32>& polygon_path,
+    std::vector<Vec3>& out_path,
+    std::vector<uint32>& out_polygon_path) const
+{
+    out_path.clear();
+    out_polygon_path.clear();
+    if (path.empty() || polygon_path.empty())
+    {
+        return false;
+    }
+
+    if (path.size() == 1)
+    {
+        out_path = path;
+        out_polygon_path.push_back(polygon_path.front());
+        return true;
+    }
+
+    std::vector<uint32> point_polygon_indices(path.size(), UINT32_MAX);
+    point_polygon_indices.front() = polygon_path.front();
+    point_polygon_indices.back() = polygon_path.back();
+
+    size_t minimum_corridor_index = 0;
+    for (size_t point_index = 1; point_index + 1 < path.size(); ++point_index)
+    {
+        float best_distance_squared = FLT_MAX;
+        size_t best_corridor_index = minimum_corridor_index;
+
+        for (size_t corridor_index = minimum_corridor_index;
+             corridor_index < polygon_path.size(); ++corridor_index)
+        {
+            const uint32 polygon_index = polygon_path[corridor_index];
+            if (polygon_index >= mesh_data.polygons.size())
+            {
+                continue;
+            }
+
+            const NavigationMeshPolygon& polygon = mesh_data.polygons[polygon_index];
+            if (polygon.vertex_indices.size() < 3)
+            {
+                continue;
+            }
+
+            const uint32 first_vertex_index = polygon.vertex_indices[0];
+            if (first_vertex_index >= mesh_data.vertices.size())
+            {
+                continue;
+            }
+
+            float polygon_distance_squared = FLT_MAX;
+            for (size_t triangle_index = 1;
+                 triangle_index + 1 < polygon.vertex_indices.size(); ++triangle_index)
+            {
+                const uint32 second_vertex_index = polygon.vertex_indices[triangle_index];
+                const uint32 third_vertex_index = polygon.vertex_indices[triangle_index + 1];
+                if (second_vertex_index >= mesh_data.vertices.size() ||
+                    third_vertex_index >= mesh_data.vertices.size())
+                {
+                    continue;
+                }
+
+                const Vec3 closest_point = CalcClosestPointOnTriangle(
+                    path[point_index],
+                    mesh_data.vertices[first_vertex_index],
+                    mesh_data.vertices[second_vertex_index],
+                    mesh_data.vertices[third_vertex_index]);
+                polygon_distance_squared = (std::min)(
+                    polygon_distance_squared,
+                    (path[point_index] - closest_point).LengthSquared());
+            }
+
+            const bool is_closer = polygon_distance_squared < best_distance_squared - kEpsilon;
+            const bool is_later_equal_candidate =
+                std::abs(polygon_distance_squared - best_distance_squared) <= kEpsilon &&
+                corridor_index > best_corridor_index;
+            if (!is_closer && !is_later_equal_candidate)
+            {
+                continue;
+            }
+
+            best_distance_squared = polygon_distance_squared;
+            best_corridor_index = corridor_index;
+        }
+
+        if (best_distance_squared == FLT_MAX)
+        {
+            return false;
+        }
+
+        point_polygon_indices[point_index] = polygon_path[best_corridor_index];
+        minimum_corridor_index = best_corridor_index;
+    }
+
+    size_t current_point_index = 0;
+    while (current_point_index + 1 < path.size())
+    {
+        bool found_visible_point = false;
+
+        for (size_t candidate_point_index = path.size() - 1;
+             candidate_point_index > current_point_index; --candidate_point_index)
+        {
+            std::vector<Vec3> segment_path;
+            std::vector<uint32> segment_polygon_path;
+            if (!TraceSegmentAcrossNavMesh(
+                    mesh_data,
+                    point_polygon_indices[current_point_index],
+                    point_polygon_indices[candidate_point_index],
+                    path[current_point_index], path[candidate_point_index],
+                    segment_path, &segment_polygon_path))
+            {
+                continue;
+            }
+
+            for (const Vec3& point : segment_path)
+            {
+                if (out_path.empty() || (point - out_path.back()).Length() > 0.001f)
+                {
+                    out_path.push_back(point);
+                }
+            }
+
+            for (const uint32 polygon_index : segment_polygon_path)
+            {
+                if (out_polygon_path.empty() || out_polygon_path.back() != polygon_index)
+                {
+                    out_polygon_path.push_back(polygon_index);
+                }
+            }
+
+            current_point_index = candidate_point_index;
+            found_visible_point = true;
+            break;
+        }
+
+        if (!found_visible_point)
+        {
+            out_path.clear();
+            out_polygon_path.clear();
+            return false;
+        }
+    }
+
+    return !out_path.empty() && !out_polygon_path.empty();
 }
 
 Vec3 NavigationMeshQuery::CalcPolygonCenter(const NavigationMeshData& mesh_data, uint32 polygon_index) const
@@ -377,7 +790,7 @@ Vec3 NavigationMeshQuery::CalcPolygonCenter(const NavigationMeshData& mesh_data,
 }
 
 Vec3 NavigationMeshQuery::CalcClosestPointOnTriangle(const Vec3& point, const Vec3& a, const Vec3& b,
-                                                     const Vec3& c) const
+                                                      const Vec3& c) const
 {
     const Vec3 ab = b - a;
     const Vec3 ac = c - a;
@@ -433,6 +846,38 @@ Vec3 NavigationMeshQuery::CalcClosestPointOnTriangle(const Vec3& point, const Ve
     return a + ab * v + ac * w;
 }
 
+Vec3 NavigationMeshQuery::CalcBestPortalPoint(const Vec3& current_position, const Vec3& goal_position,
+                                              const Vec3& edge_start, const Vec3& edge_end) const
+{
+    constexpr uint32 kSearchIterationCount = 16;
+
+    float min_t = 0.0f;
+    float max_t = 1.0f;
+    const Vec3 edge = edge_end - edge_start;
+
+    const auto calc_cost = [&](float t)
+    {
+        const Vec3 point = edge_start + edge * t;
+        return (point - current_position).Length() + (goal_position - point).Length();
+    };
+
+    for (uint32 iteration = 0; iteration < kSearchIterationCount; ++iteration)
+    {
+        const float first_t = (min_t * 2.0f + max_t) / 3.0f;
+        const float second_t = (min_t + max_t * 2.0f) / 3.0f;
+        if (calc_cost(first_t) <= calc_cost(second_t))
+        {
+            max_t = second_t;
+        }
+        else
+        {
+            min_t = first_t;
+        }
+    }
+
+    return edge_start + edge * ((min_t + max_t) * 0.5f);
+}
+
 bool NavigationMeshQuery::TryGetSharedEdge(const NavigationMeshData& mesh_data, uint32 first_polygon_index,
                                            uint32 second_polygon_index, Vec3& out_a, Vec3& out_b) const
 {
@@ -442,62 +887,44 @@ bool NavigationMeshQuery::TryGetSharedEdge(const NavigationMeshData& mesh_data, 
         return false;
     }
 
-    const auto& first_polygon =
-        mesh_data.polygons[first_polygon_index];
-
-    const auto& second_polygon =
-        mesh_data.polygons[second_polygon_index];
-
-    uint32 shared_vertex_indices[2] =
+    const NavigationMeshPolygon& first_polygon = mesh_data.polygons[first_polygon_index];
+    const NavigationMeshPolygon& second_polygon = mesh_data.polygons[second_polygon_index];
+    const uint32 first_vertex_count = static_cast<uint32>(first_polygon.vertex_indices.size());
+    const uint32 second_vertex_count = static_cast<uint32>(second_polygon.vertex_indices.size());
+    if (first_vertex_count < 3 || second_vertex_count < 3)
     {
-        UINT32_MAX,
-        UINT32_MAX
-    };
+        return false;
+    }
 
-    uint32 shared_vertex_count = 0;
-
-    for (uint32 first_vertex_index : first_polygon.vertex_indices)
+    for (uint32 first_edge_index = 0; first_edge_index < first_vertex_count; ++first_edge_index)
     {
-        for (uint32 second_vertex_index : second_polygon.vertex_indices)
+        const uint32 first_start_index = first_polygon.vertex_indices[first_edge_index];
+        const uint32 first_end_index = first_polygon.vertex_indices[(first_edge_index + 1) % first_vertex_count];
+        if (first_start_index >= mesh_data.vertices.size() || first_end_index >= mesh_data.vertices.size())
         {
-            if (first_vertex_index != second_vertex_index)
+            return false;
+        }
+
+        for (uint32 second_edge_index = 0; second_edge_index < second_vertex_count; ++second_edge_index)
+        {
+            const uint32 second_start_index = second_polygon.vertex_indices[second_edge_index];
+            const uint32 second_end_index =
+                second_polygon.vertex_indices[(second_edge_index + 1) % second_vertex_count];
+
+            // 隣接ポリゴンでは共有辺の向きが逆になる。
+            if (first_start_index != second_end_index || first_end_index != second_start_index)
             {
                 continue;
             }
 
-            if (shared_vertex_count > 0 &&
-                shared_vertex_indices[0] == first_vertex_index)
-            {
-                continue;
-            }
-
-            if (shared_vertex_count >= 2)
-            {
-                return false;
-            }
-
-            shared_vertex_indices[shared_vertex_count] =
-                first_vertex_index;
-
-            ++shared_vertex_count;
+            // first_polygon側の頂点順を保って返す。
+            out_a = mesh_data.vertices[first_start_index];
+            out_b = mesh_data.vertices[first_end_index];
+            return true;
         }
     }
 
-    if (shared_vertex_count != 2)
-    {
-        return false;
-    }
-
-    if (shared_vertex_indices[0] >= mesh_data.vertices.size() ||
-        shared_vertex_indices[1] >= mesh_data.vertices.size())
-    {
-        return false;
-    }
-
-    out_a = mesh_data.vertices[shared_vertex_indices[0]];
-    out_b = mesh_data.vertices[shared_vertex_indices[1]];
-
-    return true;
+    return false;
 }
 
 bool NavigationMeshQuery::BuildPortals(const NavigationMeshData& mesh_data, const std::vector<uint32>& polygon_path,
@@ -538,29 +965,11 @@ bool NavigationMeshQuery::BuildPortals(const NavigationMeshData& mesh_data, cons
             return false;
         }
 
-        const Vec3 cur_center = CalcPolygonCenter(mesh_data, cur_poly);
-        const Vec3 next_center = CalcPolygonCenter(mesh_data, next_poly);
-
-
-        const Vec3 direction = next_center - cur_center;
-        const Vec3 to_a = edge_a - cur_center;
-        const Vec3 to_b = edge_b - cur_center;
-
-        const float side_a = direction.x * to_a.z - direction.z * to_a.x;
-        const float side_b = direction.x * to_b.z - direction.z * to_b.x;
-
         Portal portal;
-
-        if (side_a >= side_b)
-        {
-            portal.left = edge_a;
-            portal.right = edge_b;
-        }
-        else
-        {
-            portal.left = edge_b;
-            portal.right = edge_a;
-        }
+        // ポリゴンはXZ平面で反時計回り。現在ポリゴンの共有辺は
+        // 進行方向から見て right -> left の順に並ぶ。
+        portal.right = edge_a;
+        portal.left = edge_b;
 
         out_portals.push_back(portal);
     }
@@ -571,6 +980,149 @@ bool NavigationMeshQuery::BuildPortals(const NavigationMeshData& mesh_data, cons
     out_portals.push_back(goal_portal);
 
     return true;
+}
+
+bool NavigationMeshQuery::CalcSegmentIntersectionXZ(const Vec3& path_start, const Vec3& path_end,
+                                                    const Vec3& edge_start, const Vec3& edge_end,
+                                                    float& out_path_t, float& out_edge_t) const
+{
+    const float path_x = path_end.x - path_start.x;
+    const float path_z = path_end.z - path_start.z;
+    const float edge_x = edge_end.x - edge_start.x;
+    const float edge_z = edge_end.z - edge_start.z;
+    const float denominator = path_x * edge_z - path_z * edge_x;
+    if (std::abs(denominator) <= kEpsilon)
+    {
+        return false;
+    }
+
+    const float offset_x = edge_start.x - path_start.x;
+    const float offset_z = edge_start.z - path_start.z;
+    out_path_t = (offset_x * edge_z - offset_z * edge_x) / denominator;
+    out_edge_t = (offset_x * path_z - offset_z * path_x) / denominator;
+
+    return out_path_t >= -kEpsilon && out_path_t <= 1.0f + kEpsilon &&
+        out_edge_t >= -kEpsilon && out_edge_t <= 1.0f + kEpsilon;
+}
+
+bool NavigationMeshQuery::IsPointInsidePolygonXZ(const NavigationMeshData& mesh_data, uint32 polygon_index,
+                                                 const Vec3& point) const
+{
+    if (polygon_index >= mesh_data.polygons.size())
+    {
+        return false;
+    }
+
+    const NavigationMeshPolygon& polygon = mesh_data.polygons[polygon_index];
+    const uint32 vertex_count = static_cast<uint32>(polygon.vertex_indices.size());
+    if (vertex_count < 3)
+    {
+        return false;
+    }
+
+    bool has_positive_area = false;
+    bool has_negative_area = false;
+    for (uint32 edge_index = 0; edge_index < vertex_count; ++edge_index)
+    {
+        const uint32 edge_start_index = polygon.vertex_indices[edge_index];
+        const uint32 edge_end_index = polygon.vertex_indices[(edge_index + 1) % vertex_count];
+        if (edge_start_index >= mesh_data.vertices.size() ||
+            edge_end_index >= mesh_data.vertices.size())
+        {
+            return false;
+        }
+
+        const float area = CalcSignedAreaXZ(mesh_data.vertices[edge_start_index],
+                                            mesh_data.vertices[edge_end_index], point);
+        has_positive_area |= area > kEpsilon;
+        has_negative_area |= area < -kEpsilon;
+        if (has_positive_area && has_negative_area)
+        {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void NavigationMeshQuery::CollectConnectedPolygonsAtPoint(
+    const NavigationMeshData& mesh_data, uint32 start_polygon_index,
+    const Vec3& point, std::vector<uint32>& out_polygon_indices) const
+{
+    out_polygon_indices.clear();
+    if (start_polygon_index >= mesh_data.polygons.size())
+    {
+        return;
+    }
+
+    std::vector<bool> visited(mesh_data.polygons.size(), false);
+    std::vector<uint32> open_polygons;
+    open_polygons.push_back(start_polygon_index);
+    visited[start_polygon_index] = true;
+
+    while (!open_polygons.empty())
+    {
+        const uint32 polygon_index = open_polygons.back();
+        open_polygons.pop_back();
+        out_polygon_indices.push_back(polygon_index);
+
+        const NavigationMeshPolygon& polygon = mesh_data.polygons[polygon_index];
+        const uint32 vertex_count = static_cast<uint32>(polygon.vertex_indices.size());
+        if (vertex_count < 3 || polygon.neighbor_polygon_indices.size() != vertex_count)
+        {
+            continue;
+        }
+
+        for (uint32 edge_index = 0; edge_index < vertex_count; ++edge_index)
+        {
+            const uint32 neighbor_index = polygon.neighbor_polygon_indices[edge_index];
+            const uint32 edge_start_index = polygon.vertex_indices[edge_index];
+            const uint32 edge_end_index = polygon.vertex_indices[(edge_index + 1) % vertex_count];
+            if (neighbor_index == UINT32_MAX ||
+                neighbor_index >= mesh_data.polygons.size() ||
+                visited[neighbor_index] ||
+                edge_start_index >= mesh_data.vertices.size() ||
+                edge_end_index >= mesh_data.vertices.size() ||
+                !IsPointOnSegmentXZ(point, mesh_data.vertices[edge_start_index],
+                                    mesh_data.vertices[edge_end_index]))
+            {
+                continue;
+            }
+
+            visited[neighbor_index] = true;
+            open_polygons.push_back(neighbor_index);
+        }
+    }
+}
+
+bool NavigationMeshQuery::IsPointOnSegmentXZ(const Vec3& point, const Vec3& start, const Vec3& end) const
+{
+    constexpr float kPointEpsilon = 0.001f;
+    constexpr float kPointEpsilonSquared = kPointEpsilon * kPointEpsilon;
+
+    const float edge_x = end.x - start.x;
+    const float edge_z = end.z - start.z;
+    const float edge_length_squared = edge_x * edge_x + edge_z * edge_z;
+    if (edge_length_squared <= kPointEpsilonSquared)
+    {
+        const float diff_x = point.x - start.x;
+        const float diff_z = point.z - start.z;
+        return diff_x * diff_x + diff_z * diff_z <= kPointEpsilonSquared;
+    }
+
+    const float point_x = point.x - start.x;
+    const float point_z = point.z - start.z;
+    const float segment_t = (point_x * edge_x + point_z * edge_z) / edge_length_squared;
+    if (segment_t < -kPointEpsilon || segment_t > 1.0f + kPointEpsilon)
+    {
+        return false;
+    }
+
+    const float closest_x = start.x + edge_x * segment_t;
+    const float closest_z = start.z + edge_z * segment_t;
+    const float diff_x = point.x - closest_x;
+    const float diff_z = point.z - closest_z;
+    return diff_x * diff_x + diff_z * diff_z <= kPointEpsilonSquared;
 }
 
 float NavigationMeshQuery::CalcSignedAreaXZ(const Vec3& a, const Vec3& b, const Vec3& c) const

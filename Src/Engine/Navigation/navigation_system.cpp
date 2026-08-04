@@ -163,9 +163,14 @@ bool NavigationSystem::Rebuild(const NavigationConfig& config)
 }
 
 bool NavigationSystem::FindPath(const Vec3& start_position, const Vec3& goal_position,
-                                std::vector<Vec3>& out_path) const
+                                std::vector<Vec3>& out_path,
+                                std::vector<uint32>* out_polygon_path) const
 {
     out_path.clear();
+    if (out_polygon_path != nullptr)
+    {
+        out_polygon_path->clear();
+    }
 
     if (mesh_data_.vertices.empty() || mesh_data_.polygons.empty())
     {
@@ -173,7 +178,8 @@ bool NavigationSystem::FindPath(const Vec3& start_position, const Vec3& goal_pos
     }
 
     NavigationMeshQuery query;
-    return query.FindPath(mesh_data_, start_position, goal_position, out_path);
+    return query.FindPath(mesh_data_, start_position, goal_position,
+                          out_path, out_polygon_path);
 }
 
 const NavigationDetailMeshData& NavigationSystem::GetDetailMeshData() const
@@ -188,6 +194,11 @@ const NavigationMeshData& NavigationSystem::GetMeshData() const
 
 void NavigationSystem::DrawDebug() const
 {
+    if (!debug_draw_enabled_)
+    {
+        return;
+    }
+
     if (mesh_data_.vertices.empty() ||
         mesh_data_.polygons.empty())
     {
@@ -201,5 +212,5 @@ void NavigationSystem::DrawDebug() const
     }
     
     NavigationDebugRenderer renderer;
-    renderer.Draw(detail_mesh_data_);
+    renderer.Draw(mesh_data_);
 }

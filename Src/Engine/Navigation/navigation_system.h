@@ -16,11 +16,15 @@ public:
     std::vector<NavigationGeometry> CollectGeometries() const;
     bool Rebuild(const NavigationConfig& config);
     bool FindPath(const Vec3& start_position, const Vec3& goal_position,
-                  std::vector<Vec3>& out_path) const;
-const NavigationDetailMeshData& GetDetailMeshData() const;
+                  std::vector<Vec3>& out_path,
+                  std::vector<uint32>* out_polygon_path = nullptr) const;
+    const NavigationDetailMeshData& GetDetailMeshData() const;
     const NavigationMeshData& GetMeshData() const;
     void DrawDebug() const;
+    void SetDebugDrawEnabled(bool enabled) { debug_draw_enabled_ = enabled; }
+    bool IsDebugDrawEnabled() const { return debug_draw_enabled_; }
 private:
+    bool debug_draw_enabled_ = false;
     struct RegisteredSource
     {
         NavigationSourceComponent* component = nullptr;

@@ -25,14 +25,94 @@
     <None Include="Shaders\shadow_instanced.vs.hlsl" />
     <ClCompile Include="Src\Debug\navigation_debug_renderer.cpp" />
     <ClCompile Include="Src\Debug\parformance.cpp" />
+    <ClCompile Include="Src\Engine\ai_controller.cpp" />
+    <ClCompile Include="Src\Engine\character.cpp" />
     <ClCompile Include="Src\Engine\Components\instanced_static_mesh_component.cpp" />
     <ClCompile Include="Src\Engine\Components\navigation_agent_component.cpp" />
     <ClCompile Include="Src\Engine\Components\navigation_source_component.cpp" />
+    <ClCompile Include="Src\Engine\controller.cpp">
+      <RuntimeLibrary>MultiThreadedDebugDll</RuntimeLibrary>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <Optimization>Disabled</Optimization>
+      <SupportJustMyCode>true</SupportJustMyCode>
+      <AssemblerOutput>NoListing</AssemblerOutput>
+      <AssemblerListingLocation>Framework\x64\Debug\</AssemblerListingLocation>
+      <UndefineAllPreprocessorDefinitions>false</UndefineAllPreprocessorDefinitions>
+      <BrowseInformation>false</BrowseInformation>
+      <BrowseInformationFile>Framework\x64\Debug\</BrowseInformationFile>
+      <CompileAs>Default</CompileAs>
+      <UseDynamicDebugging>false</UseDynamicDebugging>
+      <ConformanceMode>true</ConformanceMode>
+      <DiagnosticsFormat>Column</DiagnosticsFormat>
+      <DisableLanguageExtensions>false</DisableLanguageExtensions>
+      <ErrorReporting>Prompt</ErrorReporting>
+      <ExpandAttributedSource>false</ExpandAttributedSource>
+      <ExceptionHandling>Sync</ExceptionHandling>
+      <EnableASAN>false</EnableASAN>
+      <EnableFuzzer>false</EnableFuzzer>
+      <EnableFiberSafeOptimizations>false</EnableFiberSafeOptimizations>
+      <EnableEnhancedInstructionSet>NotSet</EnableEnhancedInstructionSet>
+      <EnableVectorLength>NotSet</EnableVectorLength>
+      <FloatingPointModel>Precise</FloatingPointModel>
+      <ForceConformanceInForLoopScope>true</ForceConformanceInForLoopScope>
+      <GenerateModuleDependencies>false</GenerateModuleDependencies>
+      <GenerateSourceDependencies>false</GenerateSourceDependencies>
+      <GenerateXMLDocumentationFiles>false</GenerateXMLDocumentationFiles>
+      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <IntrinsicFunctions>false</IntrinsicFunctions>
+      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <LanguageStandard_C>Default</LanguageStandard_C>
+      <MinimalRebuild>false</MinimalRebuild>
+      <ModuleDependenciesFile>Framework\x64\Debug\</ModuleDependenciesFile>
+      <ModuleOutputFile>Framework\x64\Debug\</ModuleOutputFile>
+      <OmitDefaultLibName>false</OmitDefaultLibName>
+      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
+      <WholeProgramOptimization>false</WholeProgramOptimization>
+      <ObjectFileName>Framework\x64\Debug\</ObjectFileName>
+      <CallingConvention>Cdecl</CallingConvention>
+      <ProgramDataBaseFileName>Framework\x64\Debug\vc143.pdb</ProgramDataBaseFileName>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderOutputFile>Framework\x64\Debug\Framework.pch</PrecompiledHeaderOutputFile>
+      <PreprocessToFile>false</PreprocessToFile>
+      <PreprocessKeepComments>false</PreprocessKeepComments>
+      <PreprocessSuppressLineNumbers>false</PreprocessSuppressLineNumbers>
+      <RemoveUnreferencedCodeData>true</RemoveUnreferencedCodeData>
+      <ScanSourceForModuleDependencies>false</ScanSourceForModuleDependencies>
+      <ShowIncludes>false</ShowIncludes>
+      <SourceDependenciesFile>Framework\x64\Debug\</SourceDependenciesFile>
+      <SuppressStartupBanner>true</SuppressStartupBanner>
+      <BufferSecurityCheck>true</BufferSecurityCheck>
+      <SmallerTypeCheck>false</SmallerTypeCheck>
+      <SpectreMitigation>false</SpectreMitigation>
+      <StructMemberAlignment>Default</StructMemberAlignment>
+      <TrackerLogDirectory>Framework\x64\Debug\Framework.tlog\</TrackerLogDirectory>
+      <TranslateIncludes>false</TranslateIncludes>
+      <MinimalRebuildFromTracking>true</MinimalRebuildFromTracking>
+      <TreatWarningAsError>false</TreatWarningAsError>
+      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
+      <UseFullPaths>true</UseFullPaths>
+      <WarningLevel>Level3</WarningLevel>
+      <XMLDocumentationFileName>Framework\x64\Debug\</XMLDocumentationFileName>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <IntelJCCErratum>false</IntelJCCErratum>
+      <BuildStlModules>false</BuildStlModules>
+      <TreatAngleIncludeAsExternal>false</TreatAngleIncludeAsExternal>
+      <ExternalWarningLevel>InheritWarningLevel</ExternalWarningLevel>
+      <TreatExternalTemplatesAsInternal>true</TreatExternalTemplatesAsInternal>
+      <DisableAnalyzeExternal>false</DisableAnalyzeExternal>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;_UNICODE;UNICODE;</PreprocessorDefinitions>
+      <SDLCheck>true</SDLCheck>
+      <LinkCompiled>true</LinkCompiled>
+      <AdditionalIncludeDirectories>;C:\vcpkg\installed\x64-windows\include</AdditionalIncludeDirectories>
+    </ClCompile>
     <ClCompile Include="Src\Engine\Navigation\navigation_compact_heightfield.cpp" />
     <ClCompile Include="Src\Engine\Navigation\navigation_heightfield.cpp" />
     <ClCompile Include="Src\Engine\Navigation\navigation_mesh_builder.cpp" />
     <ClCompile Include="Src\Engine\Navigation\navigation_mesh_query.cpp" />
     <ClCompile Include="Src\Engine\Navigation\navigation_system.cpp" />
+    <ClCompile Include="Src\Game\test\enemy\enemy_01.cpp" />
     <ClCompile Include="Src\Game\test\objects\instance_trees.cpp" />
     <ClCompile Include="Src\Game\test\objects\plane.cpp" />
     <ClCompile Include="Src\Game\test\objects\slope.cpp" />
@@ -80,8 +160,10 @@
     <ClInclude Include="Src\Debug\navigation_debug_renderer.h" />
     <ClInclude Include="Src\Debug\parformance.h" />
     <ClInclude Include="Src\Engine\actor.h" />
+    <ClInclude Include="Src\Engine\ai_controller.h" />
     <ClInclude Include="Src\Engine\attach_context.h" />
     <ClInclude Include="Src\Engine\camera.h" />
+    <ClInclude Include="Src\Engine\character.h" />
     <ClInclude Include="Src\Engine\collision_world.h" />
     <ClInclude Include="Src\Engine\component.h" />
     <ClInclude Include="Src\Engine\Components\animation_component.h" />
@@ -97,6 +179,7 @@
     <ClInclude Include="Src\Engine\Components\sprite_component.h" />
     <ClInclude Include="Src\Engine\Components\static_mesh_component.h" />
     <ClInclude Include="Src\Engine\Components\transform_component.h" />
+    <ClInclude Include="Src\Engine\controller.h" />
     <ClInclude Include="Src\Engine\game_instance.h" />
     <ClInclude Include="Src\Engine\level_base.h" />
     <ClInclude Include="Src\Engine\level_factory.h" />
@@ -119,6 +202,7 @@
     <ClInclude Include="Src\Engine\Transition\transition_effect.h" />
     <ClInclude Include="Src\Engine\world.h" />
     <ClInclude Include="Src\Game\GameMain.h" />
+    <ClInclude Include="Src\Game\test\enemy\enemy_01.h" />
     <ClInclude Include="Src\Game\test\objects\constant.h" />
     <ClInclude Include="Src\Game\test\objects\slope.h" />
     <ClInclude Include="Src\Game\test_level.h" />
@@ -195,10 +279,6 @@
     <ClInclude Include="Src\Play\Player\player.h" />
     <ClInclude Include="Src\Play\Player\player_camera.h" />
     <ClInclude Include="Src\Play\Player\player_common.h" />
-    <ClInclude Include="Src\Play\Player\PlayerComponent\component_factor.h" />
-    <ClInclude Include="Src\Play\Player\PlayerComponent\jump.h" />
-    <ClInclude Include="Src\Play\Player\PlayerComponent\movement.h" />
-    <ClInclude Include="Src\Play\Player\PlayerComponent\state_component.h" />
     <ClInclude Include="Src\Play\UI\clear.h" />
     <ClInclude Include="Src\Play\UI\option.h" />
     <ClInclude Include="Src\Select\select_level.h" />
@@ -293,9 +373,6 @@
     <ClCompile Include="Src\Play\Objects\start_cube.cpp" />
     <ClCompile Include="Src\Play\Player\player.cpp" />
     <ClCompile Include="Src\Play\Player\player_camera.cpp" />
-    <ClCompile Include="Src\Play\Player\PlayerComponent\component_factor.cpp" />
-    <ClCompile Include="Src\Play\Player\PlayerComponent\jump.cpp" />
-    <ClCompile Include="Src\Play\Player\PlayerComponent\movement.cpp" />
     <ClCompile Include="Src\Play\UI\clear.cpp" />
     <ClCompile Include="Src\Play\UI\option.cpp" />
   </ItemGroup>

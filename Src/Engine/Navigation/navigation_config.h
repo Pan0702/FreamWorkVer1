@@ -20,12 +20,12 @@ struct NavigationConfig
     float agent_height = 3.8f;
     float agent_radius = 0.4f;
     float agent_max_climb = 0.6f;
-    float agent_max_slope_deg = 45.0f;
+    float agent_max_slope_deg = 30.0f;
 
     // 輪郭の単純化許容誤差。ワールド単位で指定する。
     float max_contour_simplification_error = 0.39f;
     // XZ上では直線でも、坂の始点・終点など高さが折れる頂点を残すための許容誤差。
-    float max_contour_height_error = 0.1f;
+    float max_contour_height_error = 0.5f;
 
     // 小さすぎるRegionの除去・統合のしきい値(Span数)。
     uint32_t min_region_span_count = 8;

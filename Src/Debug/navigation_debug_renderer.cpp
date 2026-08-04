@@ -17,10 +17,10 @@ void NavigationDebugRenderer::Draw(const NavigationMeshData& mesh_data, float he
     constexpr uint32 kRegionColorCount = 6;
 
     const Vec4 boundary_color =
-        Vec4(1.0f, 0.9f, 0.1f, 1.0f);
+        Vec4(1.0f, 0.0f, 0.0f, 1.0f);
 
-    const Vec4 internal_edge_color =
-        Vec4(0.05f, 0.1f, 0.15f, 1.0f);
+    const Vec4 connected_edge_color =
+        Vec4(0.0f, 1.0f, 0.0f, 1.0f);
     for (uint32 polygon_index = 0;
          polygon_index < mesh_data.polygons.size();
          ++polygon_index)
@@ -68,21 +68,6 @@ void NavigationDebugRenderer::Draw(const NavigationMeshData& mesh_data, float he
 
             Debug::Get().DrawTriangle3D(first, second, third, fill_color);
         }
-        // 面の三角形分割線を描画
-        for (uint32 i = 2; i + 1 < vertex_count; ++i)
-        {
-            Vec3 start =
-                mesh_data.vertices[polygon.vertex_indices[0]];
-
-            Vec3 end =
-                mesh_data.vertices[polygon.vertex_indices[i]];
-
-            // 面との重なりによるちらつきを防ぐ
-            start.y += height_offset + 0.5f;
-            end.y += height_offset + 0.5f;
-
-            Debug::Get().DrawLine3D(start, end, internal_edge_color);
-        }
         const bool has_neighbor_data = polygon.neighbor_polygon_indices.size() == vertex_count;
         for (uint32 edge = 0; edge < vertex_count; ++edge)
         {
@@ -109,7 +94,80 @@ void NavigationDebugRenderer::Draw(const NavigationMeshData& mesh_data, float he
 
             Debug::Get().DrawLine3D(start, end, is_boundary
                                                     ? boundary_color
-                                                    : internal_edge_color);
+                                                    : connected_edge_color);
+        }
+    }
+}
+
+void NavigationDebugRenderer::DrawCorridor(const NavigationMeshData& mesh_data,
+                                            const std::vector<uint32>& polygon_indices,
+                                            float height_offset) const
+{
+    if (polygon_indices.empty())
+    {
+        return;
+    }
+
+    const Vec4 edge_color(1.0f, 1.0f, 0.0f, 1.0f);
+    const float denominator = polygon_indices.size() > 1
+                                  ? static_cast<float>(polygon_indices.size() - 1)
+                                  : 1.0f;
+
+    for (uint32 path_index = 0; path_index < polygon_indices.size(); ++path_index)
+    {
+        const uint32 polygon_index = polygon_indices[path_index];
+        if (polygon_index >= mesh_data.polygons.size())
+        {
+            continue;
+        }
+
+        const NavigationMeshPolygon& polygon = mesh_data.polygons[polygon_index];
+        const uint32 vertex_count = static_cast<uint32>(polygon.vertex_indices.size());
+        if (vertex_count < 3)
+        {
+            continue;
+        }
+
+        bool valid_polygon = true;
+        for (const uint32 vertex_index : polygon.vertex_indices)
+        {
+            if (vertex_index >= mesh_data.vertices.size())
+            {
+                valid_polygon = false;
+                break;
+            }
+        }
+        if (!valid_polygon)
+        {
+            continue;
+        }
+
+        const float path_ratio = static_cast<float>(path_index) / denominator;
+        const Vec4 fill_color(
+            0.15f + 0.85f * path_ratio,
+            1.0f - 0.75f * path_ratio,
+            0.05f,
+            0.65f);
+
+        Vec3 first = mesh_data.vertices[polygon.vertex_indices[0]];
+        first.y += height_offset;
+        for (uint32 vertex_index = 1; vertex_index + 1 < vertex_count; ++vertex_index)
+        {
+            Vec3 second = mesh_data.vertices[polygon.vertex_indices[vertex_index]];
+            Vec3 third = mesh_data.vertices[polygon.vertex_indices[vertex_index + 1]];
+            second.y += height_offset;
+            third.y += height_offset;
+            Debug::Get().DrawTriangle3D(first, second, third, fill_color);
+        }
+
+        for (uint32 edge_index = 0; edge_index < vertex_count; ++edge_index)
+        {
+            Vec3 edge_start = mesh_data.vertices[polygon.vertex_indices[edge_index]];
+            Vec3 edge_end = mesh_data.vertices[
+                polygon.vertex_indices[(edge_index + 1) % vertex_count]];
+            edge_start.y += height_offset + 0.2f;
+            edge_end.y += height_offset + 0.2f;
+            Debug::Get().DrawLine3D(edge_start, edge_end, edge_color);
         }
     }
 }
