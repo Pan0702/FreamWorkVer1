@@ -1,6 +1,7 @@
 ﻿#pragma once
 #include "../component.h"
 #include "../../Core/Math/my_math.h"
+#include "../Navigation/navigation_geometry.h"
 class NavigationSystem;
 class MeshColliderComponent;
 struct NavigationGeometry;

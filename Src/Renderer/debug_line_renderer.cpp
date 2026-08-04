@@ -107,7 +107,7 @@ bool DebugLineRenderer::Initialize(ID3D12Device* device)
         return false;
     }
     
-    capacity_ = 4048;
+    capacity_ = 32'384;
     const uint32_t buffer_size = capacity_ * sizeof(DebugLineVertex);
     if (!CreateDynamicVertexBuffer(device, buffer_size, vertex_buffer_, mapped_, gpu_address_))
     {

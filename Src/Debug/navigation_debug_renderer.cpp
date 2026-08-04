@@ -81,18 +81,12 @@ void NavigationDebugRenderer::Draw(const NavigationMeshData& mesh_data, float he
             start.y += height_offset + 0.5f;
             end.y += height_offset + 0.5f;
 
-            Debug::Get().DrawLine3D(
-                start,
-                end,
-                internal_edge_color);
+            Debug::Get().DrawLine3D(start, end, internal_edge_color);
         }
-        const bool has_neighbor_data =
-            polygon.neighbor_polygon_indices.size() == vertex_count;
-
+        const bool has_neighbor_data = polygon.neighbor_polygon_indices.size() == vertex_count;
         for (uint32 edge = 0; edge < vertex_count; ++edge)
         {
-            const uint32 next =
-                (edge + 1) % vertex_count;
+            const uint32 next = (edge + 1) % vertex_count;
 
             const uint32 neighbor_index = has_neighbor_data
                                               ? polygon.neighbor_polygon_indices[edge]
@@ -113,10 +107,44 @@ void NavigationDebugRenderer::Draw(const NavigationMeshData& mesh_data, float he
             start.y += height_offset + 0.5f;
             end.y += height_offset + 0.5f;
 
-            Debug::Get().DrawLine3D(start, end,
-                                    is_boundary
-                                        ? boundary_color
-                                        : internal_edge_color);
+            Debug::Get().DrawLine3D(start, end, is_boundary
+                                                    ? boundary_color
+                                                    : internal_edge_color);
         }
+    }
+}
+
+void NavigationDebugRenderer::Draw(const NavigationDetailMeshData& detail_mesh_data, float height_offset) const
+{
+    const Vec4 fill_color = Vec4(0.20f, 0.50f, 1.00f, 0.28f);
+
+    const Vec4 edge_color = Vec4(0.05f, 0.10f, 0.15f, 1.00f);
+
+    for (uint32 i = 0; i + 2 < detail_mesh_data.indices.size(); i += 3)
+    {
+        const uint32 index_a = detail_mesh_data.indices[i];
+        const uint32 index_b = detail_mesh_data.indices[i + 1];
+        const uint32 index_c = detail_mesh_data.indices[i + 2];
+
+        if (index_a >= detail_mesh_data.vertices.size() ||
+            index_b >= detail_mesh_data.vertices.size() ||
+            index_c >= detail_mesh_data.vertices.size())
+        {
+            continue;
+        }
+
+        Vec3 a = detail_mesh_data.vertices[index_a];
+        Vec3 b = detail_mesh_data.vertices[index_b];
+        Vec3 c = detail_mesh_data.vertices[index_c];
+
+        a.y += height_offset;
+        b.y += height_offset;
+        c.y += height_offset;
+
+        Debug::Get().DrawTriangle3D(a, b, c, fill_color);
+
+        // Debug::Get().DrawLine3D(a, b, edge_color);
+        // Debug::Get().DrawLine3D(b, c, edge_color);
+        // Debug::Get().DrawLine3D(c, a, edge_color);
     }
 }

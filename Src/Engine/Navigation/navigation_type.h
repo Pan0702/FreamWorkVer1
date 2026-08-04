@@ -16,3 +16,9 @@ struct NavigationMeshData
     std::vector<Vec3> vertices;
     std::vector<NavigationMeshPolygon> polygons;
 };
+
+struct NavigationDetailMeshData
+{
+    std::vector<Vec3> vertices;
+    std::vector<uint32_t> indices;
+};

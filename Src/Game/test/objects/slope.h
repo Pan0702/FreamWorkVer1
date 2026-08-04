@@ -1,11 +1,10 @@
 ﻿#pragma once
 #include "../../../Engine/actor.h"
-
-class Plane : public Actor
+class Slope:public Actor
 {
 public:
-    Plane();
-    Plane(const Vec3& position);
+    Slope();
+    Slope(const Vec3& position);
 private:
     std::unique_ptr<MaterialSlot> materials_;
 };

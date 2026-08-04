@@ -41,6 +41,17 @@ NavigationCompactCell* NavigationCompactHeightfield::GetCell(uint32 x, uint32 z)
     return &cells_[index];  
 }
 
+const NavigationCompactCell* NavigationCompactHeightfield::GetCell(uint32 x, uint32 z) const
+{
+    if (x >= width_ || z >= depth_)
+    {
+        return nullptr;
+    }
+
+    const uint32 index = z * width_ + x;
+    return &cells_[index];
+}
+
 NavigationCompactSpan* NavigationCompactHeightfield::GetSpan(uint32 span_index) 
 {
     if (span_index >= spans_.size())

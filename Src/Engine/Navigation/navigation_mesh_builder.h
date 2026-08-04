@@ -29,8 +29,44 @@ public:
     bool BuildNavigationMeshData(const NavigationCompactHeightfield& heightfield,
                                  const std::vector<NavigationContour>& contours,
                                  const NavigationConfig& config, NavigationMeshData& mesh_data) const;
+    bool BuildNavigationDetailMesh(const NavigationCompactHeightfield& heightfield, const NavigationMeshData& mesh_data,
+                                   const NavigationConfig& config, NavigationDetailMeshData& detail_mesh_data) const;
 
 private:
+    struct SolidIntersection
+    {
+        float height = 0.0f;
+        int32 depth_delta = 0;
+        bool is_walkable_top = false;
+    };
+    void AppendUniformDetailTriangle(
+        const NavigationCompactHeightfield& heightfield,const NavigationConfig& config,
+        const Vec3& a,const Vec3& b,const Vec3& c,uint32 region_id,NavigationDetailMeshData& detail_mesh_data) const;
+    float CalcDetailTriangleMaxPenetration(
+        const NavigationCompactHeightfield& heightfield, const NavigationConfig& config,
+        const Vec3& a, const Vec3& b, const Vec3& c, uint32 region_id,
+        Vec3& out_position) const;
+    bool TryGetClosestSpanFloorHeight(const NavigationCompactHeightfield& heightfield, int32 cell_x, int32 cell_z,
+                                      uint32 region_id, float reference_height, float& out_height) const;
+    void AppendAdaptiveDetailTriangle(const NavigationCompactHeightfield& heightfield, const NavigationConfig& config,
+                                      const Vec3& a, const Vec3& b, const Vec3& c, uint32 region_id,
+                                      uint32 subdivision_depth, NavigationDetailMeshData& detail_mesh_data) const;
+    bool TrySampleSurfaceHeight(const NavigationCompactHeightfield& heightfield,
+                                float world_x, float world_z, uint32 region_id, float reference_height, float& out_height, float max_height_diff) const;
+    bool RasterizeSolidGeometry(const NavigationGeometry& geometry, const NavigationConfig& config,
+                                NavigationHeightfield& heightfield) const;
+    bool RasterizeSolidCell(uint32 x, uint32 z, std::vector<SolidIntersection>& intersections,
+                            NavigationHeightfield& heightfield) const;
+    bool CollectSolidIntersections(const NavigationGeometry& geometry, const NavigationConfig& config,
+                                   const NavigationHeightfield& heightfield,
+                                   std::vector<std::vector<SolidIntersection>>& out_cell_intersections) const;
+    bool TryCalcVerticalIntersectionHeight(const Triangle& triangle, float sample_x, float sample_z,
+                                           float& out_height) const;
+    bool IsClosedGeometry(const NavigationGeometry& geometry) const;
+    void FilterUnreachableRegions(NavigationCompactHeightfield& heightfield) const;
+    float CalcSurfaceCornerHeight(const NavigationCompactHeightfield& heightfield, int32 corner_x, int32 corner_z,
+                                  uint32 region_id, float ref_height, float max_height_diff) const;
+    float CalcPolygonAreaXZ(const std::vector<Vec3>& vertices) const;
     bool BuildPolygonAdjacency(NavigationMeshData& mesh_data) const;
     uint32 FindOrAddNavigationMeshVertex(const NavigationContourVertex& contour_vertex,
                                          const NavigationCompactHeightfield& heightfield,
@@ -68,9 +104,13 @@ private:
     bool IsPointInsideContour(const NavigationContourVertex& point, const NavigationContour& contour) const;
     int64 CalcContourSignedAreaTwice(const NavigationContour& contour) const;
     bool SimplifyContour(const NavigationContour& raw_contour, float max_error_in_cells,
+                         float max_height_error_in_cells, float max_edge_len,
                          NavigationContour& simplified_contour) const;
     float CalcPointToSegmentDistanceSquared(const NavigationContourVertex& point, const NavigationContourVertex& start,
                                             const NavigationContourVertex& end) const;
+    float CalcPointToSegmentHeightError(const NavigationContourVertex& point,
+                                        const NavigationContourVertex& start,
+                                        const NavigationContourVertex& end) const;
     uint32 CalcContourCornerHeight(const NavigationCompactHeightfield& heightfield, uint32 span_index,
                                    uint32 direction) const;
     bool TraceRegionContour(const NavigationCompactHeightfield& heightfield, uint32 start_x, uint32 start_z,

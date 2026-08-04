@@ -5,6 +5,7 @@
 #include "../Navigation/navigation_geometry.h"
 #include "../Navigation/navigation_system.h"
 
+
 NavigationSourceComponent::NavigationSourceComponent(MeshColliderComponent* mesh)
 {
     mesh_ = mesh;
@@ -79,6 +80,5 @@ NavigationGeometry NavigationSourceComponent::GetGeometry() const
         }
     }
     geometry.world_bounds = b;
-
     return geometry;
 }

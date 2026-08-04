@@ -3,6 +3,7 @@
 
 #include "../../Core/Math/intersect.h"
 #include "../../Core/Math/my_math.h"
+
 struct NavigationGeometry
 {
     std::vector<Vec3> vertices;
@@ -10,3 +11,5 @@ struct NavigationGeometry
     Mat world_mat;
     Box world_bounds;
 };
+
+

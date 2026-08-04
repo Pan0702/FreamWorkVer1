@@ -5,4 +5,5 @@ class NavigationDebugRenderer
 {
 public:
     void Draw(const NavigationMeshData& mesh_data, float height_offset = 0.2f) const;
+    void Draw(const NavigationDetailMeshData& detail_mesh_data, float height_offset = 0.2f) const;
 };

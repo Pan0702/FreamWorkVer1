@@ -161,12 +161,7 @@ bool NavigationMeshQuery::FindStraightPath(const NavigationMeshData& mesh_data, 
 
     std::vector<Portal> portals;
 
-    if (!BuildPortals(
-        mesh_data,
-        polygon_path,
-        start_position,
-        goal_pos,
-        portals))
+    if (!BuildPortals(mesh_data, polygon_path, start_position, goal_pos, portals))
     {
         return false;
     }
@@ -190,17 +185,14 @@ bool NavigationMeshQuery::FindStraightPath(const NavigationMeshData& mesh_data, 
 
     while (portal_index < portals.size())
     {
-        const Vec3 new_left =
-            portals[portal_index].left;
-
-        const Vec3 new_right =
-            portals[portal_index].right;
+        const Vec3 new_left = portals[portal_index].left;
+        const Vec3 new_right =portals[portal_index].right;
 
         // 右側を狭められるか確認
-        if (CalcSignedAreaXZ(apex, right, new_right) <= 0.0f)
+        if (CalcSignedAreaXZ(apex, right, new_right) >= 0.0f)
         {
             if (IsSamePointXZ(apex, right) ||
-                CalcSignedAreaXZ(apex, left, new_right) > 0.0f)
+                CalcSignedAreaXZ(apex, left, new_right) < 0.0f)
             {
                 right = new_right;
                 right_index = portal_index;
@@ -229,10 +221,10 @@ bool NavigationMeshQuery::FindStraightPath(const NavigationMeshData& mesh_data, 
         }
 
         // 左側を狭められるか確認
-        if (CalcSignedAreaXZ(apex, left, new_left) >= 0.0f)
+        if (CalcSignedAreaXZ(apex, left, new_left) <= 0.0f)
         {
             if (IsSamePointXZ(apex, left) ||
-                CalcSignedAreaXZ(apex, right, new_left) < 0.0f)
+                CalcSignedAreaXZ(apex, right, new_left) > 0.0f)
             {
                 left = new_left;
                 left_index = portal_index;

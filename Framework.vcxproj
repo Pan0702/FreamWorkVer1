@@ -35,6 +35,7 @@
     <ClCompile Include="Src\Engine\Navigation\navigation_system.cpp" />
     <ClCompile Include="Src\Game\test\objects\instance_trees.cpp" />
     <ClCompile Include="Src\Game\test\objects\plane.cpp" />
+    <ClCompile Include="Src\Game\test\objects\slope.cpp" />
     <ClCompile Include="Src\Game\test\objects\tree.cpp" />
     <ClCompile Include="Src\Game\test\test2.cpp" />
     <ClCompile Include="Src\Game\test\test3.cpp" />
@@ -119,6 +120,7 @@
     <ClInclude Include="Src\Engine\world.h" />
     <ClInclude Include="Src\Game\GameMain.h" />
     <ClInclude Include="Src\Game\test\objects\constant.h" />
+    <ClInclude Include="Src\Game\test\objects\slope.h" />
     <ClInclude Include="Src\Game\test_level.h" />
     <ClInclude Include="Src\Game\test\objects\instance_trees.h" />
     <ClInclude Include="Src\Game\test\objects\plane.h" />

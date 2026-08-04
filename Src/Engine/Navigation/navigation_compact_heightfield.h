@@ -11,6 +11,7 @@ public:
     bool Initialize(const NavigationHeightfield& source_heightfield);
     bool AddSpan(uint32 x, uint32 z, const NavigationCompactSpan& span);
     NavigationCompactCell* GetCell(uint32 x, uint32 z);
+    const NavigationCompactCell* GetCell(uint32 x, uint32 z) const;
     NavigationCompactSpan* GetSpan(uint32 span_index);
     const NavigationCompactSpan* GetSpan(uint32 span_index) const;
     float GetCellHeight() const;

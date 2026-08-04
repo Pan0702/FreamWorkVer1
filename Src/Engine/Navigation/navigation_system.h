@@ -17,7 +17,7 @@ public:
     bool Rebuild(const NavigationConfig& config);
     bool FindPath(const Vec3& start_position, const Vec3& goal_position,
                   std::vector<Vec3>& out_path) const;
-
+const NavigationDetailMeshData& GetDetailMeshData() const;
     const NavigationMeshData& GetMeshData() const;
     void DrawDebug() const;
 private:
@@ -29,4 +29,5 @@ private:
     std::vector<RegisteredSource> sources_;
     uint32 next_id_ = 1;
     NavigationMeshData mesh_data_;
+    NavigationDetailMeshData detail_mesh_data_;
 };

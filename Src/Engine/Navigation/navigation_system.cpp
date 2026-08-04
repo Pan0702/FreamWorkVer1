@@ -6,6 +6,7 @@
 #include "navigation_mesh_builder.h"
 #include "navigation_mesh_query.h"
 #include "../Components/navigation_source_component.h"
+#include "../../Debug/debug.h"
 #include "../../Debug/navigation_debug_renderer.h"
 
 uint32 NavigationSystem::RegisterSource(NavigationSourceComponent* component)
@@ -66,8 +67,14 @@ bool NavigationSystem::Rebuild(const NavigationConfig& config)
     const std::vector<NavigationGeometry> geometries =
         CollectGeometries();
 
+    DEBUG_LOG(
+        "[Navigation] rebuild_begin: sources=%zu, geometries=%zu",
+        sources_.size(),
+        geometries.size());
+
     if (geometries.empty())
     {
+        DEBUG_LOG("[Navigation] rebuild_failed: no geometry");
         return false;
     }
 
@@ -98,6 +105,7 @@ bool NavigationSystem::Rebuild(const NavigationConfig& config)
 
     if (!heightfield.Initialize(world_bounds, config.cell_size, config.cell_height))
     {
+        DEBUG_LOG("[Navigation] rebuild_failed: heightfield initialization");
         return false;
     }
 
@@ -105,6 +113,7 @@ bool NavigationSystem::Rebuild(const NavigationConfig& config)
 
     if (!builder.Build(geometries, config, heightfield))
     {
+        DEBUG_LOG("[Navigation] rebuild_failed: heightfield rasterization");
         return false;
     }
 
@@ -112,6 +121,7 @@ bool NavigationSystem::Rebuild(const NavigationConfig& config)
 
     if (!builder.BuildCompactHeightfield(&heightfield, compact_heightfield, config))
     {
+        DEBUG_LOG("[Navigation] rebuild_failed: compact heightfield");
         return false;
     }
 
@@ -119,20 +129,36 @@ bool NavigationSystem::Rebuild(const NavigationConfig& config)
 
     if (!builder.BuildContours(compact_heightfield, config, contours))
     {
+        DEBUG_LOG("[Navigation] rebuild_failed: contours");
         return false;
     }
 
     NavigationMeshData generated_mesh_data;
 
-    if (!builder.BuildNavigationMeshData(compact_heightfield, contours,
-                                         config, generated_mesh_data))
+    if (!builder.BuildNavigationMeshData(compact_heightfield, contours, config, generated_mesh_data))
     {
+        DEBUG_LOG("[Navigation] rebuild_failed: polygon mesh");
         return false;
     }
-    mesh_data_.vertices.swap(generated_mesh_data.vertices);
 
+    NavigationDetailMeshData generated_detail_mesh_data;
+
+    if (!builder.BuildNavigationDetailMesh(
+            compact_heightfield,
+            generated_mesh_data,
+            config,
+            generated_detail_mesh_data))
+    {
+        DEBUG_LOG("[Navigation] rebuild_failed: detail mesh");
+        return false;
+    }
+    
+    mesh_data_.vertices.swap(generated_mesh_data.vertices);
     mesh_data_.polygons.swap(generated_mesh_data.polygons);
 
+    
+    detail_mesh_data_.vertices.swap(generated_detail_mesh_data.vertices);
+    detail_mesh_data_.indices.swap(generated_detail_mesh_data.indices);
     return true;
 }
 
@@ -150,6 +176,11 @@ bool NavigationSystem::FindPath(const Vec3& start_position, const Vec3& goal_pos
     return query.FindPath(mesh_data_, start_position, goal_position, out_path);
 }
 
+const NavigationDetailMeshData& NavigationSystem::GetDetailMeshData() const
+{
+    return detail_mesh_data_;
+}
+
 const NavigationMeshData& NavigationSystem::GetMeshData() const
 {
     return mesh_data_;
@@ -163,6 +194,12 @@ void NavigationSystem::DrawDebug() const
         return;
     }
 
+    if (detail_mesh_data_.vertices.empty() ||
+    detail_mesh_data_.indices.empty())
+    {
+        return;
+    }
+    
     NavigationDebugRenderer renderer;
-    renderer.Draw(mesh_data_);
+    renderer.Draw(detail_mesh_data_);
 }
