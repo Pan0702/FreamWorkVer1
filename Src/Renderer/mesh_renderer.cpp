@@ -20,7 +20,7 @@
 #include "../Graphics/pipeline_state_cache.h"
 #include "../Graphics/pipeline_state.h"
 
-bool MeshRenderer::Initialize(const ID3D12Device* device)
+bool MeshRenderer::Initialize(ID3D12Device* device)
 {
     (void)device;
 

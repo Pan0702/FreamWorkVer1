@@ -27,3 +27,14 @@ void MaterialSlot::SetShaders(ShaderId id)
         material->SetShaderId(id);
     }   
 }
+
+void MaterialSlot::TestShaders(ShaderId id)
+{
+    for (int i = 0; i < materials_.size(); i++)
+    {
+        if (i % 2 == 1)
+        {
+            materials_[i]->SetShaderId(id);
+        }
+    }
+}

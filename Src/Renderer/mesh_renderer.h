@@ -4,6 +4,9 @@
 #include "../Core/common.h"
 #include "frame_snap.h"
 
+class RootSignature;
+class Shader;
+class PipelineState;
 class Camera;
 class DescriptorHeap;
 struct RenderContext;
@@ -20,7 +23,7 @@ public:
      * @param device 使用する D3D12 デバイス。
      * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
-    bool Initialize(const ID3D12Device* device);
+    bool Initialize(ID3D12Device* device);
     /**
      * @brief 現在の状態をもとに描画コマンドを積む。
      * @param command_list 描画コマンドを書き込むコマンドリスト。

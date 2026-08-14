@@ -1,11 +1,12 @@
 #include "enemy_01.h"
-
+#include "../../../Resource/material_slot.h"
 Enemy01::Enemy01() : Character("Assets/Fbx/cupsule.mesh")
 {
     // メッシュがcm単位で作られているため、ワールド単位へ縮める。
     transform_.scale = Vec3(0.01f, 0.01f, 0.01f);
     // プレイヤー(10.0)より遅くして、追いかけっこが成立するようにする。
     move_speed_ = 8.0f;
+    materials_->SetShaders(ShaderId::kToonShader);
 }
 
 void Enemy01::Begin()

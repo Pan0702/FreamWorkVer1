@@ -24,6 +24,7 @@
     <None Include="Shaders\instanced_mesh.vs.hlsl" />
     <None Include="Shaders\shadow_instanced.vs.hlsl" />
     <None Include="Shaders\toon.ps.hlsl" />
+    <None Include="Shaders\outline.ps.hlsl" />
     <ClCompile Include="Src\Debug\navigation_debug_renderer.cpp" />
     <ClCompile Include="Src\Debug\parformance.cpp" />
     <ClCompile Include="Src\Engine\ai_controller.cpp" />

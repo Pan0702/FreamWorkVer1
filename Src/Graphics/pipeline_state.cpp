@@ -48,6 +48,12 @@ PipelineStateBuilder& PipelineStateBuilder::SetDepthEnabled(bool enabled)
     return *this;
 }
 
+PipelineStateBuilder& PipelineStateBuilder::SetCullMode(D3D12_CULL_MODE mode)
+{
+    cull_mode_ = mode;
+    return *this;  
+}
+
 PipelineStateBuilder& PipelineStateBuilder::SetAlphaBlendEnabled(bool enabled)
 {
     blend_alpha_enable_ = enabled;
@@ -66,7 +72,7 @@ PipelineStateBuilder& PipelineStateBuilder::SetDepthWriteEnabled(bool enabled)
     return *this;
 }
 
-PipelineStateBuilder& PipelineStateBuilder::SetNumRederTarget(UINT count)
+PipelineStateBuilder& PipelineStateBuilder::SetNumRenderTarget(UINT count)
 {
     num_render_targets_ = count;
     return *this;
@@ -148,7 +154,7 @@ bool PipelineStateBuilder::Build(ID3D12Device* device, PipelineState* out_pipeli
         //OŠpŒ`‚Ì“h‚è•û
         desc.RasterizerState.FillMode = D3D12_FILL_MODE_SOLID;
         //— Œü‚«‚Ì–Ê‚ğÌ‚Ä‚é‚©
-        desc.RasterizerState.CullMode = D3D12_CULL_MODE_NONE;
+        desc.RasterizerState.CullMode = cull_mode_;
         //‚Ç‚Á‚¿‚ÌŒü‚«‚ª‚¨‚à‚Ä‚©
         desc.RasterizerState.FrontCounterClockwise = FALSE;
         //[“x’l‚ğ®”‚Å‚¸‚ç‚·

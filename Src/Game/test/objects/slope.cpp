@@ -7,7 +7,6 @@ Slope::Slope()
 {
     Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/test_stage.mesh");
     materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDesc());
-    materials_->SetShaders(ShaderId::kToonShader);
     AddComponent<StaticMeshComponent>(mesh, materials_.get());
     MeshColliderComponent* mesh_coll = AddComponent<MeshColliderComponent>(mesh);
     AddComponent<NavigationSourceComponent>(mesh_coll);
@@ -18,7 +17,6 @@ Slope::Slope(const Vec3& position)
 {
     Mesh* mesh = MeshManager::Get().Load("Assets/Mesh/test_stage.mesh");
     materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDesc());
-    materials_->SetShaders(ShaderId::kToonShader);
     AddComponent<StaticMeshComponent>(mesh, materials_.get());
     MeshColliderComponent* mesh_coll = AddComponent<MeshColliderComponent>(mesh);
     AddComponent<NavigationSourceComponent>(mesh_coll);

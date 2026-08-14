@@ -42,7 +42,7 @@ public:
      * @param factory g—p‚·‚éVertexFactory
      * @return ‘Î‰‚·‚éPSO
      */
-    PipelineState* Get(ShaderId shader,VertexFactoryId factory);
+    PipelineState* Get(ShaderId shader,VertexFactoryId factory) const;
     
 private:
     /**
@@ -59,6 +59,8 @@ private:
      * @return ¶¬‚É¬Œ÷‚µ‚½‚çTrue
      */
     bool BuildPipelineState(ID3D12Device* device,ShaderId shader,VertexFactoryId factory);
+    
+    std::unique_ptr<PipelineState> outline_pso_;
     
     std::unique_ptr<RootSignature> static_rs_;
     std::unique_ptr<RootSignature> skinned_rs_;

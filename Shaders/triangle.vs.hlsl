@@ -38,7 +38,8 @@ PSInput VSMain(VSInput input)
 {
     PSInput output;
 
-    output.position = mul(float4(input.position, 1.0),wvp);
+    const float kWidth = 0.02f;
+    output.position = mul(float4(input.position + input.normal * kWidth, 1.0), wvp);
     output.normal = normalize(mul(float4(input.normal, 0.0),world).xyz);
     output.world_pos = mul(float4(input.position, 1.0),world).xyz;
     output.tangent = normalize(mul(float4(input.tangent, 0.0),world).xyz);

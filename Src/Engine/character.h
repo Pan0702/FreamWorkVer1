@@ -81,6 +81,7 @@ protected:
     void SetCapsuleHalfSize(const Vec3& half_size);
 
     AnimationComponent* animation_ = nullptr;   // ƒAƒjƒ“o˜^‚Í”h¶‚ªs‚¤
+    std::unique_ptr<MaterialSlot> materials_;
     float move_speed_ = 10.0f;                  // ”h¶‚ª’²®‰Â
     float radius_ = 0.5f;
 
@@ -117,7 +118,7 @@ private:
      */
     void SetupCapsule(const SkeletalMesh* mesh_or_null);
 
-    std::unique_ptr<MaterialSlot> materials_;
+
     CapsuleColliderComponent* capsule_ = nullptr;
     Vec3 control_input_;        // AddMovementInput‚Ì’~ÏBÁ”ïŒãƒ[ƒƒNƒŠƒA
     Vec3 vel_;

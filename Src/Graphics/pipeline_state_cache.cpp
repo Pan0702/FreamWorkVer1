@@ -11,12 +11,12 @@ bool PipelineStateCache::Initialize(ID3D12Device* device)
     {
         return false;
     }
-    // RS ã¯ VertexFactory ã ã‘ã§æ±ºã¾ã‚‹ã®ã§ã€PSO ã‚ˆã‚Šå…ˆã« 1 å›ã ã‘ä½œã‚‹ã€‚
+    // RS ‚Í VertexFactory ‚¾‚¯‚ÅŒˆ‚Ü‚é‚Ì‚ÅAPSO ‚æ‚èæ‚É 1 ‰ñ‚¾‚¯ì‚éB
     if (!BuidRootSignature(device))
     {
         return false;   
     }
-    //ShaderIDÃ—VertexFactoryIDã®å…¨çµ„ã¿åˆã‚ã›ã®PSOã‚’äº‹å‰ä½œæˆ
+    //ShaderID~VertexFactoryID‚Ì‘S‘g‚İ‡‚í‚¹‚ÌPSO‚ğ–‘Oì¬
     for (uint32 i = 0; i < ToIndex(ShaderId::kCount); ++i)
     {
         for (uint32 j = 0; j < ToIndex(VertexFactoryId::kCount); ++j)
@@ -26,6 +26,25 @@ bool PipelineStateCache::Initialize(ID3D12Device* device)
                 return false;
             }
         }
+    }
+    // Initialize() ‚Ì––”öAreturn true; ‚Ì’¼‘O
+    {
+        Shader vs, ps;
+        if (!vs.LoadFromFile(L"Shaders/outline.vs.hlsl", "VSMain", "vs_5_0")) return false;
+        if (!ps.LoadFromFile(L"Shaders/outline.ps.hlsl", "PSMain", "ps_5_0")) return false;
+
+        D3D12_INPUT_LAYOUT_DESC layout_desc = {};
+        layout_desc.pInputElementDescs = kStaticVertexLayout;
+        layout_desc.NumElements = _countof(kStaticVertexLayout);
+
+        outline_pso_ = std::make_unique<PipelineState>();
+        PipelineStateBuilder b;
+        b.SetInputLayout(layout_desc)
+         .SetRootSignature(static_rs_->GetRootSignature())
+         .SetVertexShader(vs.GetBytecode())
+         .SetPixelShader(ps.GetBytecode())
+         .SetCullMode(D3D12_CULL_MODE_FRONT);
+        if (!b.Build(device, outline_pso_.get())) return false;
     }
     return true;
 }
@@ -44,14 +63,14 @@ ID3D12RootSignature* PipelineStateCache::GetRootSignature(VertexFactoryId factor
     }
 }
 
-PipelineState* PipelineStateCache::Get(ShaderId shader, VertexFactoryId factory)
+PipelineState* PipelineStateCache::Get(ShaderId shader, VertexFactoryId factory) const
 {
     return pso_[ToIndex(shader)][ToIndex(factory)].get();
 }
 
 bool PipelineStateCache::BuidRootSignature(ID3D12Device* device)
 {
-    // static ç³»ï¼ˆStatic/Instanced å…±æœ‰ï¼‰ã€‚t6 ã¯ã‚¤ãƒ³ã‚¹ã‚¿ãƒ³ã‚¹è¡Œåˆ—ç”¨ã® root SRVã€‚
+    // static ŒniStatic/Instanced ‹¤—LjBt6 ‚ÍƒCƒ“ƒXƒ^ƒ“ƒXs—ñ—p‚Ì root SRVB
     static_rs_ = std::make_unique<RootSignature>();
     RootSignatureBuilder builder_static;
     builder_static
@@ -74,7 +93,7 @@ bool PipelineStateCache::BuidRootSignature(ID3D12Device* device)
         return false;
     }
 
-    // skinned ç”¨ã€‚b1(VS) ã® BoneCB ãŒå¢—ãˆã‚‹åˆ†ã ã‘ static ç³»ã¨ä¸¦ã³ãŒãšã‚Œã‚‹ã€‚
+    // skinned —pBb1(VS) ‚Ì BoneCB ‚ª‘‚¦‚é•ª‚¾‚¯ static Œn‚Æ•À‚Ñ‚ª‚¸‚ê‚éB
     skinned_rs_ = std::make_unique<RootSignature>();
     RootSignatureBuilder builder_skinned;
     builder_skinned
@@ -101,7 +120,7 @@ bool PipelineStateCache::BuidRootSignature(ID3D12Device* device)
 
 bool PipelineStateCache::BuildPipelineState(ID3D12Device* device, ShaderId shader, VertexFactoryId factory)
 {
-    //Factoryã”ã¨ã®å·®åˆ†
+    //Factory‚²‚Æ‚Ì·•ª
     struct FactoryDecs
     {
         const wchar_t* vs_path;
@@ -126,7 +145,7 @@ bool PipelineStateCache::BuildPipelineState(ID3D12Device* device, ShaderId shade
     
     const FactoryDecs& fd = kFactories[ToIndex(factory)];
 
-    //VSã¯Factoryã€PSã¯ShaderãŒæ±ºã‚ã‚‹
+    //VS‚ÍFactoryAPS‚ÍShader‚ªŒˆ‚ß‚é
     Shader vs;
     if (!vs.LoadFromFile(fd.vs_path, "VSMain", fd.vs_model))
     {

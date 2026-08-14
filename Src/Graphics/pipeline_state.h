@@ -67,6 +67,9 @@ public:
      * @return 保持している Depth Enabled への参照。
      */
     PipelineStateBuilder& SetDepthEnabled(bool enabled);
+    
+    PipelineStateBuilder& SetCullMode(D3D12_CULL_MODE mode);
+    
     /**
      * @brief 指定された値を内部状態に反映する。
      * @param enabled 機能を有効にするかどうか。
@@ -91,7 +94,7 @@ public:
      * @param count 同時に使用するレンダーターゲット数。
      * @return 設定を続けるためのビルダー自身。
      */
-    PipelineStateBuilder& SetNumRederTarget(UINT count);
+    PipelineStateBuilder& SetNumRenderTarget(UINT count);
     
     /**
      * @brief 深度バイアスと傾斜スケールバイアスを設定する。
@@ -106,6 +109,7 @@ public:
      */
     bool Build(ID3D12Device* device, PipelineState* out_pipeline_state) const;
 
+    
 private:
     ID3D12RootSignature* root_signature_ = nullptr;
     D3D12_SHADER_BYTECODE vertex_shader_ = {};
@@ -115,6 +119,7 @@ private:
     DXGI_FORMAT rtv_format_ = DXGI_FORMAT_R8G8B8A8_UNORM;
     DXGI_FORMAT dsv_format_ = DXGI_FORMAT_D32_FLOAT;
     D3D12_PRIMITIVE_TOPOLOGY_TYPE primitive_topology_type_ = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+    D3D12_CULL_MODE cull_mode_ = D3D12_CULL_MODE_NONE;
 
     UINT num_render_targets_ = 1;
     float slope_scaled_depth_bias_ = 0.0f;

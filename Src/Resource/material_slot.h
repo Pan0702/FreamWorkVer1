@@ -25,6 +25,7 @@ public:
     Material* GetMaterial(uint32_t index) const;
     
     void SetShaders(ShaderId id);
+    void TestShaders(ShaderId id);
 private:
     std::vector<std::unique_ptr<Material>> materials_;
 };
