@@ -1,9 +1,11 @@
-ï»¿#include "navigation_compact_heightfield.h"
+#include "navigation_compact_heightfield.h"
 
 #include "navigation_heightfield.h"
 
 bool NavigationCompactHeightfield::Initialize(const NavigationHeightfield& source_heightfield)
 {
+    // ƒZƒ‹‚Ì”z’u‚ÍŒ³‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒh‚Æ‘µ‚¦‚éB—¼ŽÒ‚ÌŠiŽqÀ•W‚ð
+    // ‚»‚Ì‚Ü‚Üs‚«—ˆ‚Å‚«‚é‚æ‚¤‚É‚·‚é‚½‚ßB
     width_ = source_heightfield.GetWidth();
     depth_ = source_heightfield.GetDepth();
     cell_height_ = source_heightfield.GetCellHeight();
@@ -22,13 +24,15 @@ bool NavigationCompactHeightfield::AddSpan(uint32 x, uint32 z, const NavigationC
         return false;
     }
     const uint32 index = z * width_ + x;
+    // ƒZƒ‹‚Í”z—ñ‚Ì”ÍˆÍ‚Æ‚µ‚ÄƒXƒpƒ“‚ðŽw‚·‚¾‚¯‚È‚Ì‚ÅA“¯‚¶ƒZƒ‹‚ÌƒXƒpƒ“‚Í
+    // ˜A‘±‚µ‚Ä’Ç‰Á‚µ‚È‚¯‚ê‚Î‚È‚ç‚È‚¢B
     if (cells_[index].span_count == 0)
     {
         cells_[index].first_span_index = spans_.size();
     }
     cells_[index].span_count++;
     spans_.push_back(span);
-    return true;   
+    return true;
 }
 
 NavigationCompactCell* NavigationCompactHeightfield::GetCell(uint32 x, uint32 z)
@@ -37,8 +41,9 @@ NavigationCompactCell* NavigationCompactHeightfield::GetCell(uint32 x, uint32 z)
     {
         return nullptr;
     }
+    // ƒZƒ‹‚ÍZs‚ð’PˆÊ‚Æ‚µ‚½1ŽŸŒ³”z—ñ‚É•À‚×‚Ä‚¢‚éB
     const uint32 index = z * width_ + x;
-    return &cells_[index];  
+    return &cells_[index];
 }
 
 const NavigationCompactCell* NavigationCompactHeightfield::GetCell(uint32 x, uint32 z) const
@@ -52,7 +57,7 @@ const NavigationCompactCell* NavigationCompactHeightfield::GetCell(uint32 x, uin
     return &cells_[index];
 }
 
-NavigationCompactSpan* NavigationCompactHeightfield::GetSpan(uint32 span_index) 
+NavigationCompactSpan* NavigationCompactHeightfield::GetSpan(uint32 span_index)
 {
     if (span_index >= spans_.size())
     {
@@ -78,12 +83,12 @@ float NavigationCompactHeightfield::GetCellHeight() const
 
 uint32 NavigationCompactHeightfield::GetWidth() const
 {
-    return width_;  
+    return width_;
 }
 
 uint32 NavigationCompactHeightfield::GetDepth() const
 {
-    return depth_; 
+    return depth_;
 }
 float NavigationCompactHeightfield::GetCellSize() const
 {

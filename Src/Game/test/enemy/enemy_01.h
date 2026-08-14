@@ -1,8 +1,20 @@
-ï»¿#pragma once
+#pragma once
 #include "../../../Engine/character.h"
+
+/**
+ * @brief ’ÇÕ“®ì‚ÌŠm”F‚Ég‚¤“GƒLƒƒƒ‰ƒNƒ^[B
+ *
+ * ˆÚ“®‚Ì”»’f‚Ís‚í‚¸AAiController ‚©‚ç“n‚³‚ê‚éˆÚ“®“ü—Í‚Å“®‚­B
+ */
 class Enemy01 : public Character
 {
 public:
+    /**
+     * @brief ƒƒbƒVƒ…‚ÆˆÚ“®‘¬“x‚ğİ’è‚·‚éB
+     */
     Enemy01();
+    /**
+     * @brief ‰ŠúˆÊ’u‚ğİ’è‚·‚éB
+     */
     void Begin() override;
 };

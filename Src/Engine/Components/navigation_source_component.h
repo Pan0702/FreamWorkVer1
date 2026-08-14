@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include "../component.h"
 #include "../../Core/Math/my_math.h"
 #include "../Navigation/navigation_geometry.h"
@@ -6,12 +6,33 @@ class NavigationSystem;
 class MeshColliderComponent;
 struct NavigationGeometry;
 
+/**
+ * @brief Š—LƒAƒNƒ^[‚ÌŒ`ó‚ğANavMesh ‚ÌŒ³‚É‚È‚é’nŒ`‚Æ‚µ‚Ä“o˜^‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒgB
+ *
+ * æ‚è•t‚¯‚Æ“¯‚É NavigationSystem ‚Ö“o˜^‚µAæ‚èŠO‚µ‚Å‰ğœ‚·‚éB
+ * Œ`ó‚Í MeshColliderComponent ‚ª‚Â‚à‚Ì‚ğ‚»‚Ì‚Ü‚Üg‚¤B
+ */
 class NavigationSourceComponent : public Component
 {
 public:
+    /**
+     * @brief ’nŒ`‚ÌŒ`ó‚ğ’ñ‹Ÿ‚·‚éƒRƒ‰ƒCƒ_[‚ğİ’è‚·‚éB
+     * @param mesh Œ`ó‚ÌŒ³‚É‚È‚éƒƒbƒVƒ…ƒRƒ‰ƒCƒ_[B
+     */
     explicit NavigationSourceComponent(MeshColliderComponent* mesh);
+    /**
+     * @brief Š‘®‚·‚é World ‚Ì NavigationSystem ‚Ö©g‚ğ“o˜^‚·‚éB
+     * @param context æ‚è•t‚¯‚É“n‚³‚ê‚éQÆî•ñB
+     */
     void OnAttach(const AttachContext& context) override;
+    /**
+     * @brief NavigationSystem ‚Ö‚Ì“o˜^‚ğ‰ğœ‚·‚éB
+     */
     void OnDetach() override;
+    /**
+     * @brief NavMesh \’z‚Ég‚¤Œ`ó‚ğæ‚èo‚·B
+     * @return ƒƒbƒVƒ…ƒRƒ‰ƒCƒ_[‚Ì’¸“_‚ÆAƒ[ƒ‹ƒh‹óŠÔ‚Å‚Ì”z’uB
+     */
     NavigationGeometry GetGeometry() const;
 
 private:

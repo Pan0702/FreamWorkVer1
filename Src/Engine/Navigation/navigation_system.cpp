@@ -1,4 +1,4 @@
-ï»¿#include "navigation_system.h"
+#include "navigation_system.h"
 #include <algorithm>
 
 #include "navigation_compact_heightfield.h"
@@ -15,6 +15,7 @@ uint32 NavigationSystem::RegisterSource(NavigationSourceComponent* component)
     {
         return 0;
     }
+    // “ñd“o˜^‚³‚ê‚½ê‡‚ÍAÅ‰‚ÉŠ„‚è“–‚Ä‚½ID‚ğ‚»‚Ì‚Ü‚Ü•Ô‚·B
     for (const auto& s : sources_)
     {
         if (s.component == component)
@@ -33,6 +34,7 @@ uint32 NavigationSystem::RegisterSource(NavigationSourceComponent* component)
 
 void NavigationSystem::UnregisterSource(uint32 source_id)
 {
+    // 0‚Íu“o˜^‚³‚ê‚Ä‚¢‚È‚¢v‚±‚Æ‚ğ•\‚·ID‚È‚Ì‚ÅAŠ„‚è“–‚Ä‚É‚à‰ğœ‚É‚àg‚í‚È‚¢B
     if (source_id == 0)
     {
         return;
@@ -54,6 +56,7 @@ std::vector<NavigationGeometry> NavigationSystem::CollectGeometries() const
             continue;
         }
         const NavigationGeometry geo = s.component->GetGeometry();
+        // OŠpŒ`‚Æ‚µ‚Ä‰ğß‚Å‚«‚È‚¢Œ`ó‚ÍAˆÈ~‚Ìˆ—‚ª”j’]‚·‚é‚Ì‚ÅÌ‚Ä‚éB
         if (geo.indices.size() % 3 == 0 && !geo.indices.empty() && !geo.vertices.empty())
         {
             geometries.push_back(geo);
@@ -78,6 +81,7 @@ bool NavigationSystem::Rebuild(const NavigationConfig& config)
         return false;
     }
 
+    // ‘S‚Ä‚Ì’nŒ`‚ğ•ï‚Ş”ÍˆÍ‚ğ‹‚ßA‚»‚±‚ğƒ{ƒNƒZƒ‹‰»‚Ì‘ÎÛ‚É‚·‚éB
     Box world_bounds = geometries[0].world_bounds;
 
     for (uint32 i = 1; i < geometries.size(); ++i)
@@ -98,8 +102,11 @@ bool NavigationSystem::Rebuild(const NavigationConfig& config)
         world_bounds.max.z =
             (std::max)(world_bounds.max.z, bounds.max.z);
     }
+    // ˆê”Ô’á‚¢°‚ªƒZƒ‹‚Ì‹«ŠE‚Æd‚È‚Á‚Äæ‚è‚±‚Ú‚³‚ê‚È‚¢‚æ‚¤A1ƒZƒ‹•ª‚¾‚¯‰º‚ÖL‚°‚éB
     world_bounds.min.y -= config.cell_height;
 
+    // ã’[‚ÍAˆê”Ô‚‚¢°‚Ìã‚ÉƒG[ƒWƒFƒ“ƒg‚ª—§‚Ä‚é‚‚³‚ª•K—v‚É‚È‚éB
+    // ‚±‚±‚ª‘«‚è‚È‚¢‚ÆAÅã’i‚Ì°‚ª“VˆäƒtƒBƒ‹ƒ^‚Å•às•s‰Â‚É‚³‚ê‚Ä‚µ‚Ü‚¤B
     world_bounds.max.y += config.agent_height + config.agent_max_climb + config.cell_height;
     NavigationHeightfield heightfield;
 
@@ -109,6 +116,8 @@ bool NavigationSystem::Rebuild(const NavigationConfig& config)
         return false;
     }
 
+    // ˆÈ~‚ÍNavMesh‚Ì\’zè‡B‘O‚Ì’i‚ÌŒ‹‰Ê‚ğŸ‚Ì’i‚ªó‚¯æ‚é‚½‚ßA‡”Ô‚Í“ü‚ê‘Ö‚¦‚ç‚ê‚È‚¢B
+    // ƒ{ƒNƒZƒ‹‰» ¨ °–Ê‚Ì’Šo ¨ —Ìˆæ•ªŠ„‚Æ—ÖŠs’Šo ¨ “Êƒ|ƒŠƒSƒ“‰» ¨ ‚‚³‚ÌÚ×‰»B
     NavigationMeshBuilder builder;
 
     if (!builder.Build(geometries, config, heightfield))
@@ -152,11 +161,11 @@ bool NavigationSystem::Rebuild(const NavigationConfig& config)
         DEBUG_LOG("[Navigation] rebuild_failed: detail mesh");
         return false;
     }
-    
+
+    // ‘S‚Ä‚Ì’i‚ª¬Œ÷‚µ‚Ä‚©‚ç·‚µ‘Ö‚¦‚éB“r’†‚Å¸”s‚µ‚½ê‡‚ÍŒÃ‚¢NavMesh‚ªc‚éB
     mesh_data_.vertices.swap(generated_mesh_data.vertices);
     mesh_data_.polygons.swap(generated_mesh_data.polygons);
 
-    
     detail_mesh_data_.vertices.swap(generated_detail_mesh_data.vertices);
     detail_mesh_data_.indices.swap(generated_detail_mesh_data.indices);
     return true;
@@ -177,6 +186,7 @@ bool NavigationSystem::FindPath(const Vec3& start_position, const Vec3& goal_pos
         return false;
     }
 
+    // ƒNƒGƒŠ‚Íó‘Ô‚ğ‚½‚È‚¢‚Ì‚ÅA–ˆ‰ñì‚èÌ‚Ä‚Ä\‚í‚È‚¢B
     NavigationMeshQuery query;
     return query.FindPath(mesh_data_, start_position, goal_position,
                           out_path, out_polygon_path);
@@ -210,7 +220,7 @@ void NavigationSystem::DrawDebug() const
     {
         return;
     }
-    
+
     NavigationDebugRenderer renderer;
     renderer.Draw(mesh_data_);
 }

@@ -12,8 +12,221 @@
 #include "navigation_compact_heightfield.h"
 #include "../../Debug/debug.h"
 
+namespace
+{
+    // 方向番号は0:+X、1:+Z、2:-X、3:-Z。接続配列と境界ビットで共通して使う。
+    constexpr int32 kDirectionX[4] = {1, 0, -1, 0};
+    constexpr int32 kDirectionZ[4] = {0, 1, 0, -1};
+
+    enum class ClipBoundary : uint8
+    {
+        kMinX,
+        kMaxX,
+        kMinZ,
+        kMaxZ,
+    };
+
+    /**
+     * @brief 切り抜き境界が使用する座標を頂点から取得する。
+     * @param vertex 対象の頂点。
+     * @param boundary 使用する軸を表す境界。
+     * @return X境界の場合はX座標、Z境界の場合はZ座標。
+     */
+    float GetClipCoordinate(const Vec3& vertex, ClipBoundary boundary)
+    {
+        return boundary == ClipBoundary::kMinX || boundary == ClipBoundary::kMaxX
+                   ? vertex.x
+                   : vertex.z;
+    }
+
+    /**
+     * @brief 座標が切り抜き境界の内側にあるか判定する。
+     * @param coordinate 判定するXまたはZ座標。
+     * @param limit 境界の座標。
+     * @param boundary 最小側または最大側のどちらを残すかを表す境界。
+     * @return 境界の内側または境界上ならtrue。
+     */
+    bool IsInsideClipBoundary(float coordinate, float limit, ClipBoundary boundary)
+    {
+        const bool is_minimum = boundary == ClipBoundary::kMinX || boundary == ClipBoundary::kMinZ;
+        return is_minimum ? coordinate >= limit : coordinate <= limit;
+    }
+
+    /**
+     * @brief 多角形をXZ平面上の指定した1境界で切り抜く。
+     * @param vertices 切り抜く多角形の頂点列。
+     * @param limit 境界の座標。
+     * @param boundary 切り抜きに使用する境界。
+     * @return 境界の内側に残った多角形の頂点列。
+     */
+    std::vector<Vec3> ClipPolygonAgainstBoundary(const std::vector<Vec3>& vertices, float limit,
+                                                 ClipBoundary boundary)
+    {
+        // 多角形の各辺を1本ずつ調べ、指定した境界の内側にある部分だけを残す。
+        std::vector<Vec3> result;
+        if (vertices.empty())
+        {
+            return result;
+        }
+
+        for (uint32 i = 0; i < vertices.size(); ++i)
+        {
+            const Vec3 start = vertices[i];
+            const Vec3 end = vertices[(i + 1) % vertices.size()];
+            const float start_coordinate = GetClipCoordinate(start, boundary);
+            const float end_coordinate = GetClipCoordinate(end, boundary);
+            const bool start_inside = IsInsideClipBoundary(start_coordinate, limit, boundary);
+            const bool end_inside = IsInsideClipBoundary(end_coordinate, limit, boundary);
+
+            if (start_inside && end_inside)
+            {
+                result.push_back(end);
+                continue;
+            }
+
+            if (!start_inside && !end_inside)
+            {
+                continue;
+            }
+
+            const float t = (limit - start_coordinate) / (end_coordinate - start_coordinate);
+            const Vec3 intersection = start + t * (end - start);
+
+            // 外から内へ入る辺では交点と終点、内から外へ出る辺では交点だけを追加する。
+            if (start_inside)
+            {
+                result.push_back(intersection);
+            }
+            else
+            {
+                result.push_back(intersection);
+                result.push_back(end);
+            }
+        }
+        return result;
+    }
+
+    /**
+     * @brief 三角形の2辺から法線を計算する。
+     * @param triangle 対象の三角形。
+     * @return 正規化されていない三角形の法線。
+     */
+    Vec3 CalcTriangleNormal(const Triangle& triangle)
+    {
+        return Cross(triangle.b - triangle.a, triangle.c - triangle.a);
+    }
+
+    /**
+     * @brief 面の傾斜がエージェントの歩行可能角度以内か判定する。
+     * @param normal 判定する面の法線。
+     * @param config 歩行可能な最大傾斜角を持つ設定。
+     * @return 歩行可能な傾斜ならtrue。
+     */
+    bool IsWalkableNormal(Vec3 normal, const NavigationConfig& config)
+    {
+        normal.Normalize();
+        // ワールドの上方向との内積から傾斜角を判定する。
+        const Vec3 kUp(0, 1, 0);
+        return Dot(normal, kUp) >= std::cos(config.agent_max_slope_deg * kDegToRad);
+    }
+
+    /**
+     * @brief 2つのSpan間をエージェントが移動できるか判定する。
+     * @param current_floor 現在Spanの床の高さ。
+     * @param current_ceiling 現在Spanの天井の高さ。
+     * @param neighbor_floor 隣接Spanの床の高さ。
+     * @param neighbor_ceiling 隣接Spanの天井の高さ。
+     * @param config エージェントの高さと登れる段差を持つ設定。
+     * @return 共通の空間と段差の条件を満たすならtrue。
+     */
+    bool CanTraverseBetweenSpans(float current_floor, float current_ceiling,
+                                 float neighbor_floor, float neighbor_ceiling,
+                                 const NavigationConfig& config)
+    {
+        // 2つのSpanで共通して空いている高さと、床同士の段差を両方満たす必要がある。
+        const float overlap_floor = (std::max)(current_floor, neighbor_floor);
+        const float overlap_ceiling = (std::min)(current_ceiling, neighbor_ceiling);
+        const float overlap_height = overlap_ceiling - overlap_floor;
+        const float floor_difference = std::abs(neighbor_floor - current_floor);
+        return overlap_height >= config.agent_height && floor_difference <= config.agent_max_climb;
+    }
+
+    /**
+     * @brief Regionごとの歩行可能Span数を集計する。
+     * @param heightfield Region分割済みのCompact Heightfield。
+     * @param region_count Region IDを添字として確保する配列の要素数。
+     * @return Region IDごとの歩行可能Span数。
+     */
+    std::vector<uint32> CountRegionSpans(const NavigationCompactHeightfield& heightfield, uint32 region_count)
+    {
+        std::vector<uint32> region_span_counts(region_count, 0);
+        for (const NavigationCompactSpan& span : heightfield.GetSpans())
+        {
+            // Region ID 0は未所属を表すため、領域サイズには数えない。
+            if (span.is_walk && span.region_id != 0)
+            {
+                ++region_span_counts[span.region_id];
+            }
+        }
+        return region_span_counts;
+    }
+
+    /**
+     * @brief 歩行不可Spanに関係する接続を無効化する。
+     * @param heightfield 接続情報を更新するCompact Heightfield。
+     */
+    void RemoveInvalidConnections(NavigationCompactHeightfield& heightfield)
+    {
+        // 歩行不可Spanと、歩行不可Spanへ向かう接続をまとめて無効化する。
+        const uint32 span_count = static_cast<uint32>(heightfield.GetSpans().size());
+        for (uint32 span_index = 0; span_index < span_count; ++span_index)
+        {
+            NavigationCompactSpan* span = heightfield.GetSpan(span_index);
+            for (uint32& neighbor_index : span->connection_indices)
+            {
+                if (!span->is_walk)
+                {
+                    neighbor_index = UINT32_MAX;
+                    continue;
+                }
+
+                if (neighbor_index != UINT32_MAX && !heightfield.GetSpan(neighbor_index)->is_walk)
+                {
+                    neighbor_index = UINT32_MAX;
+                }
+            }
+        }
+    }
+
+    /**
+     * @brief XZ平面で点に最も近い線分上の位置を比率で求める。
+     * @param point 線分へ投影する点。
+     * @param start 線分の始点。
+     * @param end 線分の終点。
+     * @return 始点を0、終点を1とした線分上の比率。
+     */
+    float CalcPointToSegmentParameterXZ(const NavigationContourVertex& point,
+                                        const NavigationContourVertex& start,
+                                        const NavigationContourVertex& end)
+    {
+        const float segment_x = static_cast<float>(end.x) - static_cast<float>(start.x);
+        const float segment_z = static_cast<float>(end.z) - static_cast<float>(start.z);
+        const float point_x = static_cast<float>(point.x) - static_cast<float>(start.x);
+        const float point_z = static_cast<float>(point.z) - static_cast<float>(start.z);
+        const float segment_length_sq = segment_x * segment_x + segment_z * segment_z;
+
+        // 長さ0の線分では始点を最近傍点として扱う。
+        if (segment_length_sq <= kEpsilon)
+        {
+            return 0.0f;
+        }
+        return std::clamp((point_x * segment_x + point_z * segment_z) / segment_length_sq, 0.0f, 1.0f);
+    }
+}
+
 Box NavigationMeshBuilder::CalcCellBounds(const NavigationHeightfield& height, uint32 x, uint32 z) const
 {
+    // 格子座標をワールド座標へ戻し、Heightfield端では最大値を範囲内へ丸める。
     Box b;
     b.min.x = height.GetWorldBounds().min.x + x * height.GetCellSize();
     b.max.x = (std::min)(b.min.x + height.GetCellSize(), height.GetWorldBounds().max.x);
@@ -28,17 +241,19 @@ Box NavigationMeshBuilder::CalcCellBounds(const NavigationHeightfield& height, u
 
 std::vector<Vec3> NavigationMeshBuilder::ClipTriangleToCell(const Triangle& tri, const Box& b) const
 {
+    // XZの4境界を1面ずつ適用し、三角形のうちCell内に入る多角形を作る。
     std::vector<Vec3> result = {tri.a, tri.b, tri.c};
-    result = ClipPolygonAgainstMinX(result, b.min.x);
-    result = ClipPolygonAgainstMaxX(result, b.max.x);
-    result = ClipPolygonAgainstMinZ(result, b.min.z);
-    result = ClipPolygonAgainstMaxZ(result, b.max.z);
+    result = ClipPolygonAgainstBoundary(result, b.min.x, ClipBoundary::kMinX);
+    result = ClipPolygonAgainstBoundary(result, b.max.x, ClipBoundary::kMaxX);
+    result = ClipPolygonAgainstBoundary(result, b.min.z, ClipBoundary::kMinZ);
+    result = ClipPolygonAgainstBoundary(result, b.max.z, ClipBoundary::kMaxZ);
     return result;
 }
 
 bool NavigationMeshBuilder::Build(const std::vector<NavigationGeometry>& geometries, const NavigationConfig& config,
                                   NavigationHeightfield& heightfield)
 {
+    // 全形状をSpanへ変換した後、重なりの統合と歩行条件のフィルタを順に行う。
     bool success_flag = false;
     for (auto& geometry : geometries)
     {
@@ -53,10 +268,24 @@ bool NavigationMeshBuilder::Build(const std::vector<NavigationGeometry>& geometr
 bool NavigationMeshBuilder::RasterizeGeometry(const NavigationGeometry& geometry, const NavigationConfig& config,
                                               NavigationHeightfield& height) const
 {
+    if (geometry.indices.empty() || geometry.indices.size() % 3 != 0)
+    {
+        return false;
+    }
+
+    for (uint32 vertex_index : geometry.indices)
+    {
+        if (vertex_index >= geometry.vertices.size())
+        {
+            return false;
+        }
+    }
+
     bool success_flag = false;
 
     // 従来の表面Rasterize。
     // Cell端や斜面の高さ情報を維持するため、これは残す。
+    // インデックス3個で1三角形を表すため、3個ずつワールド空間へ変換する。
     for (uint32 index = 0; index < geometry.indices.size(); index += 3)
     {
         const Triangle triangle = GetWorldTriangle(geometry, index);
@@ -76,10 +305,9 @@ bool NavigationMeshBuilder::RasterizeGeometry(const NavigationGeometry& geometry
 bool NavigationMeshBuilder::RasterizeTriangle(const Triangle& tri, const NavigationConfig& config,
                                               NavigationHeightfield& height) const
 {
-    const Vec3 side_1 = tri.b - tri.a;
-    const Vec3 side_2 = tri.c - tri.a;
-    const Vec3 triangle_normal = Cross(side_1, side_2);
+    const Vec3 triangle_normal = CalcTriangleNormal(tri);
 
+    // 面積がほぼ0の三角形は高さを作れないので除外する。
     if (triangle_normal.LengthSquared() < kEpsilon)
     {
         return false;
@@ -92,28 +320,21 @@ bool NavigationMeshBuilder::RasterizeTriangle(const Triangle& tri, const Navigat
     {
         return false;
     }
-    const bool is_walk = IsWalkableTriangle(tri, config);
+    const bool is_walk = IsWalkableNormal(triangle_normal, config);
     bool is_push_back = false;
+    // 三角形と重なる各Cellで切り抜き、多角形の上下端を1本のSpanとして登録する。
     for (int32 z = range.min_depth_cell; z <= range.max_depth_cell; ++z)
     {
         for (int32 x = range.min_width_cell; x <= range.max_width_cell; ++x)
         {
             const Box cell_b = CalcCellBounds(height, x, z);
             const std::vector<Vec3> clipped_vertices = ClipTriangleToCell(tri, cell_b);
-            if (clipped_vertices.size() < 3)
-            {
-                continue;
-            }
-
             if (CalcPolygonAreaXZ(clipped_vertices) <= kEpsilon)
             {
                 continue;
             }
             float min_y, max_y;
-            if (!CalcPolygonHeightRange(clipped_vertices, min_y, max_y))
-            {
-                continue;
-            }
+            CalcPolygonHeightRange(clipped_vertices, min_y, max_y);
             NavigationSpan span;
             if (!CreateSpanFromHeightRange(min_y, max_y, height, is_walk, span))
             {
@@ -133,6 +354,7 @@ bool NavigationMeshBuilder::BuildCompactHeightfield(NavigationHeightfield* sourc
                                                     NavigationCompactHeightfield& output,
                                                     const NavigationConfig& config)
 {
+    // 歩行可能Spanだけを連続配列へ詰め、床高と頭上の空き高さを保持する。
     output.Initialize(*source);
     for (int x = 0; x < source->GetWidth(); ++x)
     {
@@ -144,6 +366,7 @@ bool NavigationMeshBuilder::BuildCompactHeightfield(NavigationHeightfield* sourc
                 const auto& span = spans->spans[s];
                 if (!span.is_walk)continue;
                 NavigationCompactSpan compact_span;
+                // 上にSpanがなければUINT32_MAXを無限の天井として扱う。
                 compact_span.clearance_height = s + 1 < spans->spans.size()
                                                     ? spans->spans[s + 1].min_height - span.max_height
                                                     : UINT32_MAX;
@@ -153,6 +376,7 @@ bool NavigationMeshBuilder::BuildCompactHeightfield(NavigationHeightfield* sourc
             }
         }
     }
+    // 接続、壁からの半径削り、Region分割の順でCompact Heightfieldを完成させる。
     if (!BuildCompactConnections(output, config))
     {
         return false;
@@ -177,7 +401,9 @@ bool NavigationMeshBuilder::BuildRegions(NavigationCompactHeightfield& heightfie
         }
         max_dist = (std::max)(span->dis_to_wall, max_dist);
     }
+    // Region ID 0は未所属なので、実際のRegionは1から割り当てる。
     uint32 next_region_id = 1;
+    // 距離場の直交1Cellは2単位。壁から遠いレベルから2ずつ下げて領域を広げる。
     for (int32 min = static_cast<int32>(max_dist); min >= 0; min -= 2)
     {
         ExpandRegionsAtLevel(heightfield, min);
@@ -192,7 +418,9 @@ bool NavigationMeshBuilder::BuildContours(NavigationCompactHeightfield& heightfi
                                           std::vector<NavigationContour>& contours) const
 {
     contours.clear();
+    // 各Spanの4辺を4bitの境界マスクで表し、未追跡の辺から輪郭をたどる。
     std::vector<uint8> boundary_masks = BuildContourBoundaryMasks(heightfield);
+    // 設定値はワールド単位なので、比較に使う格子単位へ変換する。
     const float max_error_in_cells = config.max_contour_simplification_error / heightfield.GetCellSize();
     const float max_height_error_in_cells = config.max_contour_height_error / heightfield.GetCellHeight();
     const float max_edge_len_in_cells = config.max_edge_len / heightfield.GetCellSize();
@@ -209,6 +437,7 @@ bool NavigationMeshBuilder::BuildContours(NavigationCompactHeightfield& heightfi
                 {
                     continue;
                 }
+                // 4方向のうち境界ビットが残っている辺だけを開始点にする。
                 for (auto direction = 0; direction < 4; ++direction)
                 {
                     const uint8 edge_bit = static_cast<uint8>(1u << direction);
@@ -240,6 +469,7 @@ bool NavigationMeshBuilder::BuildNavigationMeshData(
     const NavigationConfig& config,
     NavigationMeshData& mesh_data) const
 {
+    // ポリゴンは最低3頂点必要。
     if (contours.empty() || config.max_vertex_per_poly < 3)
     {
         return false;
@@ -251,6 +481,7 @@ bool NavigationMeshBuilder::BuildNavigationMeshData(
     {
         std::vector<NavigationContourPolygon> polygons;
 
+        // 輪郭を一度三角形化し、凸形状を保てる範囲で指定頂点数まで結合する。
         if (!BuildContourPolygons(
             contour,
             config.max_vertex_per_poly,
@@ -268,16 +499,9 @@ bool NavigationMeshBuilder::BuildNavigationMeshData(
 
             for (uint32 contour_vertex_index : polygon.vertex_indices)
             {
-                if (contour_vertex_index >= contour.vertices.size())
-                {
-                    return false;
-                }
-
                 const uint32 mesh_vertex_index =
                     FindOrAddNavigationMeshVertex(
-                        contour.vertices[contour_vertex_index],
-                        heightfield,
-                        generated_mesh_data);
+                        contour.vertices[contour_vertex_index], heightfield, generated_mesh_data);
 
                 mesh_polygon.vertex_indices.push_back(
                     mesh_vertex_index);
@@ -287,16 +511,13 @@ bool NavigationMeshBuilder::BuildNavigationMeshData(
         }
     }
 
-    if (generated_mesh_data.polygons.empty() ||
-        generated_mesh_data.vertices.empty())
+    if (generated_mesh_data.polygons.empty())
     {
         return false;
     }
 
-    if (!BuildPolygonAdjacency(generated_mesh_data))
-    {
-        return false;
-    }
+    // 全ポリゴンが揃ってから共有辺を照合し、経路探索用の隣接情報を作る。
+    BuildPolygonAdjacency(generated_mesh_data);
 
     mesh_data.vertices.swap(generated_mesh_data.vertices);
     mesh_data.polygons.swap(generated_mesh_data.polygons);
@@ -312,8 +533,10 @@ float NavigationMeshBuilder::CalcDetailTriangleMaxPenetration(
     uint32 region_id,
     Vec3& out_position) const
 {
+    // 4分割した三角格子を検査し、詳細面が元の歩行面へ最も深く入る位置を探す。
     constexpr uint32 kProbeSubdivisionCount = 4;
 
+    // 同じ地表層として参照できる高さ差は、登れる段差に量子化1Cell分を足して許容する。
     const float max_height_diff = config.agent_max_climb + heightfield.GetCellHeight();
     float max_penetration = 0.0f;
     out_position = Vec3(0.0f, 0.0f, 0.0f);
@@ -324,6 +547,7 @@ float NavigationMeshBuilder::CalcDetailTriangleMaxPenetration(
 
         for (uint32 c_index = 0; c_index < row_vertex_count; ++c_index)
         {
+            // a、b、cの重みの合計を1にして三角形内部を均等にサンプリングする。
             const float b_weight =
                 static_cast<float>(b_index) / static_cast<float>(kProbeSubdivisionCount);
             const float c_weight =
@@ -337,13 +561,13 @@ float NavigationMeshBuilder::CalcDetailTriangleMaxPenetration(
 
             float surface_height = 0.0f;
             if (!TrySampleSurfaceHeight(
-                    heightfield,
-                    probe_position.x,
-                    probe_position.z,
-                    region_id,
-                    probe_position.y,
-                    surface_height,
-                    max_height_diff))
+                heightfield,
+                probe_position.x,
+                probe_position.z,
+                region_id,
+                probe_position.y,
+                surface_height,
+                max_height_diff))
             {
                 continue;
             }
@@ -367,11 +591,12 @@ void NavigationMeshBuilder::AppendUniformDetailTriangle(const NavigationCompactH
                                                         const Vec3& c, uint32 region_id,
                                                         NavigationDetailMeshData& detail_mesh_data) const
 {
-    
+    // 0分割では面を作れないため、設定値が0でも最低1分割にする。
     const uint32 subdivision_count = (std::max)(1u, config.detail_subdivision_count);
 
     const float max_height_diff = config.agent_max_climb + heightfield.GetCellHeight();
 
+    // 三角形を上から段ごとの頂点列として作る。各段は1頂点ずつ短くなる。
     std::vector<std::vector<uint32>> vertex_indices(subdivision_count + 1);
 
     for (uint32 b_index = 0; b_index <= subdivision_count; ++b_index)
@@ -409,6 +634,7 @@ void NavigationMeshBuilder::AppendUniformDetailTriangle(const NavigationCompactH
         }
     }
 
+    // 隣り合う2段の間を、まず1枚、幅が残る場所ではもう1枚の三角形で埋める。
     for (uint32 row = 0; row < subdivision_count; ++row)
     {
         const uint32 next_row_vertex_count = static_cast<uint32>(vertex_indices[row + 1].size());
@@ -444,6 +670,7 @@ bool NavigationMeshBuilder::TryGetClosestSpanFloorHeight(const NavigationCompact
     }
     const NavigationCompactCell* cell = heightfield.GetCell(static_cast<uint32>(cell_x), static_cast<uint32>(cell_z));
 
+    // 同じXZ Cellに複数階があるため、同じRegion内で基準高さに最も近い床を選ぶ。
     bool found_span = false;
     float closest_diff = 0.0f;
     for (uint32 span_offset = 0; span_offset < cell->span_count; ++span_offset)
@@ -470,74 +697,6 @@ bool NavigationMeshBuilder::TryGetClosestSpanFloorHeight(const NavigationCompact
     return found_span;
 }
 
-void NavigationMeshBuilder::AppendAdaptiveDetailTriangle(const NavigationCompactHeightfield& heightfield,
-                                                         const NavigationConfig& config, const Vec3& a, const Vec3& b,
-                                                         const Vec3& c, uint32 region_id,
-                                                         uint32 subdivision_depth,
-                                                         NavigationDetailMeshData& detail_mesh_data) const
-{
-    if (subdivision_depth < config.detail_max_subdivision_depth)
-    {
-        Vec3 midpoint_ab((a.x + b.x) * 0.5f, (a.y + b.y) * 0.5f, (a.z + b.z) * 0.5f);
-        Vec3 midpoint_bc((b.x + c.x) * 0.5f, (b.y + c.y) * 0.5f, (b.z + c.z) * 0.5f);
-        Vec3 midpoint_ca((c.x + a.x) * 0.5f, (c.y + a.y) * 0.5f, (c.z + a.z) * 0.5f);
-
-        const float max_height_diff = (config.agent_max_climb + heightfield.GetCellHeight());// * 10.0f;
-
-        const auto sample_midpoint = [&](Vec3& midpoint) -> float
-        {
-            const float line_height = midpoint.y;
-            float surface_height = 0.0f;
-
-            if (!TrySampleSurfaceHeight(heightfield,midpoint.x,midpoint.z,region_id,
-                line_height,surface_height,max_height_diff))
-            {
-                return 0.0f;
-            }
-
-            midpoint.y = surface_height;
-
-            // 正なら、床が現在の三角形より上へ突き出している。
-            return surface_height - line_height;
-        };
-
-        const float penetration_ab = sample_midpoint(midpoint_ab);
-        const float penetration_bc = sample_midpoint(midpoint_bc);
-        const float penetration_ca = sample_midpoint(midpoint_ca);
-
-        const bool needs_subdivision =
-            penetration_ab > config.detail_sample_max_error ||
-            penetration_bc > config.detail_sample_max_error ||
-            penetration_ca > config.detail_sample_max_error;
-
-        if (needs_subdivision)
-        {
-            const uint32 next_depth = subdivision_depth + 1;
-
-            AppendAdaptiveDetailTriangle(heightfield, config, a, midpoint_ab, midpoint_ca,
-                                         region_id, next_depth, detail_mesh_data);
-            AppendAdaptiveDetailTriangle(heightfield, config, midpoint_ab, b, midpoint_bc,
-                                         region_id, next_depth, detail_mesh_data);
-            AppendAdaptiveDetailTriangle(heightfield, config, midpoint_ca, midpoint_bc, c,
-                                         region_id, next_depth, detail_mesh_data);
-            AppendAdaptiveDetailTriangle(heightfield, config, midpoint_ab, midpoint_bc, midpoint_ca,
-                                         region_id, next_depth, detail_mesh_data);
-
-            return;
-        }
-    }
-
-    const uint32 first_vertex =static_cast<uint32>(detail_mesh_data.vertices.size());
-
-    detail_mesh_data.vertices.push_back(a);
-    detail_mesh_data.vertices.push_back(b);
-    detail_mesh_data.vertices.push_back(c);
-
-    detail_mesh_data.indices.push_back(first_vertex);
-    detail_mesh_data.indices.push_back(first_vertex + 1);
-    detail_mesh_data.indices.push_back(first_vertex + 2);
-}
-
 bool NavigationMeshBuilder::BuildNavigationDetailMesh(
     const NavigationCompactHeightfield& heightfield,
     const NavigationMeshData& mesh_data,
@@ -559,25 +718,29 @@ bool NavigationMeshBuilder::BuildNavigationDetailMesh(
     float max_detail_penetration = 0.0f;
     Vec3 max_detail_penetration_position = {};
 
+    // 各凸ポリゴンを頂点0基準の三角形へ分け、それぞれを均等に細分化する。
     for (const NavigationMeshPolygon& polygon : mesh_data.polygons)
     {
+        // Region ID 0は歩行領域に所属しない。3頂点未満も面を作れない。
         if (polygon.region_id == 0 ||
             polygon.vertex_indices.size() < 3)
         {
             continue;
         }
 
-        const uint32 first_index = polygon.vertex_indices[0];
-
-        if (first_index >= mesh_data.vertices.size())
+        for (uint32 vertex_index : polygon.vertex_indices)
         {
-            DEBUG_LOG(
-                "[Navigation] detail_build_failed: first vertex index out of range (%u >= %zu)",
-                first_index,
-                mesh_data.vertices.size());
-            return false;
+            if (vertex_index >= mesh_data.vertices.size())
+            {
+                DEBUG_LOG(
+                    "[Navigation] detail_build_failed: vertex index out of range (%u >= %zu)",
+                    vertex_index,
+                    mesh_data.vertices.size());
+                return false;
+            }
         }
 
+        const uint32 first_index = polygon.vertex_indices[0];
         const Vec3& first_vertex =
             mesh_data.vertices[first_index];
 
@@ -591,18 +754,6 @@ bool NavigationMeshBuilder::BuildNavigationDetailMesh(
             const uint32 third_index =
                 polygon.vertex_indices[index + 1];
 
-            if (second_index >= mesh_data.vertices.size() ||
-                third_index >= mesh_data.vertices.size())
-            {
-                DEBUG_LOG(
-                    "[Navigation] detail_build_failed: triangle vertex index out of range "
-                    "(%u, %u >= %zu)",
-                    second_index,
-                    third_index,
-                    mesh_data.vertices.size());
-                return false;
-            }
-
             const Vec3& second_vertex =
                 mesh_data.vertices[second_index];
 
@@ -615,6 +766,7 @@ bool NavigationMeshBuilder::BuildNavigationDetailMesh(
                                         second_vertex, third_vertex, polygon.region_id,
                                         generated_detail_mesh_data);
 
+            // 追加した詳細三角形が地表へめり込んでいないかを診断用に計測する。
             for (size_t detail_index = first_new_index;
                  detail_index + 2 < generated_detail_mesh_data.indices.size();
                  detail_index += 3)
@@ -622,20 +774,6 @@ bool NavigationMeshBuilder::BuildNavigationDetailMesh(
                 const uint32 detail_first_index = generated_detail_mesh_data.indices[detail_index];
                 const uint32 detail_second_index = generated_detail_mesh_data.indices[detail_index + 1];
                 const uint32 detail_third_index = generated_detail_mesh_data.indices[detail_index + 2];
-
-                if (detail_first_index >= generated_detail_mesh_data.vertices.size() ||
-                    detail_second_index >= generated_detail_mesh_data.vertices.size() ||
-                    detail_third_index >= generated_detail_mesh_data.vertices.size())
-                {
-                    DEBUG_LOG(
-                        "[Navigation] detail_build_failed: generated detail index out of range "
-                        "(%u, %u, %u >= %zu)",
-                        detail_first_index,
-                        detail_second_index,
-                        detail_third_index,
-                        generated_detail_mesh_data.vertices.size());
-                    return false;
-                }
 
                 Vec3 penetration_position = {};
                 const float penetration = CalcDetailTriangleMaxPenetration(
@@ -658,7 +796,7 @@ bool NavigationMeshBuilder::BuildNavigationDetailMesh(
         }
     }
 
-    if (generated_detail_mesh_data.vertices.empty() || generated_detail_mesh_data.indices.empty())
+    if (generated_detail_mesh_data.indices.empty())
     {
         DEBUG_LOG(
             "[Navigation] detail_build_failed: generated detail mesh is empty "
@@ -701,6 +839,7 @@ bool NavigationMeshBuilder::TrySampleSurfaceHeight(const NavigationCompactHeight
     {
         return false;
     }
+    // ワールド座標を格子座標へ変換し、所属CellとCell内の比率へ分ける。
     const float grid_x = (world_x - bounds.min.x) / heightfield.GetCellSize();
     const float grid_z = (world_z - bounds.min.z) / heightfield.GetCellSize();
 
@@ -725,6 +864,7 @@ bool NavigationMeshBuilder::TrySampleSurfaceHeight(const NavigationCompactHeight
     const float local_x = std::clamp(grid_x - static_cast<float>(cell_x), 0.0f, 1.0f);
     const float local_z = std::clamp(grid_z - static_cast<float>(cell_z), 0.0f, 1.0f);
 
+    // Cellを囲む4隅の高さを求め、X方向、Z方向の順に線形補間する。
     const float height_00 = CalcSurfaceCornerHeight(heightfield, cell_x, cell_z, region_id,
                                                     layer_height, max_height_diff);
     const float height_10 = CalcSurfaceCornerHeight(heightfield, cell_x + 1, cell_z, region_id,
@@ -745,6 +885,7 @@ bool NavigationMeshBuilder::TrySampleSurfaceHeight(const NavigationCompactHeight
 bool NavigationMeshBuilder::RasterizeSolidGeometry(const NavigationGeometry& geometry, const NavigationConfig& config,
                                                    NavigationHeightfield& heightfield) const
 {
+    // 各Cell中央を通る垂直線と閉じたMeshの交点を集め、内部区間をSolid Spanへ変換する。
     std::vector<std::vector<SolidIntersection>> cell_intersections;
 
     if (!CollectSolidIntersections(geometry, config, heightfield, cell_intersections))
@@ -764,6 +905,7 @@ bool NavigationMeshBuilder::RasterizeSolidGeometry(const NavigationGeometry& geo
             const size_t cell_index = static_cast<size_t>(z) * width + x;
             std::vector<SolidIntersection>& intersections = cell_intersections[cell_index];
 
+            // Solidの入口と出口が必要なので、交点が2個未満なら内部区間は作れない。
             if (intersections.size() < 2)
             {
                 continue;
@@ -782,15 +924,12 @@ bool NavigationMeshBuilder::RasterizeSolidGeometry(const NavigationGeometry& geo
 bool NavigationMeshBuilder::RasterizeSolidCell(uint32 x, uint32 z, std::vector<SolidIntersection>& intersections,
                                                NavigationHeightfield& heightfield) const
 {
-    if (x >= heightfield.GetWidth() || z >= heightfield.GetDepth() || intersections.size() < 2)
-    {
-        return false;
-    }
     std::ranges::sort(intersections,
                       [](const SolidIntersection& left, const SolidIntersection& right)
                       {
                           return left.height < right.height;
                       });
+    // 同一面の重複交点をまとめる許容値。極小値とCell高の0.1%の大きい方を使う。
     const float height_tolerance = (std::max)(0.0001f, heightfield.GetCellHeight() * 0.001f);
     int32 solid_depth = 0;
     float solid_start_height = 0.0f;
@@ -821,6 +960,7 @@ bool NavigationMeshBuilder::RasterizeSolidCell(uint32 x, uint32 z, std::vector<S
 
             ++next_index;
         }
+        // 面の向きに応じた増減を足し、0以外の区間を閉じたMeshの内部とみなす。
         const int32 previous_depth = solid_depth;
         solid_depth += group_depth_delta;
 
@@ -860,31 +1000,21 @@ bool NavigationMeshBuilder::CollectSolidIntersections(const NavigationGeometry& 
 {
     out_cell_intersections.clear();
 
-    if (geometry.indices.empty() || geometry.indices.size() % 3 != 0 ||
-        heightfield.GetWidth() == 0 || heightfield.GetDepth() == 0)
+    if (heightfield.GetWidth() == 0 || heightfield.GetDepth() == 0)
     {
         return false;
-    }
-
-    for (uint32 vertex_index : geometry.indices)
-    {
-        if (vertex_index >= geometry.vertices.size())
-        {
-            return false;
-        }
     }
 
     const size_t cell_count = static_cast<size_t>(heightfield.GetWidth()) * static_cast<size_t>(heightfield.GetDepth());
     out_cell_intersections.resize(cell_count);
     bool found_intersection = false;
+    // インデックス3個で1三角形を表すため、3個ずつ調べる。
     for (uint32 triangle_index = 0; triangle_index < geometry.indices.size(); triangle_index += 3)
     {
         const Triangle triangle =
             GetWorldTriangle(geometry, triangle_index);
 
-        const Vec3 side_1 = triangle.b - triangle.a;
-        const Vec3 side_2 = triangle.c - triangle.a;
-        const Vec3 normal = Cross(side_1, side_2);
+        const Vec3 normal = CalcTriangleNormal(triangle);
 
         if (std::abs(normal.y) <= kEpsilon)
         {
@@ -897,14 +1027,16 @@ bool NavigationMeshBuilder::CollectSolidIntersections(const NavigationGeometry& 
             continue;
         }
         SolidIntersection intersection;
+        // 下向き面で内部へ入り、上向き面で外へ出るものとして深さを増減する。
         intersection.depth_delta = normal.y < 0.0f ? 1 : -1;
-        intersection.is_walkable_top = normal.y > 0.0f && IsWalkableTriangle(triangle, config);
+        intersection.is_walkable_top = normal.y > 0.0f && IsWalkableNormal(normal, config);
         for (int32 z = cell_range.min_depth_cell; z <= cell_range.max_depth_cell; ++z)
         {
             for (int32 x = cell_range.min_width_cell; x <= cell_range.max_width_cell; ++x)
             {
                 const Box cell_bounds = CalcCellBounds(heightfield, x, z);
 
+                // Cell中央を通る垂直線を使い、各三角形との交差高さを1点求める。
                 const float sample_x = (cell_bounds.min.x + cell_bounds.max.x) * 0.5f;
                 const float sample_z = (cell_bounds.min.z + cell_bounds.max.z) * 0.5f;
 
@@ -949,6 +1081,7 @@ bool NavigationMeshBuilder::TryCalcVerticalIntersectionHeight(const Triangle& tr
 
     const float weight_a = 1.0f - weight_b - weight_c;
 
+    // 辺上の丸め誤差で交点を失わないため、重心座標に微小な余裕を持たせる。
     constexpr float kInsideTolerance = 0.0001f;
 
     if (weight_a < -kInsideTolerance || weight_b < -kInsideTolerance ||
@@ -965,11 +1098,7 @@ bool NavigationMeshBuilder::TryCalcVerticalIntersectionHeight(const Triangle& tr
 
 bool NavigationMeshBuilder::IsClosedGeometry(const NavigationGeometry& geometry) const
 {
-    if (geometry.vertices.empty() || geometry.indices.empty() || geometry.indices.size() % 3 != 0)
-    {
-        return false;
-    }
-
+    // 同じ位置なのに別頂点番号を持つMeshを接続して判定するための座標許容値。
     constexpr double kWeldTolerance = 0.0001;
 
     using PositionKey = std::tuple<int64, int64, int64>;
@@ -991,6 +1120,7 @@ bool NavigationMeshBuilder::IsClosedGeometry(const NavigationGeometry& geometry)
         welded_vertex_indices[i] = iterator->second;
     }
 
+    // 閉じた三角形Meshでは、頂点を溶接した後の各辺が偶数回使われる。
     std::map<EdgeKey, uint32> edge_counts;
     double signed_volume = 0.0;
     const auto add_edge = [&edge_counts](uint32 start, uint32 end)
@@ -1013,13 +1143,6 @@ bool NavigationMeshBuilder::IsClosedGeometry(const NavigationGeometry& geometry)
         const uint32 vertex_index_0 = geometry.indices[index];
         const uint32 vertex_index_1 = geometry.indices[index + 1];
         const uint32 vertex_index_2 = geometry.indices[index + 2];
-
-        if (vertex_index_0 >= geometry.vertices.size() ||
-            vertex_index_1 >= geometry.vertices.size() ||
-            vertex_index_2 >= geometry.vertices.size())
-        {
-            return false;
-        }
 
         const uint32 welded_index_0 = welded_vertex_indices[vertex_index_0];
         const uint32 welded_index_1 = welded_vertex_indices[vertex_index_1];
@@ -1047,6 +1170,7 @@ bool NavigationMeshBuilder::IsClosedGeometry(const NavigationGeometry& geometry)
         const double cross_y = static_cast<double>(b.z) * c.x - static_cast<double>(b.x) * c.z;
         const double cross_z = static_cast<double>(b.x) * c.y - static_cast<double>(b.y) * c.x;
 
+        // 符号付き体積の6倍を加算する。0なら面だけで体積を持たない。
         signed_volume += static_cast<double>(a.x) * cross_x + static_cast<double>(a.y)
             * cross_y + static_cast<double>(a.z) * cross_z;
     }
@@ -1069,90 +1193,6 @@ bool NavigationMeshBuilder::IsClosedGeometry(const NavigationGeometry& geometry)
     return std::abs(signed_volume) > kEpsilon;
 }
 
-void NavigationMeshBuilder::FilterUnreachableRegions(NavigationCompactHeightfield& heightfield) const
-{
-    const uint32 span_count = static_cast<uint32>(heightfield.GetSpans().size());
-
-    // 歩行可能Spanを接続でたどり、連結成分ごとに番号を振る。
-    std::vector<uint32> component_ids(span_count, UINT32_MAX);
-    std::vector<uint32> component_sizes;
-
-    for (uint32 start_index = 0; start_index < span_count; ++start_index)
-    {
-        const NavigationCompactSpan* start_span = heightfield.GetSpan(start_index);
-
-        if (!start_span->is_walk || start_span->region_id == 0 ||
-            component_ids[start_index] != UINT32_MAX)
-        {
-            continue;
-        }
-
-        const uint32 component_id = static_cast<uint32>(component_sizes.size());
-        uint32 component_size = 0;
-
-        std::queue<uint32> span_queue;
-        component_ids[start_index] = component_id;
-        span_queue.push(start_index);
-
-        while (!span_queue.empty())
-        {
-            const uint32 span_index = span_queue.front();
-            span_queue.pop();
-            ++component_size;
-
-            const NavigationCompactSpan* span = heightfield.GetSpan(span_index);
-
-            for (uint32 neighbor_index : span->connection_indices)
-            {
-                if (neighbor_index == UINT32_MAX ||
-                    component_ids[neighbor_index] != UINT32_MAX)
-                {
-                    continue;
-                }
-
-                const NavigationCompactSpan* neighbor_span = heightfield.GetSpan(neighbor_index);
-
-                if (!neighbor_span->is_walk || neighbor_span->region_id == 0)
-                {
-                    continue;
-                }
-
-                component_ids[neighbor_index] = component_id;
-                span_queue.push(neighbor_index);
-            }
-        }
-
-        component_sizes.push_back(component_size);
-    }
-
-    if (component_sizes.empty())
-    {
-        return;
-    }
-
-    // 一番大きい連結成分だけを残す。箱の内部や孤立した柱の上はここで消える。
-    uint32 largest_component_id = 0;
-    for (uint32 i = 1; i < component_sizes.size(); ++i)
-    {
-        if (component_sizes[i] > component_sizes[largest_component_id])
-        {
-            largest_component_id = i;
-        }
-    }
-
-    for (uint32 span_index = 0; span_index < span_count; ++span_index)
-    {
-        if (component_ids[span_index] == largest_component_id)
-        {
-            continue;
-        }
-
-        NavigationCompactSpan* span = heightfield.GetSpan(span_index);
-        span->region_id = 0;
-        span->is_walk = false;
-    }
-}
-
 float NavigationMeshBuilder::CalcSurfaceCornerHeight(const NavigationCompactHeightfield& heightfield,
                                                      int32 corner_x, int32 corner_z, uint32 region_id
                                                      , float ref_height, float max_height_diff) const
@@ -1160,6 +1200,7 @@ float NavigationMeshBuilder::CalcSurfaceCornerHeight(const NavigationCompactHeig
     bool found_height = false;
     float corner_height = 0.0f;
 
+    // 1つの格子角を共有する最大4Cellから、同じ地表層の床高を集める。
     for (int32 z_offset = -1; z_offset <= 0; ++z_offset)
     {
         for (int32 x_offset = -1; x_offset <= 0; ++x_offset)
@@ -1188,6 +1229,7 @@ float NavigationMeshBuilder::CalcSurfaceCornerHeight(const NavigationCompactHeig
                 continue;
             }
 
+            // 補間面が床へめり込まないよう、候補のうち最も高い床を角の高さにする。
             if (!found_height || floor_height > corner_height)
             {
                 corner_height = floor_height;
@@ -1201,6 +1243,7 @@ float NavigationMeshBuilder::CalcSurfaceCornerHeight(const NavigationCompactHeig
 
 float NavigationMeshBuilder::CalcPolygonAreaXZ(const std::vector<Vec3>& vertices) const
 {
+    // 靴紐公式で符号付き面積の2倍を求める。
     float area_twice = 0.0f;
 
     for (uint32 i = 0; i < vertices.size(); ++i)
@@ -1209,37 +1252,21 @@ float NavigationMeshBuilder::CalcPolygonAreaXZ(const std::vector<Vec3>& vertices
         area_twice += vertices[i].x * vertices[next].z - vertices[next].x * vertices[i].z;
     }
 
+    // area_twiceは面積の2倍なので、絶対値を半分に戻す。
     return std::abs(area_twice) * 0.5f;
 }
 
-bool NavigationMeshBuilder::BuildPolygonAdjacency(NavigationMeshData& mesh_data) const
+void NavigationMeshBuilder::BuildPolygonAdjacency(NavigationMeshData& mesh_data) const
 {
     const uint32 polygon_count = static_cast<uint32>(mesh_data.polygons.size());
-    if (polygon_count == 0)
-    {
-        return false;
-    }
 
     for (NavigationMeshPolygon& polygon : mesh_data.polygons)
     {
         const uint32 vertex_count = static_cast<uint32>(polygon.vertex_indices.size());
-
-        if (vertex_count < 3)
-        {
-            return false;
-        }
-
-        for (uint32 vertex_index : polygon.vertex_indices)
-        {
-            if (vertex_index >= mesh_data.vertices.size())
-            {
-                return false;
-            }
-        }
-
         polygon.neighbor_polygon_indices.assign(vertex_count, UINT32_MAX);
     }
 
+    // 2ポリゴンが同じ頂点番号の辺を逆向きに持つ場合、互いを隣接先へ登録する。
     for (uint32 fir_index = 0; fir_index < polygon_count; ++fir_index)
     {
         NavigationMeshPolygon& fir = mesh_data.polygons[fir_index];
@@ -1280,7 +1307,6 @@ bool NavigationMeshBuilder::BuildPolygonAdjacency(NavigationMeshData& mesh_data)
             }
         }
     }
-    return true;
 }
 
 uint32 NavigationMeshBuilder::FindOrAddNavigationMeshVertex(const NavigationContourVertex& contour_vertex,
@@ -1289,6 +1315,7 @@ uint32 NavigationMeshBuilder::FindOrAddNavigationMeshVertex(const NavigationCont
 {
     const Vec3 world_pos = ConvertContourVertexToWorld(contour_vertex, heightfield);
 
+    // 輪郭同士で同じ格子頂点を共有し、隣接判定に使える同一の頂点番号へまとめる。
     for (uint32 vertex_index = 0; vertex_index < mesh_data.vertices.size(); ++vertex_index)
     {
         const auto& vertex = mesh_data.vertices[vertex_index];
@@ -1307,6 +1334,7 @@ uint32 NavigationMeshBuilder::FindOrAddNavigationMeshVertex(const NavigationCont
 Vec3 NavigationMeshBuilder::ConvertContourVertexToWorld(const NavigationContourVertex& vertex,
                                                         const NavigationCompactHeightfield& heightfield) const
 {
+    // 輪郭が持つ格子座標へCell寸法を掛け、Heightfield原点を足してワールド座標へ戻す。
     const Box& box = heightfield.GetWorldBounds();
     Vec3 world_pos = {};
     world_pos.x = static_cast<float>(vertex.x) * heightfield.GetCellSize() + box.min.x;
@@ -1318,11 +1346,7 @@ Vec3 NavigationMeshBuilder::ConvertContourVertexToWorld(const NavigationContourV
 bool NavigationMeshBuilder::BuildContourPolygons(const NavigationContour& contour, uint32 max_vertex_count,
                                                  std::vector<NavigationContourPolygon>& out_poly) const
 {
-    if (max_vertex_count < 3)
-    {
-        return false;
-    }
-
+    // 凹輪郭を安全に扱うため、最初に必ず三角形へ分割する。
     std::vector<NavigationContourTriangle> triangles;
 
     if (!TriangulateContour(contour, triangles))
@@ -1347,6 +1371,7 @@ bool NavigationMeshBuilder::BuildContourPolygons(const NavigationContour& contou
         polygons.push_back(polygon);
     }
 
+    // 共有辺を持つ2枚が凸のままなら、頂点数上限まで繰り返し結合する。
     bool merged_any = true;
     while (merged_any)
     {
@@ -1371,10 +1396,6 @@ bool NavigationMeshBuilder::BuildContourPolygons(const NavigationContour& contou
         }
     }
 
-    if (polygons.empty())
-    {
-        return false;
-    }
     out_poly.swap(polygons);
     return true;
 }
@@ -1395,9 +1416,10 @@ bool NavigationMeshBuilder::TryMergeContourPolygons(const NavigationContour& con
     const uint32 fir_count = static_cast<uint32>(fir.vertex_indices.size());
     const uint32 sec_count = static_cast<uint32>(sec.vertex_indices.size());
 
+    // 共有辺の2頂点は両方に含まれるため、結合後の頂点数から重複分2を引く。
     const uint32 merged_count = fir_count + sec_count - 2;
 
-    if (max_vertex_count < 3 || merged_count > max_vertex_count)
+    if (merged_count > max_vertex_count)
     {
         return false;
     }
@@ -1427,26 +1449,15 @@ bool NavigationMeshBuilder::IsContourPolygonConvex(const NavigationContour& cont
                                                    const NavigationContourPolygon& polygon) const
 {
     const uint32 vertex_count = static_cast<uint32>(polygon.vertex_indices.size());
-    if (vertex_count < 3)
-    {
-        return false;
-    }
 
+    // 同じXZ位置の重複頂点があると長さ0の辺になるため、先に除外する。
     for (uint32 i = 0; i < vertex_count; ++i)
     {
         const uint32 fir_index = polygon.vertex_indices[i];
-        if (fir_index >= contour.vertices.size())
-        {
-            return false;
-        }
         const auto& fir_vertex = contour.vertices[fir_index];
         for (uint32 j = i + 1; j < vertex_count; ++j)
         {
             const uint32 sec_index = polygon.vertex_indices[j];
-            if (sec_index >= contour.vertices.size())
-            {
-                return false;
-            }
             const auto& sec_vertex = contour.vertices[sec_index];
 
             if (fir_vertex.x == sec_vertex.x && fir_vertex.z == sec_vertex.z)
@@ -1455,6 +1466,7 @@ bool NavigationMeshBuilder::IsContourPolygonConvex(const NavigationContour& cont
             }
         }
     }
+    // 反時計回りを前提に、全ての角が左折または直線なら凸形状になる。
     bool has_positive = false;
     for (uint32 i = 0; i < vertex_count; ++i)
     {
@@ -1483,11 +1495,8 @@ bool NavigationMeshBuilder::FindSharedPolygonEdge(const NavigationContourPolygon
 {
     const uint32 fir_count = static_cast<uint32>(fir.vertex_indices.size());
     const uint32 sec_count = static_cast<uint32>(sec.vertex_indices.size());
-    if (fir_count < 3 || sec_count < 3)
-    {
-        return false;
-    }
 
+    // 隣接する輪郭ポリゴンでは、共有辺の頂点番号が逆順に現れる。
     for (uint32 fir_index = 0; fir_index < fir_count; ++fir_index)
     {
         const uint32 fir_next_index = (fir_index + 1) % fir_count;
@@ -1514,6 +1523,7 @@ bool NavigationMeshBuilder::TriangulateContour(const NavigationContour& contour,
 {
     const uint32 vertex_count = static_cast<uint32>(contour.vertices.size());
 
+    // 三角形未満、または外周として必要な反時計回りでない輪郭は処理できない。
     if (vertex_count < 3 || CalcContourSignedAreaTwice(contour) <= 0)
     {
         return false;
@@ -1526,6 +1536,7 @@ bool NavigationMeshBuilder::TriangulateContour(const NavigationContour& contour,
         indices.push_back(i);
     }
     std::vector<NavigationContourTriangle> generated_triangles;
+    // 単純なn角形は必ずn-2枚の三角形へ分割される。
     generated_triangles.reserve(vertex_count - 2);
     while (indices.size() > 3)
     {
@@ -1626,10 +1637,6 @@ bool NavigationMeshBuilder::IsContourEar(const NavigationContour& contour,
                                          uint32 remaining_position) const
 {
     const uint32 remaining_count = static_cast<uint32>(remaining_indices.size());
-    if (remaining_count < 3 || remaining_position >= remaining_count)
-    {
-        return false;
-    }
 
     const uint32 prev_pos = (remaining_position + remaining_count - 1) % remaining_count;
     const uint32 next_pos = (remaining_position + 1) % remaining_count;
@@ -1638,31 +1645,21 @@ bool NavigationMeshBuilder::IsContourEar(const NavigationContour& contour,
     const uint32 cur_index = remaining_indices[remaining_position];
     const uint32 next_index = remaining_indices[next_pos];
 
-    if (prev_index >= contour.vertices.size() || cur_index >= contour.vertices.size() || next_index >= contour.
-        vertices.
-        size())
-    {
-        return false;
-    }
-
     const auto& prev_vertex = contour.vertices[prev_index];
     const auto& cur_vertex = contour.vertices[cur_index];
     const auto& next_vertex = contour.vertices[next_index];
 
+    // 耳として切り取れるのは、輪郭の内側を向く面積のある角だけ。
     if (CalcTriangleSignedAreaTwiceXZ(prev_vertex, cur_vertex, next_vertex) <= 0)
     {
         return false;
     }
+    // 新しくできる対角線が輪郭の他の辺と交差しないことを確認する。
     for (uint32 edge = 0; edge < remaining_count; ++edge)
     {
         const uint32 edge_next_pos = (edge + 1) % remaining_count;
         const uint32 edge_start_index = remaining_indices[edge];
         const uint32 edge_end_index = remaining_indices[edge_next_pos];
-
-        if (edge_start_index >= contour.vertices.size() || edge_end_index >= contour.vertices.size())
-        {
-            return false;
-        }
 
         const auto& edge_start = contour.vertices[edge_start_index];
         const auto& edge_end = contour.vertices[edge_end_index];
@@ -1681,12 +1678,9 @@ bool NavigationMeshBuilder::IsContourEar(const NavigationContour& contour,
             return false;
         }
     }
+    // 耳の三角形内に他の輪郭頂点があれば、そこを切り取ることはできない。
     for (uint32 vertex_index : remaining_indices)
     {
-        if (vertex_index >= contour.vertices.size())
-        {
-            return false;
-        }
         if (vertex_index == prev_index || vertex_index == cur_index || vertex_index == next_index)
         {
             continue;
@@ -1718,6 +1712,7 @@ bool NavigationMeshBuilder::IsPointInsideOrOnTriangleXZ(const NavigationContourV
     const int64 bcp = CalcTriangleSignedAreaTwiceXZ(b, c, point);
     const int64 cap = CalcTriangleSignedAreaTwiceXZ(c, a, point);
 
+    // 3辺に対する符号が混在しなければ、点は三角形の内部または辺上にある。
     const bool has_negative = (abp < 0) || (bcp < 0) || (cap < 0);
     const bool has_positive = (abp > 0) || (bcp > 0) || (cap > 0);
     return !(has_negative && has_positive);
@@ -1730,11 +1725,13 @@ bool NavigationMeshBuilder::MergeContourHoles(std::vector<NavigationContour>& co
 
     for (auto& contour : contours)
     {
+        // 3頂点未満は外周にも穴にもならない。
         if (contour.vertices.size() < 3)
         {
             continue;
         }
 
+        // 反時計回りを外周、時計回りを穴として分類する。
         const int64 area_twice = CalcContourSignedAreaTwice(contour);
         if (area_twice > 0)
         {
@@ -1766,32 +1763,24 @@ bool NavigationMeshBuilder::MergeContourHoles(std::vector<NavigationContour>& co
             return false;
         }
 
-        if (!MergeHoleIntoContour(outer, hole, bridge_outer_index, bridge_hole_index))
-        {
-            return false;
-        }
+        // 交差しない橋で外周と穴をつなぎ、三角形化できる1本の輪郭へ変える。
+        MergeHoleIntoContour(outer, hole, bridge_outer_index, bridge_hole_index);
     }
     contours.swap(outer_contours);
-    return !contours.empty();
+    return true;
 }
 
 bool NavigationMeshBuilder::FindContainingOuterContour(const NavigationContour& hole,
                                                        const std::vector<NavigationContour>& contours,
                                                        uint32& outer_index) const
 {
-    if (hole.vertices.size() < 3)
-    {
-        return false;
-    }
-
     // 同じRegionの外周が1つしかなければ、それが親で確定。
     // 幾何判定は、単純化で穴の頂点が外周のわずかに外へ出ただけで失敗する。
     uint32 same_region_count = 0;
     uint32 same_region_index = 0;
     for (uint32 i = 0; i < contours.size(); ++i)
     {
-        if (contours[i].vertices.size() < 3 ||
-            contours[i].region_id != hole.region_id ||
+        if (contours[i].region_id != hole.region_id ||
             CalcContourSignedAreaTwice(contours[i]) <= 0)
         {
             continue;
@@ -1809,8 +1798,7 @@ bool NavigationMeshBuilder::FindContainingOuterContour(const NavigationContour& 
     for (uint32 i = 0; i < contours.size(); ++i)
     {
         const NavigationContour& candidate = contours[i];
-        if (candidate.vertices.size() < 3 ||
-            candidate.region_id != hole.region_id)
+        if (candidate.region_id != hole.region_id)
         {
             continue;
         }
@@ -1834,21 +1822,14 @@ bool NavigationMeshBuilder::FindContainingOuterContour(const NavigationContour& 
     return found;
 }
 
-bool NavigationMeshBuilder::MergeHoleIntoContour(NavigationContour& outer, const NavigationContour& hole,
+void NavigationMeshBuilder::MergeHoleIntoContour(NavigationContour& outer, const NavigationContour& hole,
                                                  uint32 outer_index, uint32 hole_index) const
 {
-    if (outer.vertices.size() < 3 ||
-        hole.vertices.size() < 3 ||
-        outer_index >= outer.vertices.size() ||
-        hole_index >= hole.vertices.size())
-    {
-        return false;
-    }
-
     const uint32 outer_count = static_cast<uint32>(outer.vertices.size());
     const uint32 hole_count = static_cast<uint32>(hole.vertices.size());
     std::vector<NavigationContourVertex> merge_vertices;
 
+    // 外周から橋を渡って穴を1周し、同じ橋を戻って外周の続きを連結する。
     for (uint32 i = 0; i <= outer_index; i++)
     {
         merge_vertices.push_back(outer.vertices[i]);
@@ -1867,18 +1848,14 @@ bool NavigationMeshBuilder::MergeHoleIntoContour(NavigationContour& outer, const
         merge_vertices.push_back(outer.vertices[i]);
     }
     outer.vertices.swap(merge_vertices);
-    return true;
 }
 
 bool NavigationMeshBuilder::FindHoleBridge(const NavigationContour& outer, const NavigationContour& hole_contour,
                                            uint32& out_outer_index, uint32& out_hole_index) const
 {
-    if (outer.vertices.size() < 3 || hole_contour.vertices.size() < 3)
-    {
-        return false;
-    }
     bool found = false;
     double best_dis_sq = 0.0;
+    // 外周と穴の全頂点対から、輪郭と交差しない最短の橋を選ぶ。
     for (uint32 outer_index = 0; outer_index < outer.vertices.size(); ++outer_index)
     {
         for (uint32 hole_index = 0; hole_index < hole_contour.vertices.size(); hole_index++)
@@ -1908,43 +1885,31 @@ bool NavigationMeshBuilder::FindHoleBridge(const NavigationContour& outer, const
 bool NavigationMeshBuilder::IsHoleBridgeVisible(const NavigationContour& outer, uint32 outer_index,
                                                 const NavigationContour& hole_contour, uint32 hole_index) const
 {
-    if (outer.vertices.size() < 3 ||
-        hole_contour.vertices.size() < 3 ||
-        outer_index >= outer.vertices.size() ||
-        hole_index >= hole_contour.vertices.size())
-    {
-        return false;
-    }
     const auto& outer_vertex = outer.vertices[outer_index];
     const auto& hole_vertex = hole_contour.vertices[hole_index];
 
-    for (uint32 i = 0; i < outer.vertices.size(); ++i)
+    // 橋の両端に接する辺は交差扱いせず、それ以外の外周辺と穴辺を調べる。
+    const auto intersects_contour = [this, &outer_vertex, &hole_vertex](const NavigationContour& contour,
+                                                                        uint32 bridge_index)
     {
-        const uint32 next_index = (i + 1) % static_cast<uint32>(outer.vertices.size());
-        if (i == outer_index || next_index == outer_index)
+        for (uint32 i = 0; i < contour.vertices.size(); ++i)
         {
-            continue;
+            const uint32 next_index = (i + 1) % static_cast<uint32>(contour.vertices.size());
+            if (i == bridge_index || next_index == bridge_index)
+            {
+                continue;
+            }
+            if (DoSegmentsIntersectXZ(outer_vertex, hole_vertex,
+                                      contour.vertices[i], contour.vertices[next_index]))
+            {
+                return true;
+            }
         }
-        if (DoSegmentsIntersectXZ(outer_vertex, hole_vertex,
-                                  outer.vertices[i], outer.vertices[next_index]))
-        {
-            return false;
-        }
-    }
-    for (uint32 i = 0; i < hole_contour.vertices.size(); ++i)
-    {
-        const uint32 next_index = (i + 1) % static_cast<uint32>(hole_contour.vertices.size());
-        if (i == hole_index || next_index == hole_index)
-        {
-            continue;
-        }
-        if (DoSegmentsIntersectXZ(outer_vertex, hole_vertex,
-                                  hole_contour.vertices[i], hole_contour.vertices[next_index]))
-        {
-            return false;
-        }
-    }
-    return true;
+        return false;
+    };
+
+    return !intersects_contour(outer, outer_index) &&
+        !intersects_contour(hole_contour, hole_index);
 }
 
 bool NavigationMeshBuilder::DoSegmentsIntersectXZ(const NavigationContourVertex& a,
@@ -1956,6 +1921,7 @@ bool NavigationMeshBuilder::DoSegmentsIntersectXZ(const NavigationContourVertex&
     const int64 abd = CalcTriangleSignedAreaTwiceXZ(a, b, d);
     const int64 cda = CalcTriangleSignedAreaTwiceXZ(c, d, a);
     const int64 cdb = CalcTriangleSignedAreaTwiceXZ(c, d, b);
+    // 互いの端点が相手線分の両側にあれば交差する。共線時は線分上判定へ進む。
     const bool c_d_opposite = (abc > 0 && abd < 0) || (abc < 0 && abd > 0);
     const bool a_b_opposite = (cda > 0 && cdb < 0) || (cda < 0 && cdb > 0);
     if (a_b_opposite && c_d_opposite)
@@ -2012,12 +1978,9 @@ bool NavigationMeshBuilder::IsPointInsideContour(const NavigationContourVertex& 
                                                  const NavigationContour& contour) const
 {
     uint32 vertex_count = static_cast<uint32>(contour.vertices.size());
-    if (vertex_count < 3)
-    {
-        return false;
-    }
     bool inside = false;
     const auto& vertices = contour.vertices;
+    // 点から+X方向へ伸ばした半直線と輪郭辺の交差回数が奇数なら内部にある。
     for (uint32 i = 0; i < vertex_count; ++i)
     {
         const uint32 next_index = (i + 1) % vertex_count;
@@ -2047,12 +2010,9 @@ bool NavigationMeshBuilder::IsPointInsideContour(const NavigationContourVertex& 
 int64 NavigationMeshBuilder::CalcContourSignedAreaTwice(const NavigationContour& contour) const
 {
     uint32 vertex_count = static_cast<uint32>(contour.vertices.size());
-    if (vertex_count < 3)
-    {
-        return 0;
-    }
     int64 area_twice = 0;
     const auto& vertices = contour.vertices;
+    // 靴紐公式。正なら反時計回り、負なら時計回りになる。
     for (uint32 i = 0; i < vertex_count; ++i)
     {
         const uint32 next_index = (i + 1) % vertex_count;
@@ -2069,12 +2029,14 @@ bool NavigationMeshBuilder::SimplifyContour(const NavigationContour& raw_contour
     uint32 vertex_count = static_cast<uint32>(raw_contour.vertices.size());
     std::vector<uint8> keep_flags(vertex_count, 0);
     uint32 kept_count = 0;
+    // 3頂点未満は単純化しても面にならない。
     if (vertex_count < 3)
     {
         return false;
     }
     simplified_contour.vertices.clear();
     simplified_contour.region_id = raw_contour.region_id;
+    // 隣接Regionが切り替わる頂点はポータル形状に必要なので、最初から残す。
     for (uint32 i = 0; i < vertex_count; ++i)
     {
         const uint32 prev_index = (i + vertex_count - 1) % vertex_count;
@@ -2086,6 +2048,7 @@ bool NavigationMeshBuilder::SimplifyContour(const NavigationContour& raw_contour
             ++kept_count;
         }
     }
+    // 境界変化が少ない閉輪郭では、XZで離れた両端を最初の2点として選ぶ。
     if (kept_count < 2)
     {
         uint32 min_idx = 0;
@@ -2126,6 +2089,7 @@ bool NavigationMeshBuilder::SimplifyContour(const NavigationContour& raw_contour
     {
         return false;
     }
+    // 2点だけでは面を作れないため、その線分から最も遠い頂点を3点目にする。
     if (kept_count == 2)
     {
         int32 first_kept_index = -1;
@@ -2170,6 +2134,7 @@ bool NavigationMeshBuilder::SimplifyContour(const NavigationContour& raw_contour
         keep_flags[far_idx] = 1;
         ++kept_count;
     }
+    // 長すぎる外周辺は中央の生頂点を戻し、詳細Meshが地形へ追従できる長さに分割する。
     if (max_edge_len > 0.0f)
     {
         const float max_edge_len_in_cells_sq = max_edge_len * max_edge_len;
@@ -2217,6 +2182,7 @@ bool NavigationMeshBuilder::SimplifyContour(const NavigationContour& raw_contour
                     continue;
                 }
 
+                // 区間の中央を選ぶことで、繰り返し分割したときに辺長を均等にする。
                 const uint32 middle_index = (start_index + raw_count / 2) % vertex_count;
                 if (keep_flags[middle_index] == 1)
                 {
@@ -2235,6 +2201,7 @@ bool NavigationMeshBuilder::SimplifyContour(const NavigationContour& raw_contour
             }
         }
     }
+    // 距離誤差と高さ誤差を各許容値で正規化し、大きい側を分割判定に使う。
     const float max_error_in_cells_sq = max_error_in_cells * max_error_in_cells;
     const float max_height_error_in_cells_sq = max_height_error_in_cells * max_height_error_in_cells;
     const float safe_max_error_sq = (std::max)(max_error_in_cells_sq, kEpsilon);
@@ -2288,6 +2255,7 @@ bool NavigationMeshBuilder::SimplifyContour(const NavigationContour& raw_contour
         }
 
 
+        // 正規化誤差が1を超えたときだけ、最も誤差の大きい生頂点を戻す。
         if (max_error_ratio > 1.0f && max_far_index >= 0)
         {
             add_vertex = true;
@@ -2310,44 +2278,21 @@ float NavigationMeshBuilder::CalcPointToSegmentDistanceSquared(const NavigationC
                                                                const NavigationContourVertex& start,
                                                                const NavigationContourVertex& end) const
 {
-    const float se_dir_x = static_cast<float>(end.x) - static_cast<float>(start.x);
-    const float se_dir_z = static_cast<float>(end.z) - static_cast<float>(start.z);
-    const float sp_dir_x = static_cast<float>(point.x) - static_cast<float>(start.x);
-    const float sp_dir_z = static_cast<float>(point.z) - static_cast<float>(start.z);
-    const float dot_se_sp = se_dir_x * sp_dir_x + se_dir_z * sp_dir_z;
-    const float dot_se_se = se_dir_x * se_dir_x + se_dir_z * se_dir_z;
-    if (dot_se_se == 0.0f)
-    {
-        return sp_dir_x * sp_dir_x + sp_dir_z * sp_dir_z;
-    }
-    float t = dot_se_sp / dot_se_se;
-    t = std::clamp(t, 0.0f, 1.0f);
-    const float closest_x = static_cast<float>(start.x) + static_cast<float>(se_dir_x) * t;
-    const float closest_z = static_cast<float>(start.z) + static_cast<float>(se_dir_z) * t;
+    const float segment_x = static_cast<float>(end.x) - static_cast<float>(start.x);
+    const float segment_z = static_cast<float>(end.z) - static_cast<float>(start.z);
+    const float t = CalcPointToSegmentParameterXZ(point, start, end);
+    const float closest_x = static_cast<float>(start.x) + segment_x * t;
+    const float closest_z = static_cast<float>(start.z) + segment_z * t;
     const float distance_x = closest_x - static_cast<float>(point.x);
-
     const float distance_z = closest_z - static_cast<float>(point.z);
-
-    return distance_x * distance_x +
-        distance_z * distance_z;
+    return distance_x * distance_x + distance_z * distance_z;
 }
 
 float NavigationMeshBuilder::CalcPointToSegmentHeightError(const NavigationContourVertex& point,
                                                            const NavigationContourVertex& start,
                                                            const NavigationContourVertex& end) const
 {
-    const float segment_x = static_cast<float>(end.x) - static_cast<float>(start.x);
-    const float segment_z = static_cast<float>(end.z) - static_cast<float>(start.z);
-    const float point_x = static_cast<float>(point.x) - static_cast<float>(start.x);
-    const float point_z = static_cast<float>(point.z) - static_cast<float>(start.z);
-    const float segment_length_sq = segment_x * segment_x + segment_z * segment_z;
-
-    float t = 0.0f;
-    if (segment_length_sq > kEpsilon)
-    {
-        t = std::clamp((point_x * segment_x + point_z * segment_z) / segment_length_sq, 0.0f, 1.0f);
-    }
-
+    const float t = CalcPointToSegmentParameterXZ(point, start, end);
     const float interpolated_height = static_cast<float>(start.height) +
         (static_cast<float>(end.height) - static_cast<float>(start.height)) * t;
     return std::abs(static_cast<float>(point.height) - interpolated_height);
@@ -2359,6 +2304,7 @@ uint32 NavigationMeshBuilder::CalcContourCornerHeight(const NavigationCompactHei
 {
     const auto* span = heightfield.GetSpan(span_index);
     uint32 max_floor_height = span->floor_height;
+    // 4方向の1つ前は、負数を避けるため3を足して4で剰余を取る。
     uint32 prev_dir = (direction + 3) % 4;
     const uint32 neighbor_index = span->connection_indices[direction];
     uint32 diagonal_index = UINT32_MAX;
@@ -2379,6 +2325,7 @@ uint32 NavigationMeshBuilder::CalcContourCornerHeight(const NavigationCompactHei
         }
     }
 
+    // 現在、進行方向、直前方向、斜めの最大4Spanが同じ格子角を共有する。
     if (diagonal_index != UINT32_MAX)
     {
         const auto* diagonal_span = heightfield.GetSpan(diagonal_index);
@@ -2399,6 +2346,7 @@ bool NavigationMeshBuilder::TraceRegionContour(const NavigationCompactHeightfiel
     uint32 direction = start_direction;
     auto span = heightfield.GetSpan(start_span_index);
     contour.region_id = span->region_id;
+    // 境界なら角を記録して右へ回り、境界でなければ隣Spanへ移って左へ回る。
     do
     {
         const uint8 edge_bit = static_cast<uint8>(1u << direction);
@@ -2410,6 +2358,7 @@ bool NavigationMeshBuilder::TraceRegionContour(const NavigationCompactHeightfiel
         {
             uint32 vertex_x = x;
             uint32 vertex_z = z;
+            // bit 1、2、4、8は順に+X、+Z、-X、-Z側の辺を表す。
             switch (edge_bit)
             {
             case 1:
@@ -2445,27 +2394,15 @@ bool NavigationMeshBuilder::TraceRegionContour(const NavigationCompactHeightfiel
             vertex = {vertex_x, vertex_z, height, neighbor_region_id};
             contour.vertices.push_back(vertex);
             boundary_masks[span_index] &= static_cast<uint8>(~edge_bit);
+            // 境界に沿い続けるため右へ90度回る。
             direction = (direction + 1) % 4;
         }
         else
         {
             span_index = neighbor_index;
-
-            switch (direction)
-            {
-            case 0:
-                x++;
-                break;
-            case 1:
-                z++;
-                break;
-            case 2:
-                x--;
-                break;
-            case 3:
-                z--;
-                break;
-            }
+            x = static_cast<uint32>(static_cast<int32>(x) + kDirectionX[direction]);
+            z = static_cast<uint32>(static_cast<int32>(z) + kDirectionZ[direction]);
+            // 隣へ進めた場合は左へ90度回り、次の境界候補を調べる。
             direction = (direction + 3) % 4;
         }
     }
@@ -2489,6 +2426,7 @@ std::vector<uint8> NavigationMeshBuilder::BuildContourBoundaryMasks(NavigationCo
         {
             continue;
         }
+        // 接続なし、歩行不可、別Regionのいずれかなら、その方向の1bitを境界として立てる。
         for (uint32 direction = 0; direction < 4; ++direction)
         {
             uint32 neighbor_index = span->connection_indices[direction];
@@ -2512,26 +2450,9 @@ std::vector<uint8> NavigationMeshBuilder::BuildContourBoundaryMasks(NavigationCo
 void NavigationMeshBuilder::MergeSmallRegions(NavigationCompactHeightfield& heightfield, uint32 next_id,
                                               const NavigationConfig& config) const
 {
-    const uint32 span_count =
-        static_cast<uint32>(heightfield.GetSpans().size());
+    const std::vector<uint32> region_span_counts = CountRegionSpans(heightfield, next_id);
 
-    std::vector<uint32> region_span_counts(next_id, 0);
-
-    // RegionごとのSpan数を数える。
-    for (uint32 span_index = 0;
-         span_index < span_count;
-         ++span_index)
-    {
-        const auto* span = heightfield.GetSpan(span_index);
-
-        if (!span->is_walk || span->region_id == 0)
-        {
-            continue;
-        }
-
-        ++region_span_counts[span->region_id];
-    }
-
+    // 小Regionごとに、自分以上のSpan数を持つ隣接Regionを結合先として記録する。
     std::vector<uint32> merge_targets(next_id, 0);
     auto& spans = heightfield.GetSpans();
     for (int i = 0; i < spans.size(); ++i)
@@ -2567,6 +2488,7 @@ void NavigationMeshBuilder::MergeSmallRegions(NavigationCompactHeightfield& heig
             {
                 continue;
             }
+            // 同じ大きさなら小さいRegion IDへ寄せ、互いを結合先にする循環を防ぐ。
             if (region_span_counts[neighbor_span->region_id] == region_span_counts[span->region_id]
                 && neighbor_span->region_id > span->region_id)
             {
@@ -2575,6 +2497,7 @@ void NavigationMeshBuilder::MergeSmallRegions(NavigationCompactHeightfield& heig
             merge_targets[span->region_id] = neighbor_span->region_id;
         }
     }
+    // 候補収集が終わってから一括変更し、走査途中のRegion ID変化を判定へ混ぜない。
     for (int i = 0; i < spans.size(); ++i)
     {
         auto span = heightfield.GetSpan(i);
@@ -2592,22 +2515,7 @@ void NavigationMeshBuilder::FilterSmallRegions(NavigationCompactHeightfield& hei
     const uint32 span_count =
         static_cast<uint32>(heightfield.GetSpans().size());
 
-    std::vector<uint32> region_span_counts(next_region_id, 0);
-
-    // RegionごとのSpan数を数える。
-    for (uint32 span_index = 0;
-         span_index < span_count;
-         ++span_index)
-    {
-        const auto* span = heightfield.GetSpan(span_index);
-
-        if (!span->is_walk || span->region_id == 0)
-        {
-            continue;
-        }
-
-        ++region_span_counts[span->region_id];
-    }
+    const std::vector<uint32> region_span_counts = CountRegionSpans(heightfield, next_region_id);
 
     // 小さすぎるRegionを歩行不可にする。
     for (uint32 span_index = 0;
@@ -2629,40 +2537,7 @@ void NavigationMeshBuilder::FilterSmallRegions(NavigationCompactHeightfield& hei
         }
     }
 
-    // 歩行不可Spanにつながる接続を解除する。
-    for (uint32 span_index = 0;
-         span_index < span_count;
-         ++span_index)
-    {
-        auto* span = heightfield.GetSpan(span_index);
-
-        for (uint32 direction = 0;
-             direction < 4;
-             ++direction)
-        {
-            uint32& neighbor_index =
-                span->connection_indices[direction];
-
-            if (!span->is_walk)
-            {
-                neighbor_index = UINT32_MAX;
-                continue;
-            }
-
-            if (neighbor_index == UINT32_MAX)
-            {
-                continue;
-            }
-
-            const auto* neighbor_span =
-                heightfield.GetSpan(neighbor_index);
-
-            if (!neighbor_span->is_walk)
-            {
-                neighbor_index = UINT32_MAX;
-            }
-        }
-    }
+    RemoveInvalidConnections(heightfield);
 }
 
 
@@ -2679,6 +2554,7 @@ void NavigationMeshBuilder::ExpandRegionsAtLevel(NavigationCompactHeightfield& h
             span_queue.push(span_index);
         }
     }
+    // 既存Regionを種にして、現在の距離レベル以上にある未所属Spanへ番号を広げる。
     while (!span_queue.empty())
     {
         const uint32 span_index = span_queue.front();
@@ -2723,6 +2599,7 @@ void NavigationMeshBuilder::FloodNewRegionsAtLevel(NavigationCompactHeightfield&
         {
             continue;
         }
+        // 既存Regionが届かなかったSpanを新しい種にし、同じ距離レベル内を塗りつぶす。
         span->region_id = next_region_id;
         span_queue.push(span_index);
 
@@ -2760,6 +2637,7 @@ void NavigationMeshBuilder::ErodeWalkableArea(NavigationCompactHeightfield& heig
     // 壁際のSpanを距離0として登録
     for (uint32 span_index = 0; span_index < span_count; ++span_index)
     {
+        // 0xffffは距離がまだ伝播していないことを表す、十分大きな初期値。
         constexpr uint32 kUnreachedDistance = 0xffffu;
         auto* span = heightfield.GetSpan(span_index);
         span->dis_to_wall = kUnreachedDistance;
@@ -2785,6 +2663,7 @@ void NavigationMeshBuilder::ErodeWalkableArea(NavigationCompactHeightfield& heig
         }
 
         const NavigationCompactSpan* neighbor_span = heightfield.GetSpan(neighbor_index);
+        // 距離場は直交移動を2、斜め移動を3とする整数近似で計算する。
         span->dis_to_wall = (std::min)(neighbor_span->dis_to_wall + 2, span->dis_to_wall);
 
         // 斜め: 隣から更に1方向進んだ先
@@ -2829,6 +2708,7 @@ void NavigationMeshBuilder::ErodeWalkableArea(NavigationCompactHeightfield& heig
         }
     }
 
+    // 距離場の直交1Cellは2単位なので、Cell数へ変換した半径も2倍する。
     const uint32 radius_in_cells = static_cast<uint32>(std::ceil(config.agent_radius / heightfield.GetCellSize()));
     const uint32 radius_in_dis = radius_in_cells * 2;
     // 半径内のSpanを歩行不可にする
@@ -2842,32 +2722,7 @@ void NavigationMeshBuilder::ErodeWalkableArea(NavigationCompactHeightfield& heig
         }
     }
 
-    // 歩行不可Spanにつながる接続を解除
-    for (uint32 span_index = 0; span_index < span_count; ++span_index)
-    {
-        auto* span = heightfield.GetSpan(span_index);
-
-        for (unsigned int& neighbor_index : span->connection_indices)
-        {
-            if (!span->is_walk)
-            {
-                neighbor_index = UINT32_MAX;
-                continue;
-            }
-
-            if (neighbor_index == UINT32_MAX)
-            {
-                continue;
-            }
-
-            const auto* neighbor_span = heightfield.GetSpan(neighbor_index);
-
-            if (!neighbor_span->is_walk)
-            {
-                neighbor_index = UINT32_MAX;
-            }
-        }
-    }
+    RemoveInvalidConnections(heightfield);
 }
 
 bool NavigationMeshBuilder::BuildCompactConnections(NavigationCompactHeightfield& heightfield,
@@ -2883,29 +2738,16 @@ bool NavigationMeshBuilder::BuildCompactConnections(NavigationCompactHeightfield
                 const uint32 span_index = cell->first_span_index + i;
                 NavigationCompactSpan* span = heightfield.GetSpan(span_index);
                 const float current_floor = span->floor_height * heightfield.GetCellHeight();
+                // UINT32_MAXの空き高さは、上に天井がないものとしてFLT_MAXへ変換する。
                 const float current_ceiling_height = span->clearance_height == UINT32_MAX
                                                          ? FLT_MAX
                                                          : span->clearance_height * heightfield.GetCellHeight() +
                                                          current_floor;
+                // 各SpanからXZの4近傍へ、段差と共通空間を満たすSpanを1本ずつ接続する。
                 for (int connect = 0; connect < 4; ++connect)
                 {
-                    int32 neighbor_x = x;
-                    int32 neighbor_z = z;
-                    switch (connect)
-                    {
-                    case 0:
-                        neighbor_x += 1;
-                        break;
-                    case 1:
-                        neighbor_z += 1;
-                        break;
-                    case 2:
-                        neighbor_x -= 1;
-                        break;
-                    case 3:
-                        neighbor_z -= 1;
-                        break;
-                    }
+                    const int32 neighbor_x = x + kDirectionX[connect];
+                    const int32 neighbor_z = z + kDirectionZ[connect];
                     if (neighbor_x >= heightfield.GetWidth() || neighbor_z >= heightfield.GetDepth() ||
                         neighbor_x < 0 || neighbor_z < 0)
                     {
@@ -2922,21 +2764,8 @@ bool NavigationMeshBuilder::BuildCompactConnections(NavigationCompactHeightfield
                                                                   : neighbor_span->clearance_height * heightfield.
                                                                   GetCellHeight() + neighbor_floor;
 
-                        const float overlap_floor = (neighbor_floor > current_floor)
-                                                        ? neighbor_floor
-                                                        : current_floor;
-                        const float overlap_ceiling = (neighbor_ceiling_height < current_ceiling_height)
-                                                          ? neighbor_ceiling_height
-                                                          : current_ceiling_height;
-
-                        const float overlap_height = overlap_ceiling - overlap_floor;
-                        if (overlap_height < config.agent_height)
-                        {
-                            continue;
-                        }
-
-                        const float abs_diff_floor = std::abs(neighbor_floor - current_floor);
-                        if (abs_diff_floor <= config.agent_max_climb)
+                        if (CanTraverseBetweenSpans(current_floor, current_ceiling_height,
+                                                    neighbor_floor, neighbor_ceiling_height, config))
                         {
                             span->connection_indices[connect] = neighbor_span_index;
                             break;
@@ -2951,6 +2780,7 @@ bool NavigationMeshBuilder::BuildCompactConnections(NavigationCompactHeightfield
 
 void NavigationMeshBuilder::FilterLedgeSpans(NavigationHeightfield& heightfield, const NavigationConfig& config)
 {
+    // 4方向のどこか1方向でも到達できる床がなければ、崖際として歩行不可にする。
     for (int x = 0; x < heightfield.GetWidth(); ++x)
     {
         for (int z = 0; z < heightfield.GetDepth(); ++z)
@@ -2962,15 +2792,11 @@ void NavigationMeshBuilder::FilterLedgeSpans(NavigationHeightfield& heightfield,
                 {
                     continue;
                 }
-                const std::vector<Vec2> dir =
-                    {Vec2(1, 0), Vec2(0, 1), Vec2(-1, 0), Vec2(0, -1)};
-
-
-                for (const Vec2& d : dir)
+                for (uint32 direction = 0; direction < 4; ++direction)
                 {
                     bool has_reachable_neighbor = false;
-                    const int32 neighbor_x = d.x + x;
-                    const int32 neighbor_z = d.y + z;
+                    const int32 neighbor_x = x + kDirectionX[direction];
+                    const int32 neighbor_z = z + kDirectionZ[direction];
                     if (neighbor_x < 0 || neighbor_x >= heightfield.GetWidth() ||
                         neighbor_z < 0 || neighbor_z >= heightfield.GetDepth())
                     {
@@ -2995,21 +2821,8 @@ void NavigationMeshBuilder::FilterLedgeSpans(NavigationHeightfield& heightfield,
                                                                   .GetCellHeight()
                                                                   : FLT_MAX;
 
-                        const float overlap_floor = (neighbor_floor > current_floor)
-                                                        ? neighbor_floor
-                                                        : current_floor;
-                        const float overlap_ceiling = (neighbor_ceiling_height < current_ceiling_height)
-                                                          ? neighbor_ceiling_height
-                                                          : current_ceiling_height;
-
-                        const float overlap_height = overlap_ceiling - overlap_floor;
-                        if (overlap_height < config.agent_height)
-                        {
-                            continue;
-                        }
-
-                        const float abs_diff_floor = std::abs(neighbor_floor - current_floor);
-                        if (abs_diff_floor <= config.agent_max_climb)
+                        if (CanTraverseBetweenSpans(current_floor, current_ceiling_height,
+                                                    neighbor_floor, neighbor_ceiling_height, config))
                         {
                             has_reachable_neighbor = true;
                             break;
@@ -3038,6 +2851,7 @@ void NavigationMeshBuilder::FilterLowCeilingSpans(NavigationHeightfield& heightf
             {
                 auto& span = cell->spans[c];
                 auto& next_span = cell->spans[c + 1];
+                // 現在Spanの上面から次Spanの下面までを頭上の空き高さとして調べる。
                 const float height = (next_span.min_height - span.max_height) * heightfield.GetCellHeight();
                 if (height < config.agent_height)
                 {
@@ -3052,17 +2866,17 @@ bool NavigationMeshBuilder::CreateSpanFromHeightRange(float min_y, float max_y,
                                                       const NavigationHeightfield& height, bool is_walk,
                                                       NavigationSpan& span) const
 {
-    //低い床よりもMaxが高かったらfalse
+    // 上下が逆転した高さ範囲はSpanとして扱えない。
     if (min_y > max_y)
     {
         return false;
     }
-    //セルにスペースがなかったらfalse
+    // 高さ方向のCell寸法がなければ格子座標へ変換できない。
     if (height.GetCellHeight() <= 0.0f)
     {
         return false;
     }
-    //Yが範囲外ならfalse
+    // HeightfieldのY範囲と全く重ならない面は登録しない。
     if (min_y > height.GetWorldBounds().max.y || max_y < height.GetWorldBounds().min.y)
     {
         return false;
@@ -3077,6 +2891,7 @@ bool NavigationMeshBuilder::CreateSpanFromHeightRange(float min_y, float max_y,
     float relative_max = (clamped_max_y - height.GetWorldBounds().min.y)
         / height.GetCellHeight();
 
+    // 形状を欠かさないよう、下面は切り捨て、上面は切り上げてSpanを外側へ広げる。
     span.min_height = static_cast<uint32>(std::floor(relative_min));
     span.max_height = static_cast<uint32>(std::ceil(relative_max));
 
@@ -3084,23 +2899,9 @@ bool NavigationMeshBuilder::CreateSpanFromHeightRange(float min_y, float max_y,
     return true;
 }
 
-bool NavigationMeshBuilder::IsWalkableTriangle(const Triangle& tri, const NavigationConfig& config) const
-{
-    const Vec3 side_1 = tri.b - tri.a;
-    const Vec3 side_2 = tri.c - tri.a;
-    Vec3 normal = Cross(side_1, side_2);
-    if (normal.LengthSquared() < kEpsilon)
-    {
-        return false;
-    }
-    normal.Normalize();
-    const Vec3 kUp(0, 1, 0);
-    float up_dot = Dot(normal, kUp);
-    return up_dot >= std::cos(config.agent_max_slope_deg * kDegToRad);
-}
-
 Triangle NavigationMeshBuilder::GetWorldTriangle(const NavigationGeometry& geometry, uint32 begin) const
 {
+    // begin、begin+1、begin+2の3インデックスを1三角形としてワールド空間へ変換する。
     Triangle result;
     uint32 index_a = geometry.indices[begin];
     uint32 index_b = geometry.indices[begin + 1];
@@ -3114,6 +2915,7 @@ Triangle NavigationMeshBuilder::GetWorldTriangle(const NavigationGeometry& geome
 
 Box NavigationMeshBuilder::CalcTriangleBounds(const Triangle& tri) const
 {
+    // 3頂点の各軸最小値と最大値から三角形のAABBを作る。
     Box result;
     result.max.x = (std::max)(tri.a.x, (std::max)(tri.b.x, tri.c.x));
     result.max.y = (std::max)(tri.a.y, (std::max)(tri.b.y, tri.c.y));
@@ -3147,6 +2949,7 @@ bool NavigationMeshBuilder::CalcCellRange(const Box& b, const NavigationHeightfi
     const float relative_min_z = (b.min.z - world_bounds.min.z) / cell_size;
     const float relative_max_z = (b.max.z - world_bounds.min.z) / cell_size;
 
+    // 最大端はceil後の境界Cellを含めないため1を引き、両端を包含するCell範囲にする。
     int32 min_x = static_cast<int32>(std::floor(relative_min_x));
     int32 max_x = static_cast<int32>(std::ceil(relative_max_x)) - 1;
     int32 min_z = static_cast<int32>(std::floor(relative_min_z));
@@ -3166,153 +2969,10 @@ bool NavigationMeshBuilder::CalcCellRange(const Box& b, const NavigationHeightfi
         range.min_depth_cell <= range.max_depth_cell;
 }
 
-std::vector<Vec3> NavigationMeshBuilder::ClipPolygonAgainstMinX(const std::vector<Vec3>& vertices,
-                                                                float min_x) const
-{
-    std::vector<Vec3> result;
-    result.clear();
-    if (vertices.empty())
-    {
-        return result;
-    }
-
-    for (int i = 0; i < vertices.size(); ++i)
-    {
-        const Vec3 start = vertices[i];
-        const Vec3 end = vertices[(i + 1) % vertices.size()];
-        const bool start_inside = start.x >= min_x;
-        const bool end_inside = end.x >= min_x;
-        if (start_inside && end_inside)
-        {
-            result.push_back(end);
-        }
-        else if (start_inside)
-        {
-            const float t = (min_x - start.x) / (end.x - start.x);
-            result.push_back(start + t * (end - start));
-        }
-        else if (end_inside)
-        {
-            const float t = (min_x - start.x) / (end.x - start.x);
-            result.push_back(start + t * (end - start));
-            result.push_back(end);
-        }
-    }
-    return result;
-}
-
-std::vector<Vec3> NavigationMeshBuilder::ClipPolygonAgainstMaxX(const std::vector<Vec3>& vertices,
-                                                                float max_x) const
-{
-    std::vector<Vec3> result;
-    result.clear();
-    if (vertices.empty())
-    {
-        return result;
-    }
-
-    for (int i = 0; i < vertices.size(); ++i)
-    {
-        const Vec3 start = vertices[i];
-        const Vec3 end = vertices[(i + 1) % vertices.size()];
-        const bool start_inside = start.x <= max_x;
-        const bool end_inside = end.x <= max_x;
-        if (start_inside && end_inside)
-        {
-            result.push_back(end);
-        }
-        else if (start_inside)
-        {
-            const float t = (max_x - start.x) / (end.x - start.x);
-            result.push_back(start + t * (end - start));
-        }
-        else if (end_inside)
-        {
-            const float t = (max_x - start.x) / (end.x - start.x);
-            result.push_back(start + t * (end - start));
-            result.push_back(end);
-        }
-    }
-    return result;
-}
-
-std::vector<Vec3> NavigationMeshBuilder::ClipPolygonAgainstMinZ(const std::vector<Vec3>& vertices,
-                                                                float min_z) const
-{
-    std::vector<Vec3> result;
-    result.clear();
-    if (vertices.empty())
-    {
-        return result;
-    }
-
-    for (int i = 0; i < vertices.size(); ++i)
-    {
-        const Vec3 start = vertices[i];
-        const Vec3 end = vertices[(i + 1) % vertices.size()];
-        const bool start_inside = start.z >= min_z;
-        const bool end_inside = end.z >= min_z;
-        if (start_inside && end_inside)
-        {
-            result.push_back(end);
-        }
-        else if (start_inside)
-        {
-            const float t = (min_z - start.z) / (end.z - start.z);
-            result.push_back(start + t * (end - start));
-        }
-        else if (end_inside)
-        {
-            const float t = (min_z - start.z) / (end.z - start.z);
-            result.push_back(start + t * (end - start));
-            result.push_back(end);
-        }
-    }
-    return result;
-}
-
-std::vector<Vec3> NavigationMeshBuilder::ClipPolygonAgainstMaxZ(const std::vector<Vec3>& vertices,
-                                                                float max_z) const
-{
-    std::vector<Vec3> result;
-    result.clear();
-    if (vertices.empty())
-    {
-        return result;
-    }
-
-    for (int i = 0; i < vertices.size(); ++i)
-    {
-        const Vec3 start = vertices[i];
-        const Vec3 end = vertices[(i + 1) % vertices.size()];
-        const bool start_inside = start.z <= max_z;
-        const bool end_inside = end.z <= max_z;
-        if (start_inside && end_inside)
-        {
-            result.push_back(end);
-        }
-        else if (start_inside)
-        {
-            const float t = (max_z - start.z) / (end.z - start.z);
-            result.push_back(start + t * (end - start));
-        }
-        else if (end_inside)
-        {
-            const float t = (max_z - start.z) / (end.z - start.z);
-            result.push_back(start + t * (end - start));
-            result.push_back(end);
-        }
-    }
-    return result;
-}
-
-bool NavigationMeshBuilder::CalcPolygonHeightRange(const std::vector<Vec3>& vertices,
+void NavigationMeshBuilder::CalcPolygonHeightRange(const std::vector<Vec3>& vertices,
                                                    float& low_height, float& high_height) const
 {
-    if (vertices.empty())
-    {
-        return false;
-    }
+    // Cellで切り抜いた多角形の全頂点から、Spanへ変換するY範囲を求める。
     float low = FLT_MAX;
     float high = -FLT_MAX;
     for (const Vec3& v : vertices)
@@ -3328,5 +2988,4 @@ bool NavigationMeshBuilder::CalcPolygonHeightRange(const std::vector<Vec3>& vert
     }
     low_height = low;
     high_height = high;
-    return true;
 }

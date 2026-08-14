@@ -11,29 +11,47 @@
  */
 struct NavigationConfig
 {
-    // ボクセルの解像度。cell_sizeはagent_radiusの1/2～1/3程度が目安。
+    // XZ方向のボクセルの一辺の長さ。NavMeshの形の細かさを決める。
+    // 小さいほど壁ぎわや段差を正確に拾えるが、セル数が2乗で増えて構築が重くなる。
+    // agent_radiusの1/2～1/3程度が目安。
     float cell_size = 0.3f;
+    // 高さ方向のボクセルの刻み幅。段差の判定はこの倍数に丸められる。
+    // agent_max_climbより十分小さくしないと、越えられる段差を取りこぼす。
     float cell_height = 0.2f;
+    // NavMeshの辺1本の長さの上限。これを超える辺は輪郭の単純化時に分割される。
+    // 長い直線を細かく割ることで、詳細メッシュが地形の起伏に追従しやすくなる。
+    // 0以下にすると分割しない。
     float max_edge_len = 12.0f;
 
-    // エージェントの寸法。
+    // エージェントが通り抜けるのに必要な高さ。これより天井が低い場所は歩行不可になる。
     float agent_height = 3.8f;
+    // エージェントの半径。この幅だけ壁からNavMeshを削り、壁に体がめり込まないようにする。
     float agent_radius = 0.4f;
+    // またいで登れる段差の高さ。階段の1段がこれを超えると、そこで経路が途切れる。
     float agent_max_climb = 0.6f;
+    // 歩ける斜面の傾きの上限(度)。これより急な面は床とみなさない。
     float agent_max_slope_deg = 30.0f;
 
     // 輪郭の単純化許容誤差。ワールド単位で指定する。
+    // ボクセル化で生じた輪郭のギザギザを、この距離まで内側/外側にずらして直線化する。
+    // 大きいほどポリゴン数が減って探索が軽くなるが、壁の位置がずれる。
+    // 壁へのめり込みを避けるため、agent_radius以下に収めるのが安全。
     float max_contour_simplification_error = 0.39f;
     // XZ上では直線でも、坂の始点・終点など高さが折れる頂点を残すための許容誤差。
+    // 小さいほど坂の形を保てるが、階段のふちに細長い三角形が並びやすくなる。
     float max_contour_height_error = 0.5f;
 
-    // 小さすぎるRegionの除去・統合のしきい値(Span数)。
+    // これ未満のSpan数しかない領域は、孤立しているとみなして削除する。
+    // 家具の上など、乗っても意味のない小さな足場を消すためのもの。
     uint32_t min_region_span_count = 8;
+    // これ未満のSpan数の領域は、隣接する領域へ併合を試みる。
+    // 領域が細かく分かれすぎるとNavMeshが無駄に分割されるため、それを防ぐ。
     uint32_t merge_region_span_count = 200;
 
+    // NavMeshの1ポリゴンが持てる頂点数の上限。
+    // 3にするとマージが起きず三角形のままになる。大きいほどポリゴン数が減り、
+    // 経路探索が軽くなる。6はRecastの既定値と同じ。
     uint32_t max_vertex_per_poly = 6;
-    float detail_sample_max_error = 0.1f;
-    uint32_t detail_max_subdivision_depth = 4;
+    // 詳細メッシュを一定間隔で分割するときの分割数。
     uint32_t detail_subdivision_count = 2;
-    float detail_sample_distance = 1.2f;
 };

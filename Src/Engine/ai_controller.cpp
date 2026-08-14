@@ -1,15 +1,34 @@
-ï»¿#include "ai_controller.h"
+#include "ai_controller.h"
 #include "character.h"
 #include "Components/navigation_agent_component.h"
+
+namespace
+{
+    // Œo˜H‚ğŒvZ‚µ’¼‚·ŠÔŠu(•b)B
+    // ’Z‚¢‚Ù‚Ç’ÇÕ‚ª‹@•q‚É‚È‚é‚ªAŒo˜H’Tõ‚ÍNavMesh‘S‘Ì‚ğ‘–¸‚·‚é‚½‚ß•‰‰×‚ªã‚ª‚éB
+    constexpr float kRepathInterval = 0.3f;
+    // ’ÇÕ‘ÎÛ‚ª‘O‰ñ‚Ì–Ú“I’n‚©‚ç‚±‚ê‚¾‚¯—£‚ê‚½‚çAŠÔŠu‚ğ‘Ò‚½‚¸‚ÉŒo˜H‚ğˆø‚«’¼‚·B
+    // ŠÔŠu‚¾‚¯‚É”C‚¹‚é‚ÆA‘ÎÛ‚ª‹}‚É“®‚¢‚½‚Æ‚«‚Ì’Ç]‚ª’x‚ê‚éB
+    constexpr float kRepathDistance = 2.0f;
+    // ’ÇÕ‘ÎÛ‚É‚±‚ê‚¾‚¯‹ß‚Ã‚¢‚½‚çˆÚ“®‚ğ‚â‚ß‚éB
+    // 0‚É‚·‚é‚Æ‘ÎÛ‚Éd‚È‚ë‚¤‚Æ‚µ‚ÄA‰Ÿ‚µ‡‚¢‚ÅƒKƒ^ƒKƒ^U“®‚·‚éB
+    constexpr float kAcceptanceRadius = 1.5f;
+    // ƒEƒFƒCƒ|ƒCƒ“ƒg‚É“’B‚µ‚½‚Æ‚İ‚È‚·‹——£B
+    // ¬‚³‚·‚¬‚é‚Æ’Ê‚è‰ß‚¬‚Ä‚©‚ç–ß‚ë‚¤‚Æ‚µA‘å‚«‚·‚¬‚é‚ÆŠp‚ğ‘å‚«‚­–c‚ç‚ñ‚Å‹È‚ª‚éB
+    constexpr float kWaypointReachRadius = 0.5f;
+}
 
 void AiController::MoveToActor(Actor* actor)
 {
     target_ = actor;
-    has_goal_ = false;   
+    has_goal_ = false;   // Ÿ‚ÌTick‚Å•K‚¸Œo˜H‚ğˆø‚­‚æ‚¤‚É‚·‚é
+
+    // Œo˜H‚Ìn“_‚ÍŠ—LƒAƒNƒ^[‚ÌˆÊ’u‚É‚È‚é‚½‚ßAController©g‚Å‚Í‚È‚­
+    // œßˆË‚µ‚Ä‚¢‚éCharacter‚Öæ‚è•t‚¯‚é•K—v‚ª‚ ‚éB
     if (GetCharacter() != nullptr && nav_agent_ == nullptr)
     {
         nav_agent_ = GetCharacter()->AddComponent<NavigationAgentComponent>();
-        nav_agent_->SetDebugDrawEnabled(false);  
+        nav_agent_->SetDebugDrawEnabled(false);
     }
 }
 
@@ -33,48 +52,52 @@ void AiController::Tick(float dt)
     repath_timer_ += dt;
 
     const Vec3 target_pos = target_->GetTransform().position;
-    
+
+    // ‘ÎÛ‚ª‚Ç‚ê‚¾‚¯“®‚¢‚½‚©‚ÍXZ•½–Ê‚Å‘ª‚éB
+    // ‚‚³‚ğŠÜ‚ß‚é‚ÆA‘ÎÛ‚ªƒWƒƒƒ“ƒv‚·‚é‚½‚Ñ‚ÉŒo˜H‚ğˆø‚«’¼‚µ‚Ä‚µ‚Ü‚¤B
     const float dx = target_pos.x - last_goal_.x;
     const float dz = target_pos.z - last_goal_.z;
-    constexpr float kRepathDistance = 2.0f;
     const bool target_moved = (dx * dx + dz * dz) > kRepathDistance * kRepathDistance;
 
-    constexpr float kRepathInterval = 0.3f;
     if (!has_goal_ || repath_timer_ >= kRepathInterval || target_moved)
     {
+        // ’Tõ‚É¸”s‚µ‚½ê‡‚Í last_goal_ ‚ğXV‚µ‚È‚¢B
+        // XV‚·‚é‚ÆA‘ÎÛ‚ªNavMeshŠO‚É‚¢‚éŠÔ‚¸‚Á‚ÆÄ’Tõ‚µ‚È‚­‚È‚éB
         if (nav_agent_->SetDestination(target_pos))
         {
-            last_goal_ = target_pos;   // â† æˆåŠŸã—ãŸã¨ãã ã‘æ›´æ–°
+            last_goal_ = target_pos;
             has_goal_ = true;
         }
         repath_timer_ = 0.0f;
     }
-    
+
     Character* chara = GetCharacter();
     const Vec3 my_pos = chara->GetTransform().position;
-    
+
+    // Œo˜H‚ÌI“_‚Å‚Í‚È‚­‘ÎÛ–{‘Ì‚Æ‚Ì‹——£‚Å~‚ß‚éB
+    // Œo˜H‚ÍÄŒvZ‚Ü‚Å‚ÌŠÔAŒÃ‚¢ˆÊ’u‚ğw‚µ‚Ä‚¢‚é‚±‚Æ‚ª‚ ‚é‚½‚ßB
     const float tdx = target_pos.x - my_pos.x;
     const float tdz = target_pos.z - my_pos.z;
-    constexpr float kAcceptanceRadius = 1.5f;
     if (tdx * tdx + tdz * tdz < kAcceptanceRadius * kAcceptanceRadius)
     {
         return;
     }
-    
-    nav_agent_->AdvanceWaypointIfReached(my_pos, 0.5f);
+
+    nav_agent_->AdvanceWaypointIfReached(my_pos, kWaypointReachRadius);
 
     Vec3 waypoint;
     if (!nav_agent_->TryGetCurrentWaypoint(waypoint))
     {
-        return;   // çµŒè·¯ãªã—/èµ°ç ´æ¸ˆã¿ã€‚æ¬¡ã®å†ãƒ‘ã‚¹ã¾ã§å¾…æ©Ÿ
+        return;   // Œo˜H‚È‚µ/‘–”jÏ‚İBŸ‚ÌÄƒpƒX‚Ü‚Å‘Ò‹@
     }
 
+    // ‚‚³‚Ì·‚Íd—Í‚ÆÚ’nˆ—‚É”C‚¹‚é‚½‚ßA…•½•ûŒü‚¾‚¯‚ğˆÚ“®“ü—Í‚É‚·‚éB
     Vec3 dir = waypoint - my_pos;
     dir.y = 0.0f;
     if (dir.LengthSquared() > kEpsilon)
     {
         chara->AddMovementInput(dir.Normalized());
     }
-    
+
     Controller::Tick(dt);
 }

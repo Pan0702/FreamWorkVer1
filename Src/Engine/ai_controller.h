@@ -1,19 +1,40 @@
-ï»¿#pragma once
+#pragma once
 #include "actor.h"
 #include "controller.h"
 
+/**
+ * @brief œßˆË‚µ‚½ Character ‚ğ NavMesh ã‚Å©“®“I‚ÉˆÚ“®‚³‚¹‚é ControllerB
+ *
+ * ’ÇÕ‘ÎÛ‚ÌˆÊ’u‚ğ–Ú“I’n‚Æ‚µ‚ÄŒo˜H‚ğ‹‚ßAŒo˜Hã‚ÌƒEƒFƒCƒ|ƒCƒ“ƒg‚ÖŒü‚©‚¤
+ * ˆÚ“®“ü—Í‚ğ–ˆƒtƒŒ[ƒ€ Character ‚Ö“n‚·BŒo˜H‚ÌÄŒvZ‚Íˆê’èŠÔŠuA‚Ü‚½‚Í
+ * ‘ÎÛ‚ª‘O‰ñ‚Ì–Ú“I’n‚©‚ç‘å‚«‚­“®‚¢‚½‚Æ‚«‚És‚¤B
+ */
 class AiController : public Controller
 {
 public:
+    /**
+     * @brief w’è‚µ‚½ƒAƒNƒ^[‚Ì’ÇÕ‚ğŠJn‚·‚éB
+     *
+     * œßˆËÏ‚İ‚Ì Character ‚É NavigationAgentComponent ‚ğæ‚è•t‚¯‚éB
+     * ‚»‚Ì‚½‚ß Possess ‚ÌŒã‚ÉŒÄ‚Ño‚³‚È‚¯‚ê‚Î‚È‚ç‚È‚¢B
+     * @param actor ’ÇÕ‚·‚éƒAƒNƒ^[B
+     */
     void MoveToActor(Actor* actor);
+    /**
+     * @brief ’ÇÕ‚ğI—¹‚µA•Û‚µ‚Ä‚¢‚éŒo˜H‚ğ”jŠü‚·‚éB
+     */
     void StopMovement();
 
 private:
+    /**
+     * @brief Œo˜H‚ÌÄŒvZ‚ÆƒEƒFƒCƒ|ƒCƒ“ƒg’Ç]‚ğ 1 ƒtƒŒ[ƒ€•ªi‚ß‚éB
+     * @param dt ‘OƒtƒŒ[ƒ€‚©‚ç‚ÌŒo‰ß•b”B
+     */
     void Tick(float dt) override;
 
     Actor* target_ = nullptr;
     class NavigationAgentComponent* nav_agent_ = nullptr;
-    Vec3 last_goal_;
-    float repath_timer_ = 0.0f;
-    bool has_goal_ = false;
+    Vec3 last_goal_;              // ‘O‰ñ SetDestination ‚É“n‚µ‚½ˆÊ’u
+    float repath_timer_ = 0.0f;   // ‘O‰ñ‚ÌŒo˜HÄŒvZ‚©‚ç‚ÌŒo‰ß•b”
+    bool has_goal_ = false;       // ˆê“x‚Å‚àŒo˜H’Tõ‚É¬Œ÷‚µ‚½‚©
 };

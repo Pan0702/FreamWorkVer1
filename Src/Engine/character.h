@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include "actor.h"
 #include "../Resource/material_slot.h"
 #include <string>
@@ -10,7 +10,12 @@ class SkeletalMesh;
 class CapsuleColliderComponent;
 struct ContactInfo;
 
-// CharacterãŒå‚ç…§ã™ã‚‹ã‚¢ãƒ‹ãƒ¡ãƒ¼ã‚·ãƒ§ãƒ³åã®è¦ç´„ã€‚æ´¾ç”Ÿã¯ã“ã®åå‰ã§ç™»éŒ²ã™ã‚‹ã€‚
+/**
+ * @brief Character ‚ªQÆ‚·‚éƒAƒjƒ[ƒVƒ‡ƒ“–¼‚Ì‹K–ñB
+ *
+ * ƒƒRƒ‚[ƒVƒ‡ƒ“‚Ì‘I‘ğ‚Í Character ‘¤‚ªs‚¤‚½‚ßA”h¶ƒNƒ‰ƒX‚Í
+ * ‚±‚±‚É‚ ‚é–¼‘O‚ÅƒAƒjƒ[ƒVƒ‡ƒ“‚ğ“o˜^‚µ‚È‚¯‚ê‚Î‚È‚ç‚È‚¢B
+ */
 namespace CharaAnim
 {
     inline const std::string kRun     = "run";
@@ -21,44 +26,104 @@ namespace CharaAnim
 }
 
 /**
- * @brief äºŒè¶³æ­©è¡Œã‚­ãƒ£ãƒ©ã‚¯ã‚¿ãƒ¼ã®å…±é€šåŸºç›¤ã€‚ã‚«ãƒ—ã‚»ãƒ«è¡çªãƒ»æ¥åœ°ãƒ»é‡åŠ›ãƒ»
- *        ç§»å‹•å…¥åŠ›ã®æ¶ˆè²»ãƒ»ãƒ­ã‚³ãƒ¢ãƒ¼ã‚·ãƒ§ãƒ³ã‚¢ãƒ‹ãƒ¡é¸æŠã‚’æ‹…ã†ã€‚
- *        å…¥åŠ›ãƒ‡ãƒã‚¤ã‚¹ã‚„AIã¯çŸ¥ã‚‰ãªã„ã€‚ControllerãŒAddMovementInputã§å‘½ä»¤ã™ã‚‹ã€‚
+ * @brief “ñ‘«•àsƒLƒƒƒ‰ƒNƒ^[‚Ì‹¤’ÊŠî”ÕB
+ *
+ * ƒJƒvƒZƒ‹Õ“ËAÚ’n”»’èAd—ÍAˆÚ“®“ü—Í‚ÌÁ”ïAƒƒRƒ‚[ƒVƒ‡ƒ“ƒAƒjƒ‚Ì
+ * ‘I‘ğ‚ğ’S‚¤B“ü—ÍƒfƒoƒCƒX‚â AI ‚Í’m‚ç‚È‚¢‚½‚ßA“®‚©‚·‘¤(Controller)‚ª
+ * AddMovementInput ‚Æ Jump ‚Å–½—ß‚·‚éB
  */
 class Character : public Actor
 {
 public:
+    /**
+     * @brief ƒƒbƒVƒ…‚ğ“Ç‚İ‚İAƒJƒvƒZƒ‹ƒRƒ‰ƒCƒ_[‚Æ•`‰æ—pƒRƒ“ƒ|[ƒlƒ“ƒg‚ğ\’z‚·‚éB
+     * @param mesh_path “Ç‚İ‚ŞƒƒbƒVƒ…‚ÌƒpƒXBŠg’£q‚ª .skmesh ‚È‚çƒXƒPƒ‹ƒ^ƒ‹
+     *                  ƒƒbƒVƒ…‚ÆƒAƒjƒ[ƒVƒ‡ƒ“‚ğA‚»‚êˆÈŠO‚È‚çÃ“IƒƒbƒVƒ…‚ğg‚¤B
+     */
     explicit Character(const std::string& mesh_path);
-    
+
+    /**
+     * @brief ‚±‚ÌƒtƒŒ[ƒ€‚ÌˆÚ“®“ü—Í‚ğ‰ÁZ‚·‚éB
+     *
+     * ‰ÁZ‚³‚ê‚½“ü—Í‚Í Tick “à‚ÅÁ”ï‚³‚êAÁ”ïŒã‚Íƒ[ƒ‚É–ß‚éB
+     * 1 ƒtƒŒ[ƒ€’†‚É•¡”‰ñŒÄ‚Ño‚µ‚½ê‡‚ÍƒxƒNƒgƒ‹‚Ì˜a‚Æ‚µ‚Ä‡¬‚³‚ê‚éB
+     * @param world_direction ƒ[ƒ‹ƒh‹óŠÔ‚Å‚ÌˆÚ“®•ûŒüB
+     * @param scale world_direction ‚ÉŠ|‚¯‚é”{—¦B
+     */
     void AddMovementInput(const Vec3& world_direction, float scale = 1.0f);
+    /**
+     * @brief Ú’n’†‚Å‚ ‚ê‚ÎƒWƒƒƒ“ƒv‚ğŠJn‚·‚éB
+     */
     void Jump();
+    /**
+     * @brief ƒWƒƒƒ“ƒv“ü—Í‚ğ‰ğœ‚µ‚Ä—‰º‚ÖˆÚ‚ç‚¹‚éB
+     */
     void StopJumping();
 
+    /**
+     * @brief ’¼‹ß‚ÌÚ’n”»’è‚ÌŒ‹‰Ê‚ğæ“¾‚·‚éB
+     * @return Ú’n‚µ‚Ä‚¢‚éê‡‚Í trueB
+     */
     bool IsGrounded() const ;
 
 protected:
+    /**
+     * @brief Ú’n”»’èAˆÚ“®“ü—Í‚ÌÁ”ïAƒAƒjƒ[ƒVƒ‡ƒ“‘I‘ğ‚ğ 1 ƒtƒŒ[ƒ€•ªi‚ß‚éB
+     * @param dt ‘OƒtƒŒ[ƒ€‚©‚ç‚ÌŒo‰ß•b”B
+     */
     void Tick(float dt) override;
-    void SetCapsuleHalfSize(const Vec3& half_size);   // StaticMesh/è¦‹ãŸç›®ãªã—æ´¾ç”Ÿç”¨
+    /**
+     * @brief ƒJƒvƒZƒ‹ƒRƒ‰ƒCƒ_[‚Ì”¼ƒTƒCƒY‚ğã‘‚«‚·‚éB
+     *
+     * ƒXƒPƒ‹ƒ^ƒ‹ƒƒbƒVƒ…‚©‚çƒTƒCƒY‚ğæ“¾‚Å‚«‚È‚¢”h¶ƒNƒ‰ƒX‚ªg‚¤B
+     * @param half_size XZ ‚ğ”¼ŒaAY ‚ğ‚‚³‚ÌŠî€‚Æ‚µ‚Äg‚¤”¼ƒTƒCƒYB
+     */
+    void SetCapsuleHalfSize(const Vec3& half_size);
 
-    AnimationComponent* animation_ = nullptr;   // ã‚¢ãƒ‹ãƒ¡ç™»éŒ²ã¯æ´¾ç”ŸãŒè¡Œã†
-    float move_speed_ = 10.0f;                  // æ´¾ç”ŸãŒèª¿æ•´å¯
+    AnimationComponent* animation_ = nullptr;   // ƒAƒjƒ“o˜^‚Í”h¶‚ªs‚¤
+    float move_speed_ = 10.0f;                  // ”h¶‚ª’²®‰Â
     float radius_ = 0.5f;
 
 private:
-    void UpdateGroundProbe();                   
-    Vec3 ConsumeMovementInput(float dt);        
-    void UpdateLocomotionAnimation(const Vec3& frame_move, bool jumping); 
+    /**
+     * @brief ‘«Œ³‚ÖƒŒƒC‚ğŒ‚‚¿Ad—Íˆ—‚æ‚è‘O‚ÉÚ’nó‘Ô‚ğŠm’è‚³‚¹‚éB
+     */
+    void UpdateGroundProbe();
+    /**
+     * @brief ’~Ï‚³‚ê‚½ˆÚ“®“ü—Í‚ğÁ”ï‚µAd—Í‚Æ‡¬‚µ‚ÄˆÊ’u‚ÆŒü‚«‚ğXV‚·‚éB
+     * @param dt ‘OƒtƒŒ[ƒ€‚©‚ç‚ÌŒo‰ß•b”B
+     * @return ‚±‚ÌƒtƒŒ[ƒ€‚ÅÀÛ‚É“®‚¢‚½—ÊB
+     */
+    Vec3 ConsumeMovementInput(float dt);
+    /**
+     * @brief Ú’nó‘Ô‚ÆˆÚ“®—Ê‚©‚çÄ¶‚·‚éƒAƒjƒ[ƒVƒ‡ƒ“‚ğ‘I‚ÑAØ‚è‘Ö‚¦‚éB
+     * @param frame_move ‚±‚ÌƒtƒŒ[ƒ€‚ÌˆÚ“®—ÊB
+     * @param jumping ƒWƒƒƒ“ƒv’†‚Å‚ ‚ê‚Î trueB
+     */
+    void UpdateLocomotionAnimation(const Vec3& frame_move, bool jumping);
+    /**
+     * @brief ƒRƒ‰ƒCƒ_[ÚG‚ÉAÚG–@ü‚Ì•ûŒü‚Ö‰Ÿ‚µ–ß‚·B
+     * @param self ÚG‚µ‚½‚±‚¿‚ç‘¤‚ÌƒRƒ‰ƒCƒ_[B
+     * @param other_actor ÚG‘Šè‚ÌƒAƒNƒ^[B
+     * @param other_coll ÚG‘Šè‚ÌƒRƒ‰ƒCƒ_[B
+     * @param info ÚG–@ü‚ÆŠÑ’Ê—ÊB
+     */
     void OnHit(ColliderComponent* self, Actor* other_actor,
-               ColliderComponent* other_coll, const ContactInfo& info);   // æŠ¼ã—æˆ»ã— 
-    void SetupCapsule(const SkeletalMesh* mesh_or_null);  
+               ColliderComponent* other_coll, const ContactInfo& info);
+    /**
+     * @brief ƒJƒvƒZƒ‹ƒRƒ‰ƒCƒ_[‚ğ¶¬‚µAÚGƒR[ƒ‹ƒoƒbƒN‚ğ“o˜^‚·‚éB
+     * @param mesh_or_null ƒJƒvƒZƒ‹ƒTƒCƒY‚ÌŠî‚É‚·‚éƒXƒPƒ‹ƒ^ƒ‹ƒƒbƒVƒ…B
+     *                     nullptr ‚Ìê‡‚ÍŠù’èƒTƒCƒY‚Å\’z‚·‚éB
+     */
+    void SetupCapsule(const SkeletalMesh* mesh_or_null);
 
     std::unique_ptr<MaterialSlot> materials_;
-    CapsuleColliderComponent* capsule_ = nullptr;  
-    Vec3 control_input_;        // AddMovementInputã®è“„ç©ã€‚æ¶ˆè²»å¾Œã‚¼ãƒ­ã‚¯ãƒªã‚¢
+    CapsuleColliderComponent* capsule_ = nullptr;
+    Vec3 control_input_;        // AddMovementInput‚Ì’~ÏBÁ”ïŒãƒ[ƒƒNƒŠƒA
     Vec3 vel_;
     std::string animation_name_;
     float jump_vel_y_ = 0.0f;
-    bool pressed_jump_ = false; // Jump()ã§ç«‹ã¡StopJumping()/ç€åœ°ã§é™ã‚ã™
+    bool pressed_jump_ = false; // Jump()‚Å—§‚¿StopJumping()/’…’n‚Å~‚ë‚·
     bool is_grounded_ = true;
     bool was_grounded_ = true;
 };

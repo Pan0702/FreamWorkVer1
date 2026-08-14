@@ -1,9 +1,18 @@
-ï»¿#include "navigation_debug_renderer.h"
+#include "navigation_debug_renderer.h"
 #include "../Core/Math/my_math.h"
 #include "../Debug/debug.h"
 
+namespace
+{
+    // –Ê‚Æü‚ª“¯‚¶‚‚³‚É‚ ‚é‚ÆZƒtƒ@ƒCƒeƒBƒ“ƒO‚Å‚¿‚ç‚Â‚­‚½‚ßA•Ó‚¾‚¯­‚µ‚¿ã‚°‚éB
+    constexpr float kEdgeLift = 0.5f;
+    // ƒRƒŠƒh[‚Ì•Ó‚ğA“h‚è‚Â‚Ô‚µ‚æ‚èã‚É•`‚­‚½‚ß‚Ì‚¿ã‚°—ÊB
+    constexpr float kCorridorEdgeLift = 0.2f;
+}
+
 void NavigationDebugRenderer::Draw(const NavigationMeshData& mesh_data, float height_offset) const
 {
+    // —×‚è‡‚¤—Ìˆæ‚ª“¯‚¶F‚É‚È‚ç‚È‚¢’ö“x‚É—pˆÓ‚µ‚½FBregion_id‚ğ„‰ñ‚³‚¹‚Äg‚¤B
     const Vec4 region_colors[] =
     {
         Vec4(0.20f, 0.80f, 0.30f, 0.28f),
@@ -16,6 +25,8 @@ void NavigationDebugRenderer::Draw(const NavigationMeshData& mesh_data, float he
 
     constexpr uint32 kRegionColorCount = 6;
 
+    // Ô‚Í—×Úƒ|ƒŠƒSƒ“‚ª‚È‚¢•ÓB•à‚¯‚é”ÍˆÍ‚Ì“à‘¤‚ÉÔ‚ªo‚Ä‚¢‚ê‚ÎA
+    // –{—ˆ‚Â‚È‚ª‚é‚×‚«êŠ‚ª•ª’f‚³‚ê‚Ä‚¢‚é‚Æ‚¢‚¤NavMesh‚Ì•s‹ï‡‚ğ¦‚·B
     const Vec4 boundary_color =
         Vec4(1.0f, 0.0f, 0.0f, 1.0f);
 
@@ -57,6 +68,7 @@ void NavigationDebugRenderer::Draw(const NavigationMeshData& mesh_data, float he
         Vec3 first = mesh_data.vertices[polygon.vertex_indices[0]];
         first.y += height_offset;
 
+        // “Êƒ|ƒŠƒSƒ“‚È‚Ì‚ÅAæ“ª‚Ì’¸“_‚©‚çOŠpŒ`ƒtƒ@ƒ“‚Æ‚µ‚Ä“h‚ê‚éB
         for (uint32 i = 1; i + 1 < vertex_count; ++i)
         {
             Vec3 second = mesh_data.vertices[polygon.vertex_indices[i]];
@@ -79,7 +91,7 @@ void NavigationDebugRenderer::Draw(const NavigationMeshData& mesh_data, float he
 
             const bool is_boundary = neighbor_index == UINT32_MAX;
 
-            // å†…éƒ¨è¾ºã¯ä¸¡ãƒãƒªã‚´ãƒ³ã‹ã‚‰ç™»éŒ²ã•ã‚Œã‚‹ãŸã‚ç‰‡å´ã ã‘æã
+            // “à•”•Ó‚Í—¼ƒ|ƒŠƒSƒ“‚©‚ç“o˜^‚³‚ê‚é‚½‚ß•Ğ‘¤‚¾‚¯•`‚­
             if (!is_boundary && polygon_index > neighbor_index)
             {
                 continue;
@@ -89,8 +101,8 @@ void NavigationDebugRenderer::Draw(const NavigationMeshData& mesh_data, float he
 
             Vec3 end = mesh_data.vertices[polygon.vertex_indices[next]];
 
-            start.y += height_offset + 0.5f;
-            end.y += height_offset + 0.5f;
+            start.y += height_offset + kEdgeLift;
+            end.y += height_offset + kEdgeLift;
 
             Debug::Get().DrawLine3D(start, end, is_boundary
                                                     ? boundary_color
@@ -109,6 +121,8 @@ void NavigationDebugRenderer::DrawCorridor(const NavigationMeshData& mesh_data,
     }
 
     const Vec4 edge_color(1.0f, 1.0f, 0.0f, 1.0f);
+    // Œo˜H‚Ìi‚İ‹ï‡‚ğ0`1‚É³‹K‰»‚·‚é‚½‚ß‚Ì•ª•êB
+    // ƒ|ƒŠƒSƒ“‚ª1–‡‚µ‚©‚È‚¢ê‡‚Ì0œZ‚ğ”ğ‚¯‚Ä‚¢‚éB
     const float denominator = polygon_indices.size() > 1
                                   ? static_cast<float>(polygon_indices.size() - 1)
                                   : 1.0f;
@@ -142,6 +156,7 @@ void NavigationDebugRenderer::DrawCorridor(const NavigationMeshData& mesh_data,
             continue;
         }
 
+        // n“_‘¤‚ğ—ÎAI“_‘¤‚ğÔ‚É‚µ‚ÄAŒo˜H‚ğ‚Ç‚¿‚çŒü‚«‚Éi‚Ş‚Ì‚©•ª‚©‚é‚æ‚¤‚É‚·‚éB
         const float path_ratio = static_cast<float>(path_index) / denominator;
         const Vec4 fill_color(
             0.15f + 0.85f * path_ratio,
@@ -160,13 +175,14 @@ void NavigationDebugRenderer::DrawCorridor(const NavigationMeshData& mesh_data,
             Debug::Get().DrawTriangle3D(first, second, third, fill_color);
         }
 
+        // ƒRƒŠƒh[‚Í’Ê‰ß‚·‚éƒ|ƒŠƒSƒ“‚ğŒ©‚¹‚é‚Ì‚ª–Ú“I‚È‚Ì‚ÅA•Ó‚Í—×Ú‚ÉŠÖŒW‚È‚­‘S‚Ä•`‚­B
         for (uint32 edge_index = 0; edge_index < vertex_count; ++edge_index)
         {
             Vec3 edge_start = mesh_data.vertices[polygon.vertex_indices[edge_index]];
             Vec3 edge_end = mesh_data.vertices[
                 polygon.vertex_indices[(edge_index + 1) % vertex_count]];
-            edge_start.y += height_offset + 0.2f;
-            edge_end.y += height_offset + 0.2f;
+            edge_start.y += height_offset + kCorridorEdgeLift;
+            edge_end.y += height_offset + kCorridorEdgeLift;
             Debug::Get().DrawLine3D(edge_start, edge_end, edge_color);
         }
     }
@@ -178,6 +194,7 @@ void NavigationDebugRenderer::Draw(const NavigationDetailMeshData& detail_mesh_d
 
     const Vec4 edge_color = Vec4(0.05f, 0.10f, 0.15f, 1.00f);
 
+    // Ú×ƒƒbƒVƒ…‚ÍƒCƒ“ƒfƒbƒNƒX3‚Â‚Å1OŠpŒ`B
     for (uint32 i = 0; i + 2 < detail_mesh_data.indices.size(); i += 3)
     {
         const uint32 index_a = detail_mesh_data.indices[i];
@@ -201,6 +218,7 @@ void NavigationDebugRenderer::Draw(const NavigationDetailMeshData& detail_mesh_d
 
         Debug::Get().DrawTriangle3D(a, b, c, fill_color);
 
+        // OŠpŒ`‚ª×‚©‚­”‚ª‘½‚¢‚½‚ßA•Ó‚Ü‚Å•`‚­‚Æ‰æ–Ê‚ª–„‚Ü‚éB•K—v‚È‚Æ‚«‚¾‚¯—LŒø‚É‚·‚éB
         // Debug::Get().DrawLine3D(a, b, edge_color);
         // Debug::Get().DrawLine3D(b, c, edge_color);
         // Debug::Get().DrawLine3D(c, a, edge_color);

@@ -1,21 +1,70 @@
-ï»¿#pragma once
+#pragma once
 #include <vector>
 
 #include "navigation_heightfield_cell.h"
 #include "../../Core/Math/intersect.h"
 
 
+/**
+ * @brief ’nŒ`‚ğƒ{ƒNƒZƒ‹‰»‚µ‚Ä•Û‚·‚éƒnƒCƒgƒtƒB[ƒ‹ƒhB
+ *
+ * XZ •½–Ê‚ğƒZƒ‹‚É‹æØ‚èAŠeƒZƒ‹‚ª‚‚³•ûŒü‚ÌƒXƒpƒ“—ñ‚ğ‚ÂB
+ * NavMesh \’z‚ÌÅ‰‚Ì’iŠK‚Æ‚µ‚ÄA’nŒ`‚ÌOŠpŒ`‚ğ‚±‚±‚Ö‘‚«‚ŞB
+ */
 class NavigationHeightfield
 {
 public:
+    /**
+     * @brief •¢‚¤”ÍˆÍ‚ÆƒZƒ‹‚Ì‘å‚«‚³‚ğŒˆ‚ß‚ÄA‹ó‚ÌƒZƒ‹‚ğ—pˆÓ‚·‚éB
+     * @param aabb ƒ{ƒNƒZƒ‹‰»‚·‚éƒ[ƒ‹ƒh‹óŠÔ‚Ì”ÍˆÍB
+     * @param size XZ •ûŒü‚ÌƒZƒ‹‚Ìˆê•Ó‚Ì’·‚³B
+     * @param height ‚‚³•ûŒü‚ÌƒZƒ‹‚Ì‚İ•B
+     * @return ‰Šú‰»‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool Initialize(const Box& aabb, float size, float height);
+    /**
+     * @brief w’è‚µ‚½ŠiqÀ•W‚ÌƒZƒ‹‚ğæ“¾‚·‚éB
+     * @param x ƒZƒ‹‚Ì X À•WB
+     * @param z ƒZƒ‹‚Ì Z À•WB
+     * @return ŠY“–‚·‚éƒZƒ‹B”ÍˆÍŠO‚Ìê‡‚Í nullptrB
+     */
     NavigationHeightfieldCell* GetCell(uint32 x, uint32 z);
+    /**
+     * @brief w’è‚µ‚½ƒZƒ‹‚ÉƒXƒpƒ“‚ğ’Ç‰Á‚·‚éB
+     * @param x ƒZƒ‹‚Ì X À•WB
+     * @param z ƒZƒ‹‚Ì Z À•WB
+     * @param span ’Ç‰Á‚·‚éƒXƒpƒ“B
+     * @return ’Ç‰Á‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool AddSpan(uint32 x, uint32 z, const NavigationSpan& span);
+    /**
+     * @brief ŠeƒZƒ‹“à‚Åd‚È‚è‡‚¤ƒXƒpƒ“‚ğ 1 ‚Â‚É‚Ü‚Æ‚ß‚éB
+     */
     void MergeSpans();
+    /**
+     * @brief ƒ{ƒNƒZƒ‹‰»‚µ‚½”ÍˆÍ‚ğæ“¾‚·‚éB
+     * @return ƒ[ƒ‹ƒh‹óŠÔ‚Å‚Ì”ÍˆÍB
+     */
     const Box& GetWorldBounds() const;
+    /**
+     * @brief XZ •ûŒü‚ÌƒZƒ‹‚Ìˆê•Ó‚Ì’·‚³‚ğæ“¾‚·‚éB
+     * @return ƒZƒ‹‚Ìˆê•Ó‚Ì’·‚³B
+     */
     float GetCellSize() const;
+    /**
+     * @brief ‚‚³•ûŒü‚ÌƒZƒ‹‚Ì‚İ•‚ğæ“¾‚·‚éB
+     * @return ‚‚³‚Ì‚İ•B
+     */
     float GetCellHeight() const;
+    /**
+     * @brief X •ûŒü‚ÌƒZƒ‹”‚ğæ“¾‚·‚éB
+     * @return ƒZƒ‹”B
+     */
     uint32 GetWidth() const;
+    /**
+     * @brief Z •ûŒü‚ÌƒZƒ‹”‚ğæ“¾‚·‚éB
+     * @return ƒZƒ‹”B
+     */
     uint32 GetDepth() const;
 private:
     Box world_bounds_ = {};

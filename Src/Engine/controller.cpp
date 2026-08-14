@@ -1,7 +1,8 @@
-ï»¿#include "controller.h"
+#include "controller.h"
 
 void Controller::Possess(Character* character)
 {
+    // Š—LŒ ‚Í‚½‚È‚¢BCharacter ‚Ìõ–½‚Í World ‚ªŠÇ—‚·‚éB
     possessed_ = character;
 }
 

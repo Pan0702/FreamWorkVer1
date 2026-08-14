@@ -1,13 +1,17 @@
-ï»¿#include "enemy_01.h"
+#include "enemy_01.h"
 
 Enemy01::Enemy01() : Character("Assets/Fbx/cupsule.mesh")
 {
+    // ƒƒbƒVƒ…‚ªcm’PˆÊ‚Åì‚ç‚ê‚Ä‚¢‚é‚½‚ßAƒ[ƒ‹ƒh’PˆÊ‚Ök‚ß‚éB
     transform_.scale = Vec3(0.01f, 0.01f, 0.01f);
+    // ƒvƒŒƒCƒ„[(10.0)‚æ‚è’x‚­‚µ‚ÄA’Ç‚¢‚©‚¯‚Á‚±‚ª¬—§‚·‚é‚æ‚¤‚É‚·‚éB
     move_speed_ = 8.0f;
 }
 
 void Enemy01::Begin()
 {
+    // ƒvƒŒƒCƒ„[‚Ì‰ŠúˆÊ’u(Œ´“_)‚©‚ç—£‚ê‚½’n“_‚Éo‚µA’ÇÕ‚Ì—lq‚ğŒ©‚¦‚é‚æ‚¤‚É‚·‚éB
+    // Y‚ğ­‚µã‚°‚Ä‚¢‚é‚Ì‚ÍA°‚É‚ß‚è‚ñ‚¾ó‘Ô‚Ån‚Ü‚ç‚È‚¢‚æ‚¤‚É‚·‚é‚½‚ßB
     transform_.position = Vec3(30.0f, 1.0f, 40.0f);
     Character::Begin();
 }

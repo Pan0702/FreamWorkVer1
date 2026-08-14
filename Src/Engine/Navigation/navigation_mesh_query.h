@@ -1,24 +1,77 @@
-ï»¿#pragma once
+#pragma once
 #include "navigation_type.h"
 #include "../../Core/Math/my_math.h"
 
+/**
+ * @brief NavMesh ã‚ÌŒo˜H’Tõ‚ğs‚¤B
+ *
+ * FindPath ‚Í A* ‚Å’Ê‰ß‚·‚éƒ|ƒŠƒSƒ“—ñ(ƒRƒŠƒh[)‚ğ‹‚ßAƒtƒ@ƒ“ƒlƒ‹–@‚Å
+ * ƒRƒŠƒh[“à‚ÌÜ‚êü‚É’¼‚µAÅŒã‚ÉŒ©’Ê‚µ”»’è‚Å•s—v‚È‹È‚ª‚èŠp‚ğí‚éA
+ * ‚Æ‚¢‚¤ 3 ’iŠK‚ÅŒo˜H‚ğì‚éBó‘Ô‚ğ‚½‚È‚¢‚½‚ßg‚¢Ì‚Ä‚Å\‚í‚È‚¢B
+ */
 class NavigationMeshQuery
 {
 public:
+    /**
+     * @brief w’èˆÊ’u‚ÉÅ‚à‹ß‚¢ƒ|ƒŠƒSƒ“‚ğ’T‚·B
+     * @param mesh_data ‘ÎÛ‚Ì NavMeshB
+     * @param position ’Tõ‚ÌŠî€‚Æ‚È‚éˆÊ’uB
+     * @param out_polygon_index Œ©‚Â‚©‚Á‚½ƒ|ƒŠƒSƒ“‚ÌƒCƒ“ƒfƒbƒNƒXB
+     * @return Œ©‚Â‚©‚Á‚½ê‡‚Í trueB
+     */
     bool FindNearestPolygon(const NavigationMeshData& mesh_data,
                             const Vec3& position, uint32& out_polygon_index) const;
+    /**
+     * @brief A* ‚Ån“_ƒ|ƒŠƒSƒ“‚©‚çI“_ƒ|ƒŠƒSƒ“‚Ü‚Å‚Ìƒ|ƒŠƒSƒ“—ñ‚ğ‹‚ß‚éB
+     * @param mesh_data ‘ÎÛ‚Ì NavMeshB
+     * @param start_poly n“_‚Ìƒ|ƒŠƒSƒ“ƒCƒ“ƒfƒbƒNƒXB
+     * @param goal_poly I“_‚Ìƒ|ƒŠƒSƒ“ƒCƒ“ƒfƒbƒNƒXB
+     * @param start_position n“_‚ÌˆÊ’uBƒRƒXƒg‚Ì‹N“_‚Ég‚¤B
+     * @param goal_position I“_‚ÌˆÊ’uB„’èƒRƒXƒg‚ÌŒvZ‚Ég‚¤B
+     * @param out_poly ‹‚ß‚½ƒ|ƒŠƒSƒ“—ñB
+     * @return Œo˜H‚ªŒ©‚Â‚©‚Á‚½ê‡‚Í trueB
+     */
     bool FindPolygonPath(const NavigationMeshData& mesh_data, uint32 start_poly, uint32 goal_poly,
                          const Vec3& start_position, const Vec3& goal_position,
                          std::vector<uint32>& out_poly) const;
+    /**
+     * @brief ƒtƒ@ƒ“ƒlƒ‹–@‚ÅAƒ|ƒŠƒSƒ“—ñ‚ğ’Ê‚éÅ’Z‚ÌÜ‚êü‚ğ‹‚ß‚éB
+     * @param mesh_data ‘ÎÛ‚Ì NavMeshB
+     * @param polygon_path ’Ê‰ß‚·‚éƒ|ƒŠƒSƒ“—ñB
+     * @param start_pos n“_‚ÌˆÊ’uB
+     * @param goal_pos I“_‚ÌˆÊ’uB
+     * @param out_path ‹‚ß‚½Ü‚êü‚Ì’Ê‰ß“_B
+     * @return Ü‚êü‚ªì‚ê‚½ê‡‚Í trueB
+     */
     bool FindStraightPath(const NavigationMeshData& mesh_data, const std::vector<uint32>& polygon_path,
                           const Vec3& start_pos, const Vec3& goal_pos, std::vector<Vec3>& out_path) const;
+    /**
+     * @brief w’èˆÊ’u‚ÉÅ‚à‹ß‚¢ƒ|ƒŠƒSƒ“‚ÆA‚»‚Ìã‚ÌÅ‹ßÚ“_‚ğ’T‚·B
+     * @param mesh_data ‘ÎÛ‚Ì NavMeshB
+     * @param position ’Tõ‚ÌŠî€‚Æ‚È‚éˆÊ’uB
+     * @param out_polygon_index Œ©‚Â‚©‚Á‚½ƒ|ƒŠƒSƒ“‚ÌƒCƒ“ƒfƒbƒNƒXB
+     * @param out_closest_point ƒ|ƒŠƒSƒ“ã‚ÅÅ‚à‹ß‚¢“_B
+     * @return Œ©‚Â‚©‚Á‚½ê‡‚Í trueB
+     */
     bool FindNearestPolygon(const NavigationMeshData& mesh_data, const Vec3& position,
                             uint32& out_polygon_index, Vec3& out_closest_point) const;
+    /**
+     * @brief NavMesh ã‚Å 2 “_ŠÔ‚ÌŒo˜H‚ğ‹‚ß‚éB
+     * @param mesh_data ‘ÎÛ‚Ì NavMeshB
+     * @param start_pos o”­’n“_B
+     * @param goal_position –Ú“I’nB
+     * @param out_path ‹‚ß‚½Œo˜H‚Ì’Ê‰ß“_B
+     * @param out_polygon_path Œo˜H’Tõ‚ª’Ê‚Á‚½ƒ|ƒŠƒSƒ“—ñB•s—v‚È‚ç nullptrB
+     * @return Œo˜H‚ªŒ©‚Â‚©‚Á‚½ê‡‚Í trueB
+     */
     bool FindPath(const NavigationMeshData& mesh_data, const Vec3& start_pos, const Vec3& goal_position,
                   std::vector<Vec3>& out_path,
                   std::vector<uint32>* out_polygon_path = nullptr) const;
 
 private:
+    /**
+     * @brief A* ‚Ì’Tõ‚Åƒ|ƒŠƒSƒ“‚ª¡‚Ç‚ÌW‡‚É‚ ‚é‚©‚ğ•\‚·B
+     */
     enum class State : uint8
     {
         kUnvisited,
@@ -26,6 +79,9 @@ private:
         kClosed,
     };
 
+    /**
+     * @brief A* ‚ªƒ|ƒŠƒSƒ“ 1 –‡‚²‚Æ‚É‚Â’Tõó‘ÔB
+     */
     struct Node
     {
         float g_cost = FLT_MAX;
@@ -37,38 +93,153 @@ private:
         State state = State::kUnvisited;
     };
 
+    /**
+     * @brief ƒtƒ@ƒ“ƒlƒ‹–@‚ª’Ê‚è”²‚¯‚é–åB—×Úƒ|ƒŠƒSƒ“‚Ì‹¤—L•Ó‚É‘Î‰‚·‚éB
+     *
+     * left ‚Æ right ‚Íis•ûŒü‚©‚çŒ©‚½¶‰E‚Ì’[“_B
+     */
     struct Portal
     {
         Vec3 left;
         Vec3 right;
     };
 
+    /**
+     * @brief ƒ|ƒŠƒSƒ“‚ÌdS‚ğ‹‚ß‚éB
+     * @param mesh_data ‘ÎÛ‚Ì NavMeshB
+     * @param polygon_index ‘ÎÛ‚Ìƒ|ƒŠƒSƒ“ƒCƒ“ƒfƒbƒNƒXB
+     * @return ’¸“_‚ğ•½‹Ï‚µ‚½ˆÊ’uB
+     */
     Vec3 CalcPolygonCenter(const NavigationMeshData& mesh_data, uint32 polygon_index) const;
+    /**
+     * @brief OŠpŒ`ã‚Åw’è“_‚ÉÅ‚à‹ß‚¢“_‚ğ‹‚ß‚éB
+     * @param point Šî€‚Æ‚È‚é“_B
+     * @param a OŠpŒ`‚Ì’¸“_B
+     * @param b OŠpŒ`‚Ì’¸“_B
+     * @param c OŠpŒ`‚Ì’¸“_B
+     * @return OŠpŒ`ã‚ÌÅ‹ßÚ“_B
+     */
     Vec3 CalcClosestPointOnTriangle(const Vec3& point, const Vec3& a, const Vec3& b, const Vec3& c) const;
+    /**
+     * @brief •Ó‚Ìã‚ÅAŒ»İˆÊ’u‚©‚ç–Ú“I’n‚Ü‚Å‚Ì‹——£‚ªÅ’Z‚É‚È‚é’Ê‰ß“_‚ğ‹‚ß‚éB
+     * @param current_position Œ»İˆÊ’uB
+     * @param goal_position –Ú“I’nB
+     * @param edge_start •Ó‚Ìn“_B
+     * @param edge_end •Ó‚ÌI“_B
+     * @return •Óã‚Ì’Ê‰ß“_B
+     */
     Vec3 CalcBestPortalPoint(const Vec3& current_position, const Vec3& goal_position,
                              const Vec3& edge_start, const Vec3& edge_end) const;
+    /**
+     * @brief 2 ‚Â‚Ìƒ|ƒŠƒSƒ“‚ª‹¤—L‚·‚é•Ó‚ğ‹‚ß‚éB
+     * @param mesh_data ‘ÎÛ‚Ì NavMeshB
+     * @param first_polygon_index ˆê•û‚Ìƒ|ƒŠƒSƒ“ƒCƒ“ƒfƒbƒNƒXB
+     * @param second_polygon_index ‚à‚¤ˆê•û‚Ìƒ|ƒŠƒSƒ“ƒCƒ“ƒfƒbƒNƒXB
+     * @param out_a ‹¤—L•Ó‚Ìn“_Bfirst_polygon_index ‘¤‚Ì’¸“_‡‚Å•Ô‚·B
+     * @param out_b ‹¤—L•Ó‚ÌI“_B
+     * @return ‹¤—L•Ó‚ª‚ ‚éê‡‚Í trueB
+     */
     bool TryGetSharedEdge(const NavigationMeshData& mesh_data, uint32 first_polygon_index,
                           uint32 second_polygon_index, Vec3& out_a, Vec3& out_b) const;
+    /**
+     * @brief ƒ|ƒŠƒSƒ“—ñ‚©‚çAƒtƒ@ƒ“ƒlƒ‹–@‚ªg‚¤–å‚Ì—ñ‚ğì‚éB
+     * @param mesh_data ‘ÎÛ‚Ì NavMeshB
+     * @param polygon_path ’Ê‰ß‚·‚éƒ|ƒŠƒSƒ“—ñB
+     * @param start_pos n“_‚ÌˆÊ’uB•‚ğ‚½‚È‚¢–å‚Æ‚µ‚Äæ“ª‚É“ü‚ê‚éB
+     * @param goal_pos I“_‚ÌˆÊ’uB•‚ğ‚½‚È‚¢–å‚Æ‚µ‚Ä––”ö‚É“ü‚ê‚éB
+     * @param out_portals ì¬‚µ‚½–å‚Ì—ñB
+     * @return ì¬‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool BuildPortals(const NavigationMeshData& mesh_data, const std::vector<uint32>& polygon_path,
                       const Vec3& start_pos, const Vec3& goal_pos, std::vector<Portal>& out_portals) const;
+    /**
+     * @brief 2 “_‚ğŒ‹‚Ôü•ª‚ª NavMesh ã‚ğ’¼i‚Å‚«‚é‚©‚ğAƒ|ƒŠƒSƒ“‚ğ’H‚Á‚Ä’²‚×‚éB
+     *
+     * Œğ“_‚ªƒ|ƒŠƒSƒ“‚Ì’¸“_‚Éæ‚éê‡‚É”õ‚¦A‚»‚Ì’¸“_‚ğ‹¤—L‚·‚éƒ|ƒŠƒSƒ“‚Ö‚à
+     * }•ª‚©‚ê‚µ‚Ä’Tõ‚·‚éB
+     * @param mesh_data ‘ÎÛ‚Ì NavMeshB
+     * @param start_polygon_index n“_‚ªæ‚éƒ|ƒŠƒSƒ“ƒCƒ“ƒfƒbƒNƒXB
+     * @param goal_polygon_index I“_‚ªæ‚éƒ|ƒŠƒSƒ“ƒCƒ“ƒfƒbƒNƒXB
+     * @param start_position n“_‚ÌˆÊ’uB
+     * @param goal_position I“_‚ÌˆÊ’uB
+     * @param out_path n“_‚©‚çI“_‚Ü‚Å‚Ì’Ê‰ß“_B•Ó‚Æ‚ÌŒğ“_‚ğŠÜ‚ŞB
+     * @param out_polygon_path ’Ê‰ß‚µ‚½ƒ|ƒŠƒSƒ“—ñB•s—v‚È‚ç nullptrB
+     * @return ’¼i‚Å‚«‚½ê‡‚Í trueB
+     */
     bool TraceSegmentAcrossNavMesh(const NavigationMeshData& mesh_data,
                                    uint32 start_polygon_index, uint32 goal_polygon_index,
                                    const Vec3& start_position, const Vec3& goal_position,
                                    std::vector<Vec3>& out_path,
                                    std::vector<uint32>* out_polygon_path) const;
+    /**
+     * @brief Œ©’Ê‚µ‚Ì—˜‚­“_‚Ü‚Åˆê‹C‚Éi‚ß‚é‚æ‚¤‚ÉAŒo˜H‚Ì‹È‚ª‚èŠp‚ğí‚éB
+     *
+     * ƒtƒ@ƒ“ƒlƒ‹–@‚Íƒ|ƒŠƒSƒ“‚Ì•ªŠ„‚Ìd•û‚É‚æ‚Á‚Ä•s—v‚È‹È‚ª‚èŠp‚ğì‚é‚±‚Æ‚ª‚ ‚éB
+     * Œo˜H‚ÌŒã‚ë‘¤‚©‚ç’¼i‚Å‚«‚é“_‚ğ’T‚µAŠÔ‚Ì“_‚ğÌ‚Ä‚é‚±‚Æ‚Å‚±‚ê‚ğæ‚èœ‚­B
+     * @param mesh_data ‘ÎÛ‚Ì NavMeshB
+     * @param path í‚é‘O‚ÌŒo˜HB
+     * @param polygon_path Œo˜H‚ª’Ê‚éƒ|ƒŠƒSƒ“—ñB
+     * @param out_path í‚Á‚½Œã‚ÌŒo˜HB
+     * @param out_polygon_path í‚Á‚½Œã‚ÌŒo˜H‚ª’Ê‚éƒ|ƒŠƒSƒ“—ñB
+     * @return íŒ¸‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool OptimizePathVisibility(const NavigationMeshData& mesh_data,
                                 const std::vector<Vec3>& path,
                                 const std::vector<uint32>& polygon_path,
                                 std::vector<Vec3>& out_path,
                                 std::vector<uint32>& out_polygon_path) const;
+    /**
+     * @brief XZ •½–Ê‚Å 2 ‚Â‚Ìü•ª‚ÌŒğ“_‚ğ‹‚ß‚éB
+     * @param path_start ˆê•û‚Ìü•ª‚Ìn“_B
+     * @param path_end ˆê•û‚Ìü•ª‚ÌI“_B
+     * @param edge_start ‚à‚¤ˆê•û‚Ìü•ª‚Ìn“_B
+     * @param edge_end ‚à‚¤ˆê•û‚Ìü•ª‚ÌI“_B
+     * @param out_path_t Œğ“_‚ÌˆÊ’u‚ğ path ‘¤‚Ìü•ªã‚Ì”ä—¦‚Å•\‚µ‚½’lB
+     * @param out_edge_t Œğ“_‚ÌˆÊ’u‚ğ edge ‘¤‚Ìü•ªã‚Ì”ä—¦‚Å•\‚µ‚½’lB
+     * @return 2 ‚Â‚Ìü•ª‚ªŒğ‚í‚éê‡‚Í trueB
+     */
     bool CalcSegmentIntersectionXZ(const Vec3& path_start, const Vec3& path_end,
                                    const Vec3& edge_start, const Vec3& edge_end,
                                    float& out_path_t, float& out_edge_t) const;
+    /**
+     * @brief XZ •½–Ê‚ÅA“_‚ªƒ|ƒŠƒSƒ“‚Ì“à‘¤‚É‚ ‚é‚©‚ğ’²‚×‚éB
+     * @param mesh_data ‘ÎÛ‚Ì NavMeshB
+     * @param polygon_index ‘ÎÛ‚Ìƒ|ƒŠƒSƒ“ƒCƒ“ƒfƒbƒNƒXB
+     * @param point ’²‚×‚é“_B
+     * @return “à‘¤‚Ü‚½‚Í•Óã‚É‚ ‚éê‡‚Í trueB
+     */
     bool IsPointInsidePolygonXZ(const NavigationMeshData& mesh_data, uint32 polygon_index,
                                 const Vec3& point) const;
+    /**
+     * @brief w’è‚µ‚½“_‚ğ•Óã‚ÉŠÜ‚Şƒ|ƒŠƒSƒ“‚ğA—×Ú‚ğ’H‚Á‚ÄW‚ß‚éB
+     * @param mesh_data ‘ÎÛ‚Ì NavMeshB
+     * @param start_polygon_index ’Tõ‚ğn‚ß‚éƒ|ƒŠƒSƒ“ƒCƒ“ƒfƒbƒNƒXB
+     * @param point W‚ß‚éŠî€‚É‚È‚é“_B
+     * @param out_polygon_indices W‚ß‚½ƒ|ƒŠƒSƒ“‚ÌƒCƒ“ƒfƒbƒNƒX—ñB
+     */
     void CollectConnectedPolygonsAtPoint(const NavigationMeshData& mesh_data, uint32 start_polygon_index,
                                          const Vec3& point, std::vector<uint32>& out_polygon_indices) const;
+    /**
+     * @brief XZ •½–Ê‚ÅA“_‚ªü•ªã‚É‚ ‚é‚©‚ğ’²‚×‚éB
+     * @param point ’²‚×‚é“_B
+     * @param start ü•ª‚Ìn“_B
+     * @param end ü•ª‚ÌI“_B
+     * @return ü•ªã‚É‚ ‚éê‡‚Í trueB
+     */
     bool IsPointOnSegmentXZ(const Vec3& point, const Vec3& start, const Vec3& end) const;
+    /**
+     * @brief XZ •½–Ê‚Å‚Ì•„†•t‚«–ÊÏ‚Ì 2 ”{‚ğ‹‚ß‚éB
+     * @param a OŠpŒ`‚Ì’¸“_B
+     * @param b OŠpŒ`‚Ì’¸“_B
+     * @param c OŠpŒ`‚Ì’¸“_B
+     * @return •„†•t‚«–ÊÏ‚Ì 2 ”{B”½Œv‰ñ‚è‚È‚ç³‚É‚È‚éB
+     */
     float CalcSignedAreaXZ(const Vec3& a, const Vec3& b, const Vec3& c) const;
+    /**
+     * @brief XZ •½–Ê‚Å 2 “_‚ª“¯‚¶ˆÊ’u‚Æ‚İ‚È‚¹‚é‚©‚ğ’²‚×‚éB
+     * @param a ”äŠr‚·‚é“_B
+     * @param b ”äŠr‚·‚é“_B
+     * @return “¯‚¶ˆÊ’u‚Æ‚İ‚È‚¹‚éê‡‚Í trueB
+     */
     bool IsSamePointXZ(const Vec3& a, const Vec3& b) const;
 };

@@ -1,11 +1,30 @@
-ï»¿#pragma once
+#pragma once
 #include "actor.h"
 class Character;
+
+/**
+ * @brief Character ‚ğ‘€ì‚·‚éå‘Ì‚ÌŠî’êB
+ *
+ * Character ‚ğœßˆË(Possess)‚µ‚Ä•Û‚µA”h¶ƒNƒ‰ƒX‚ª“ü—Í‚â AI ‚É‰‚¶‚Ä
+ * ‚»‚Ì Character ‚ÖˆÚ“®–½—ß‚ğo‚·B‘Ì(Character)‚Æ‘€ì(Controller)‚ğ
+ * •ª‚¯‚é‚±‚Æ‚ÅA“¯‚¶ Character ‚ğlŠÔ‚Ì‘€ì‚É‚à AI ‚É‚àg‚¦‚éB
+ */
 class Controller : public Actor
 {
 public:
-    void Possess(Character* character);  
+    /**
+     * @brief ‘€ì‘ÎÛ‚Ì Character ‚ğœßˆË‚·‚éB
+     * @param character ‘€ì‘ÎÛ‚É‚·‚é CharacterB
+     */
+    void Possess(Character* character);
+    /**
+     * @brief œßˆË‚ğ‰ğœ‚µA‘€ì‘ÎÛ‚ğ‚½‚È‚¢ó‘Ô‚É‚·‚éB
+     */
     void UnPossess();
+    /**
+     * @brief œßˆË‚µ‚Ä‚¢‚é Character ‚ğæ“¾‚·‚éB
+     * @return œßˆË’†‚Ì CharacterBœßˆË‚µ‚Ä‚¢‚È‚¢ê‡‚Í nullptrB
+     */
     Character* GetCharacter() const;
 private:
     Character* possessed_ = nullptr;

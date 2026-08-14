@@ -1,4 +1,4 @@
-ï»¿#include "navigation_heightfield.h"
+#include "navigation_heightfield.h"
 #include <cmath>
 #include <algorithm>
 
@@ -18,6 +18,8 @@ bool NavigationHeightfield::Initialize(const Box& aabb, float size, float height
     cell_size_ = size;
     cell_height_ = height;
 
+    // ’[‚ªŒ‡‚¯‚È‚¢‚æ‚¤Ø‚èã‚°‚éB”ÍˆÍ‚ªƒZƒ‹‚Ì®””{‚Å‚È‚¢ê‡A
+    // Ø‚èÌ‚Ä‚é‚ÆÅŒã‚Ì—ñ‚ªŠÛ‚²‚Æ¸‚í‚ê‚éB
     const float width = world_bounds_.max.x - world_bounds_.min.x;
     width_ = static_cast<uint32>(std::ceil(width / cell_size_));
 
@@ -36,6 +38,7 @@ NavigationHeightfieldCell* NavigationHeightfield::GetCell(uint32 x, uint32 z)
     {
         return nullptr;
     }
+    // ƒZƒ‹‚ÍZs‚ğ’PˆÊ‚Æ‚µ‚½1ŸŒ³”z—ñ‚É•À‚×‚Ä‚¢‚éB
     const uint32 index = z * width_ + x;
     return &cells_[index];
 }
@@ -51,6 +54,7 @@ bool NavigationHeightfield::AddSpan(uint32 x, uint32 z, const NavigationSpan& sp
     {
         return false;
     }
+    // ‚±‚±‚Å‚Í•À‚Ñ‚àd‚È‚è‚à‹C‚É‚¹‚¸Ï‚Ş‚¾‚¯B®—‚Í MergeSpans ‚ªs‚¤B
     height_cell->spans.push_back(span);
     return true;
 }
@@ -63,6 +67,7 @@ void NavigationHeightfield::MergeSpans()
         {
             continue;
         }
+        // ’á‚¢‡‚É•À‚×‚é‚±‚Æ‚ÅA—×Ú”»’è‚ğ‘O‚©‚ç1‰ñ‚È‚ß‚é‚¾‚¯‚ÅÏ‚Ü‚¹‚éB
         (std::ranges::sort)(cell.spans,
                             [](NavigationSpan a, NavigationSpan b)
                             {
@@ -78,15 +83,18 @@ void NavigationHeightfield::MergeSpans()
         for (size_t i = 1; i < cell.spans.size(); i++)
         {
             NavigationSpan next = cell.spans[i];
-            //æ¬¡ã®Spanã¨éš£æ¥ã—ã¦ã‚‹ã‹ç¢ºèª
+            // Ÿ‚ÌSpan‚Æ—×Ú‚µ‚Ä‚é‚©Šm”FB
+            // +1‚µ‚Ä‚¢‚é‚Ì‚ÍA1ƒZƒ‹•ª‚ÌŠÔ‚µ‚©‚È‚¢2‚Â‚Ì‹æŠÔ‚à’n‘±‚«‚Æ‚İ‚È‚·‚½‚ßB
             if (current.max_height + 1 >= next.min_height)
             {
-                //éš£æ¥ã—ã¦ã‚‹Spanã®ã»ã†ãŒå¤§ãã‹ã£ãŸã‚‰æœ€å¤§ã‚’æ›´æ–°
+                // —×Ú‚µ‚Ä‚éSpan‚Ì‚Ù‚¤‚ª‘å‚«‚©‚Á‚½‚çÅ‘å‚ğXVB
+                // •às‰Â”Û‚Íã–Ê‚Ì‚à‚Ì‚ªc‚éB°‚Í‹æŠÔ‚Ìã–Ê‚¾‚©‚çB
                 if (current.max_height < next.max_height)
                 {
                     current.max_height = next.max_height;
                     current.is_walk = next.is_walk;
                 }
+                // ã–Ê‚Ì‚‚³‚ª“¯‚¶ê‡‚ÍA‚Ç‚¿‚ç‚©‚ª•à‚¯‚é‚È‚ç•à‚¯‚é‚Æ‚·‚éB
                 if (current.max_height == next.max_height)
                 {
                     current.is_walk |= next.is_walk;
@@ -98,6 +106,7 @@ void NavigationHeightfield::MergeSpans()
                 current = next;
             }
         }
+        // ƒ‹[ƒv“à‚Å‚Í‘‚«o‚³‚ê‚È‚¢ÅŒã‚Ì1‚Â‚ğÏ‚ŞB
         sorted_spans.push_back(current);
         cell.spans = sorted_spans;
     }

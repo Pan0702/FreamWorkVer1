@@ -1,12 +1,38 @@
-ï»¿#pragma once
+#pragma once
 #include "../Engine/Navigation/navigation_type.h"
 
+/**
+ * @brief NavMesh ‚ÌŒ`ó‚âŒo˜H‚ğƒfƒoƒbƒO•\¦‚·‚éB
+ *
+ * ó‘Ô‚ğ‚½‚È‚¢‚½‚ßg‚¢Ì‚Ä‚Å\‚í‚È‚¢B
+ */
 class NavigationDebugRenderer
 {
 public:
+    /**
+     * @brief NavMesh ‚Ìƒ|ƒŠƒSƒ“‚Æ•Ó‚ğ•`‰æ‚·‚éB
+     *
+     * ƒ|ƒŠƒSƒ“‚Í—Ìˆæ‚²‚Æ‚ÉF‚ğ•Ï‚¦‚Ä“h‚èA•Ó‚Í—×Ú‚ª‚ ‚ê‚Î—ÎA
+     * —×Ú‚ª‚È‚¢‹«ŠE‚Å‚ ‚ê‚ÎÔ‚Å•`‚­B
+     * @param mesh_data •`‰æ‚·‚é NavMeshB
+     * @param height_offset ’nŒ`‚Æd‚È‚Á‚Ä‚¿‚ç‚Â‚­‚Ì‚ğ–h‚®‚½‚ß‚É‚¿ã‚°‚é‚‚³B
+     */
     void Draw(const NavigationMeshData& mesh_data, float height_offset = 0.2f) const;
+    /**
+     * @brief Œo˜H’Tõ‚ª’Ê‚Á‚½ƒ|ƒŠƒSƒ“—ñ‚ğ•`‰æ‚·‚éB
+     *
+     * “h‚è‚Â‚Ô‚µ‚ÌF‚ÍŒo˜H‚Ì‡‚É—Î‚©‚çÔ‚Ö•Ï‰»‚·‚éB
+     * @param mesh_data ‘ÎÛ‚Ì NavMeshB
+     * @param polygon_indices •`‰æ‚·‚éƒ|ƒŠƒSƒ“‚ÌƒCƒ“ƒfƒbƒNƒX—ñB
+     * @param height_offset ’nŒ`‚Æd‚È‚Á‚Ä‚¿‚ç‚Â‚­‚Ì‚ğ–h‚®‚½‚ß‚É‚¿ã‚°‚é‚‚³B
+     */
     void DrawCorridor(const NavigationMeshData& mesh_data,
                       const std::vector<uint32_t>& polygon_indices,
                       float height_offset = 1.0f) const;
+    /**
+     * @brief ‚‚³‚ğ’nŒ`‚É‰ˆ‚í‚¹‚½Ú×ƒƒbƒVƒ…‚ğ•`‰æ‚·‚éB
+     * @param detail_mesh_data •`‰æ‚·‚éÚ×ƒƒbƒVƒ…B
+     * @param height_offset ’nŒ`‚Æd‚È‚Á‚Ä‚¿‚ç‚Â‚­‚Ì‚ğ–h‚®‚½‚ß‚É‚¿ã‚°‚é‚‚³B
+     */
     void Draw(const NavigationDetailMeshData& detail_mesh_data, float height_offset = 0.2f) const;
 };

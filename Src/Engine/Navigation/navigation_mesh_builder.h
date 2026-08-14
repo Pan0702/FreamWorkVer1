@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include "navigation_config.h"
 #include <vector>
 
@@ -12,134 +12,559 @@
 class NavigationHeightfield;
 class NavigationCompactHeightfield;
 
+/**
+ * @brief ’nŒ`‚ÌOŠpŒ`‚©‚ç NavMesh ‚ğ‘g‚İ—§‚Ä‚éB
+ *
+ * ’nŒ`‚ğƒ{ƒNƒZƒ‹‰»‚µ‚Ä•à‚¯‚é°–Ê‚ğæ‚èo‚µA°–Ê‚ğ—Ìˆæ‚É•ª‚¯‚Ä—ÖŠs‚ğ”²‚«A
+ * —ÖŠs‚ğ“Êƒ|ƒŠƒSƒ“‚É•ªŠ„‚µ‚Ä NavMesh ‚É‚·‚éA‚Æ‚¢‚¤‡‚Éˆ—‚ği‚ß‚éB
+ * ‚‚³‚ğ’nŒ`‚É‰ˆ‚í‚¹‚éÚ×ƒƒbƒVƒ…‚àÅŒã‚Éì‚éB
+ */
 class NavigationMeshBuilder
 {
 public:
+    /**
+     * @brief ’nŒ`‚ğƒ{ƒNƒZƒ‹‰»‚µ‚ÄƒnƒCƒgƒtƒB[ƒ‹ƒh‚ğì‚éB
+     * @param geometries NavMesh ‚ÌŒ³‚É‚È‚é’nŒ`‚Ìˆê——B
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     * @param heightfield Œ‹‰Ê‚ğ‘‚«‚ŞƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @return \’z‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool Build(const std::vector<NavigationGeometry>& geometries, const NavigationConfig& config,
                NavigationHeightfield& heightfield);
+    /**
+     * @brief ’nŒ` 1 ‚Â•ª‚ÌOŠpŒ`‚ğƒnƒCƒgƒtƒB[ƒ‹ƒh‚É‘‚«‚ŞB
+     * @param geometry ‘‚«‚Ş’nŒ`B
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     * @param height ‘‚«‚İæ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @return ‘‚«‚İ‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool RasterizeGeometry(const NavigationGeometry& geometry, const NavigationConfig& config,
                            NavigationHeightfield& height) const;
+    /**
+     * @brief OŠpŒ` 1 –‡‚ğƒnƒCƒgƒtƒB[ƒ‹ƒh‚É‘‚«‚ŞB
+     * @param tri ‘‚«‚ŞOŠpŒ`B
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     * @param height ‘‚«‚İæ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @return ‘‚«‚İ‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool RasterizeTriangle(const Triangle& tri, const NavigationConfig& config, NavigationHeightfield& height) const;
 
+    /**
+     * @brief ƒnƒCƒgƒtƒB[ƒ‹ƒh‚©‚ç•à‚¯‚é°–Ê‚¾‚¯‚ğæ‚èo‚·B
+     * @param source Œ³‚É‚È‚éƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param output Œ‹‰Ê‚ğ‘‚«‚ŞŒ`®B
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     * @return \’z‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool BuildCompactHeightfield(NavigationHeightfield* source, NavigationCompactHeightfield& output,
                                  const NavigationConfig& config);
+    /**
+     * @brief °–Ê‚ğA—ÖŠs‚ğ”²‚¯‚é’PˆÊ‚Ì—Ìˆæ‚É•ªŠ„‚·‚éB
+     * @param heightfield ‘ÎÛ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     * @return •ªŠ„‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool BuildRegions(NavigationCompactHeightfield& heightfield, const NavigationConfig& config) const;
+    /**
+     * @brief Še—Ìˆæ‚Ì—ÖŠs‚ğ”²‚«o‚µA’Pƒ‰»‚·‚éB
+     * @param heightfield ‘ÎÛ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     * @param contours ”²‚«o‚µ‚½—ÖŠs‚Ìˆê——B
+     * @return ’Šo‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool BuildContours(NavigationCompactHeightfield& heightfield, const NavigationConfig& config,
                        std::vector<NavigationContour>& contours) const;
+    /**
+     * @brief —ÖŠs‚ğ“Êƒ|ƒŠƒSƒ“‚É•ªŠ„‚µ‚Ä NavMesh ‚ğì‚éB
+     * @param heightfield ƒZƒ‹À•W‚©‚çƒ[ƒ‹ƒhÀ•W‚Ö‚Ì•ÏŠ·‚Ég‚¤ƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param contours Œ³‚É‚È‚é—ÖŠs‚Ìˆê——B
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     * @param mesh_data Œ‹‰Ê‚ğ‘‚«‚Ş NavMeshB
+     * @return \’z‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool BuildNavigationMeshData(const NavigationCompactHeightfield& heightfield,
                                  const std::vector<NavigationContour>& contours,
                                  const NavigationConfig& config, NavigationMeshData& mesh_data) const;
+    /**
+     * @brief NavMesh ‚ÌŠeƒ|ƒŠƒSƒ“‚ğA’nŒ`‚Ì‚‚³‚É‰ˆ‚¤OŠpŒ`‚É×•ª‚·‚éB
+     * @param heightfield ‚‚³‚ÌQÆŒ³‚É‚È‚éƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param mesh_data Œ³‚É‚È‚é NavMeshB
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     * @param detail_mesh_data Œ‹‰Ê‚ğ‘‚«‚ŞÚ×ƒƒbƒVƒ…B
+     * @return \’z‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool BuildNavigationDetailMesh(const NavigationCompactHeightfield& heightfield, const NavigationMeshData& mesh_data,
                                    const NavigationConfig& config, NavigationDetailMeshData& detail_mesh_data) const;
 
 private:
+    /**
+     * @brief —§‘Ì‚Æ‚µ‚Äƒ{ƒNƒZƒ‹‰»‚·‚é‚Æ‚«‚ÌA‚’¼•ûŒü‚ÌŒğ“_B
+     *
+     * depth_delta ‚Í–Ê‚Ì•\— ‚ğ•\‚µA‚±‚ê‚ğ‘«‚µ‡‚í‚¹‚é‚±‚Æ‚Å—§‘Ì‚Ì“àŠO‚ğ”»’è‚·‚éB
+     */
     struct SolidIntersection
     {
         float height = 0.0f;
         int32 depth_delta = 0;
         bool is_walkable_top = false;
     };
+    /**
+     * @brief OŠpŒ`‚ğˆê’è‚Ì×‚©‚³‚Å•ªŠ„‚µAÚ×ƒƒbƒVƒ…‚É’Ç‰Á‚·‚éB
+     * @param heightfield ‚‚³‚ÌQÆŒ³‚É‚È‚éƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     * @param a OŠpŒ`‚Ì’¸“_B
+     * @param b OŠpŒ`‚Ì’¸“_B
+     * @param c OŠpŒ`‚Ì’¸“_B
+     * @param region_id ‚‚³‚ğQÆ‚·‚é—Ìˆæ‚Ì IDB
+     * @param detail_mesh_data ’Ç‰Áæ‚ÌÚ×ƒƒbƒVƒ…B
+     */
     void AppendUniformDetailTriangle(
         const NavigationCompactHeightfield& heightfield,const NavigationConfig& config,
         const Vec3& a,const Vec3& b,const Vec3& c,uint32 region_id,NavigationDetailMeshData& detail_mesh_data) const;
+    /**
+     * @brief OŠpŒ`‚ª’nŒ`‚©‚ç‚Ç‚ê‚¾‚¯—£‚ê‚Ä‚¢‚é‚©‚ÌÅ‘å’l‚ğ‹‚ß‚éB
+     * @param heightfield ‚‚³‚ÌQÆŒ³‚É‚È‚éƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     * @param a OŠpŒ`‚Ì’¸“_B
+     * @param b OŠpŒ`‚Ì’¸“_B
+     * @param c OŠpŒ`‚Ì’¸“_B
+     * @param region_id ‚‚³‚ğQÆ‚·‚é—Ìˆæ‚Ì IDB
+     * @param out_position Å‚à—£‚ê‚Ä‚¢‚½ˆÊ’uB
+     * @return ‚‚³‚Ì·‚ÌÅ‘å’lB
+     */
     float CalcDetailTriangleMaxPenetration(
         const NavigationCompactHeightfield& heightfield, const NavigationConfig& config,
         const Vec3& a, const Vec3& b, const Vec3& c, uint32 region_id,
         Vec3& out_position) const;
+    /**
+     * @brief w’èƒZƒ‹‚Ìü•Ó‚©‚çAŠî€‚Ì‚‚³‚ÉÅ‚à‹ß‚¢°–Ê‚Ì‚‚³‚ğ’T‚·B
+     * @param heightfield ‘ÎÛ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param cell_x ƒZƒ‹‚Ì X À•WB
+     * @param cell_z ƒZƒ‹‚Ì Z À•WB
+     * @param region_id ‘ÎÛ‚Ì—Ìˆæ IDB
+     * @param reference_height Šî€‚Æ‚È‚é‚‚³B
+     * @param out_height Œ©‚Â‚©‚Á‚½‚‚³B
+     * @return Œ©‚Â‚©‚Á‚½ê‡‚Í trueB
+     */
     bool TryGetClosestSpanFloorHeight(const NavigationCompactHeightfield& heightfield, int32 cell_x, int32 cell_z,
                                       uint32 region_id, float reference_height, float& out_height) const;
-    void AppendAdaptiveDetailTriangle(const NavigationCompactHeightfield& heightfield, const NavigationConfig& config,
-                                      const Vec3& a, const Vec3& b, const Vec3& c, uint32 region_id,
-                                      uint32 subdivision_depth, NavigationDetailMeshData& detail_mesh_data) const;
+    /**
+     * @brief w’è‚µ‚½ƒ[ƒ‹ƒhÀ•W‚Ì’n–Ê‚Ì‚‚³‚ğ‹‚ß‚éB
+     * @param heightfield ‘ÎÛ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param world_x ƒTƒ“ƒvƒ‹‚·‚é X À•WB
+     * @param world_z ƒTƒ“ƒvƒ‹‚·‚é Z À•WB
+     * @param region_id ‘ÎÛ‚Ì—Ìˆæ IDB
+     * @param reference_height Šî€‚Æ‚È‚é‚‚³B
+     * @param out_height ‹‚ß‚½‚‚³B
+     * @param max_height_diff Šî€‚Ì‚‚³‚©‚ç‹–—e‚·‚é·B
+     * @return ‚‚³‚ª‹‚Ü‚Á‚½ê‡‚Í trueB
+     */
     bool TrySampleSurfaceHeight(const NavigationCompactHeightfield& heightfield,
                                 float world_x, float world_z, uint32 region_id, float reference_height, float& out_height, float max_height_diff) const;
+    /**
+     * @brief •Â‚¶‚½’nŒ`‚ğA–Ê‚Å‚Í‚È‚­’†g‚Ì‹l‚Ü‚Á‚½—§‘Ì‚Æ‚µ‚Äƒ{ƒNƒZƒ‹‰»‚·‚éB
+     * @param geometry ‘‚«‚Ş’nŒ`B
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     * @param heightfield ‘‚«‚İæ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @return ‘‚«‚İ‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool RasterizeSolidGeometry(const NavigationGeometry& geometry, const NavigationConfig& config,
                                 NavigationHeightfield& heightfield) const;
+    /**
+     * @brief 1 ƒZƒ‹•ª‚ÌŒğ“_—ñ‚©‚çA—§‘Ì‚Ìè—L‹æŠÔ‚ğ‹‚ß‚Ä‘‚«‚ŞB
+     * @param x ƒZƒ‹‚Ì X À•WB
+     * @param z ƒZƒ‹‚Ì Z À•WB
+     * @param intersections ‚»‚ÌƒZƒ‹‚ÅW‚ß‚½Œğ“_—ñB
+     * @param heightfield ‘‚«‚İæ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @return ‘‚«‚İ‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool RasterizeSolidCell(uint32 x, uint32 z, std::vector<SolidIntersection>& intersections,
                             NavigationHeightfield& heightfield) const;
+    /**
+     * @brief ŠeƒZƒ‹‚Ì’†S‚©‚ç‚’¼‚ÉL‚Î‚µ‚½ü‚Æ’nŒ`‚ÌŒğ“_‚ğW‚ß‚éB
+     * @param geometry ‘ÎÛ‚Ì’nŒ`B
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     * @param heightfield ƒZƒ‹”z’u‚ÌŠî€‚É‚È‚éƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param out_cell_intersections ƒZƒ‹‚²‚Æ‚ÌŒğ“_—ñB
+     * @return ûW‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool CollectSolidIntersections(const NavigationGeometry& geometry, const NavigationConfig& config,
                                    const NavigationHeightfield& heightfield,
                                    std::vector<std::vector<SolidIntersection>>& out_cell_intersections) const;
+    /**
+     * @brief OŠpŒ`‚Æ‚’¼‚È’¼ü‚Æ‚ÌŒğ“_‚Ì‚‚³‚ğ‹‚ß‚éB
+     * @param triangle ‘ÎÛ‚ÌOŠpŒ`B
+     * @param sample_x ’¼ü‚Ì X À•WB
+     * @param sample_z ’¼ü‚Ì Z À•WB
+     * @param out_height Œğ“_‚Ì‚‚³B
+     * @return Œğ‚í‚éê‡‚Í trueB
+     */
     bool TryCalcVerticalIntersectionHeight(const Triangle& triangle, float sample_x, float sample_z,
                                            float& out_height) const;
+    /**
+     * @brief ’nŒ`‚ª•Â‚¶‚½—§‘Ì‚©‚Ç‚¤‚©‚ğ’²‚×‚éB
+     * @param geometry ‘ÎÛ‚Ì’nŒ`B
+     * @return ‘S‚Ä‚Ì•Ó‚ª 2 –‡‚Ì–Ê‚Å‹¤—L‚³‚ê‚Ä‚¢‚éê‡‚Í trueB
+     */
     bool IsClosedGeometry(const NavigationGeometry& geometry) const;
-    void FilterUnreachableRegions(NavigationCompactHeightfield& heightfield) const;
+    /**
+     * @brief ƒZƒ‹‚ÌŠp‚É‚ ‚½‚éˆÊ’u‚Ì’n–Ê‚Ì‚‚³‚ğ‹‚ß‚éB
+     * @param heightfield ‘ÎÛ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param corner_x Šp‚Ì X À•WB
+     * @param corner_z Šp‚Ì Z À•WB
+     * @param region_id ‘ÎÛ‚Ì—Ìˆæ IDB
+     * @param ref_height Šî€‚Æ‚È‚é‚‚³B
+     * @param max_height_diff Šî€‚Ì‚‚³‚©‚ç‹–—e‚·‚é·B
+     * @return ‹‚ß‚½‚‚³B
+     */
     float CalcSurfaceCornerHeight(const NavigationCompactHeightfield& heightfield, int32 corner_x, int32 corner_z,
                                   uint32 region_id, float ref_height, float max_height_diff) const;
+    /**
+     * @brief XZ •½–Ê‚Å‚Ìƒ|ƒŠƒSƒ“‚Ì–ÊÏ‚ğ‹‚ß‚éB
+     * @param vertices ƒ|ƒŠƒSƒ“‚Ì’¸“_—ñB
+     * @return –ÊÏB
+     */
     float CalcPolygonAreaXZ(const std::vector<Vec3>& vertices) const;
-    bool BuildPolygonAdjacency(NavigationMeshData& mesh_data) const;
+    /**
+     * @brief Šeƒ|ƒŠƒSƒ“‚Ì•Ó‚ÉA•Ó‚ğ‹¤—L‚·‚é—×Úƒ|ƒŠƒSƒ“‚ğŠ„‚è“–‚Ä‚éB
+     * @param mesh_data ‘ÎÛ‚Ì NavMeshB
+     */
+    void BuildPolygonAdjacency(NavigationMeshData& mesh_data) const;
+    /**
+     * @brief —ÖŠs‚Ì’¸“_‚É‘Î‰‚·‚é NavMesh ‚Ì’¸“_‚ğ•Ô‚·B‚Ü‚¾–³‚¯‚ê‚Î’Ç‰Á‚·‚éB
+     * @param contour_vertex Œ³‚É‚È‚é—ÖŠs‚Ì’¸“_B
+     * @param heightfield ƒZƒ‹À•W‚©‚çƒ[ƒ‹ƒhÀ•W‚Ö‚Ì•ÏŠ·‚Ég‚¤ƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param mesh_data ‘ÎÛ‚Ì NavMeshB
+     * @return ’¸“_‚ÌƒCƒ“ƒfƒbƒNƒXB
+     */
     uint32 FindOrAddNavigationMeshVertex(const NavigationContourVertex& contour_vertex,
                                          const NavigationCompactHeightfield& heightfield,
                                          NavigationMeshData& mesh_data) const;
+    /**
+     * @brief —ÖŠs‚Ì’¸“_‚ÌƒZƒ‹À•W‚ğƒ[ƒ‹ƒhÀ•W‚É•ÏŠ·‚·‚éB
+     * @param vertex •ÏŠ·‚·‚é—ÖŠs‚Ì’¸“_B
+     * @param heightfield •ÏŠ·‚ÌŠî€‚É‚È‚éƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @return ƒ[ƒ‹ƒhÀ•WB
+     */
     Vec3 ConvertContourVertexToWorld(const NavigationContourVertex& vertex,
                                      const NavigationCompactHeightfield& heightfield) const;
+    /**
+     * @brief —ÖŠs‚ğOŠpŒ`•ªŠ„‚µA—×‚è‡‚¤OŠpŒ`‚ğ‚Ü‚Æ‚ß‚Ä“Êƒ|ƒŠƒSƒ“‚É‚·‚éB
+     * @param contour Œ³‚É‚È‚é—ÖŠsB
+     * @param max_vertex_count 1 ‚Â‚Ìƒ|ƒŠƒSƒ“‚ª‚Ä‚é’¸“_”‚ÌãŒÀB
+     * @param out_poly ì¬‚µ‚½ƒ|ƒŠƒSƒ“‚Ìˆê——B
+     * @return •ªŠ„‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool BuildContourPolygons(const NavigationContour& contour, uint32 max_vertex_count,
                               std::vector<NavigationContourPolygon>& out_poly) const;
+    /**
+     * @brief 2 ‚Â‚Ìƒ|ƒŠƒSƒ“‚ğA“Ê«‚Æ’¸“_”‚ÌğŒ‚ğ–‚½‚·ê‡‚ÉŒ‹‡‚·‚éB
+     * @param contour ’¸“_‚ÌQÆŒ³‚É‚È‚é—ÖŠsB
+     * @param fir Œ‹‡‚·‚éƒ|ƒŠƒSƒ“B
+     * @param sec Œ‹‡‚·‚éƒ|ƒŠƒSƒ“B
+     * @param max_vertex_count Œ‹‡Œã‚É‹–‚³‚ê‚é’¸“_”‚ÌãŒÀB
+     * @param out_merged Œ‹‡‚µ‚½ƒ|ƒŠƒSƒ“B
+     * @return Œ‹‡‚Å‚«‚½ê‡‚Í trueB
+     */
     bool TryMergeContourPolygons(const NavigationContour& contour, const NavigationContourPolygon& fir,
                                  const NavigationContourPolygon& sec, uint32 max_vertex_count,
                                  NavigationContourPolygon& out_merged) const;
+    /**
+     * @brief ƒ|ƒŠƒSƒ“‚ª“Ê‚©‚Ç‚¤‚©‚ğ’²‚×‚éB
+     * @param contour ’¸“_‚ÌQÆŒ³‚É‚È‚é—ÖŠsB
+     * @param polygon ’²‚×‚éƒ|ƒŠƒSƒ“B
+     * @return “Ê‚Å‚ ‚éê‡‚Í trueB
+     */
     bool IsContourPolygonConvex(const NavigationContour& contour, const NavigationContourPolygon& polygon) const;
+    /**
+     * @brief 2 ‚Â‚Ìƒ|ƒŠƒSƒ“‚ª‹¤—L‚·‚é•Ó‚ğ’T‚·B
+     * @param fir ˆê•û‚Ìƒ|ƒŠƒSƒ“B
+     * @param sec ‚à‚¤ˆê•û‚Ìƒ|ƒŠƒSƒ“B
+     * @param out_fir_index fir ‘¤‚Ì•Ó‚ÌˆÊ’uB
+     * @param out_sec_index sec ‘¤‚Ì•Ó‚ÌˆÊ’uB
+     * @return ‹¤—L•Ó‚ª‚ ‚éê‡‚Í trueB
+     */
     bool FindSharedPolygonEdge(const NavigationContourPolygon& fir, const NavigationContourPolygon& sec,
                                uint32& out_fir_index, uint32& out_sec_index) const;
+    /**
+     * @brief ¨Š ‚èæ‚è–@‚Å—ÖŠs‚ğOŠpŒ`‚É•ªŠ„‚·‚éB
+     * @param contour •ªŠ„‚·‚é—ÖŠsB
+     * @param triangles •ªŠ„‚µ‚Ä‚Å‚«‚½OŠpŒ`‚Ìˆê——B
+     * @return •ªŠ„‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool TriangulateContour(const NavigationContour& contour, std::vector<NavigationContourTriangle>& triangles) const;
+    /**
+     * @brief w’èˆÊ’u‚Ì’¸“_‚ªAØ‚è—‚Æ‚¹‚é¨‚©‚Ç‚¤‚©‚ğ’²‚×‚éB
+     * @param contour ‘ÎÛ‚Ì—ÖŠsB
+     * @param remaining_indices ‚Ü‚¾Ø‚è—‚Æ‚µ‚Ä‚¢‚È‚¢’¸“_‚Ì•À‚ÑB
+     * @param remaining_position ’²‚×‚é’¸“_‚ÌˆÊ’uB
+     * @return ¨‚Å‚ ‚éê‡‚Í trueB
+     */
     bool IsContourEar(const NavigationContour& contour, const std::vector<uint32>& remaining_indices,
                       uint32 remaining_position) const;
+    /**
+     * @brief XZ •½–Ê‚ÅA“_‚ªOŠpŒ`‚Ì“à‘¤‚Ü‚½‚Í•Óã‚É‚ ‚é‚©‚ğ’²‚×‚éB
+     * @param point ’²‚×‚é“_B
+     * @param a OŠpŒ`‚Ì’¸“_B
+     * @param b OŠpŒ`‚Ì’¸“_B
+     * @param c OŠpŒ`‚Ì’¸“_B
+     * @return “à‘¤‚Ü‚½‚Í•Óã‚É‚ ‚éê‡‚Í trueB
+     */
     bool IsPointInsideOrOnTriangleXZ(const NavigationContourVertex& point, const NavigationContourVertex& a,
                                      const NavigationContourVertex& b, const NavigationContourVertex& c) const;
+    /**
+     * @brief ŒŠ‚ğ•\‚·—ÖŠs‚ğA‚»‚ê‚ğˆÍ‚ŞŠOü‚Ì—ÖŠs‚É‹´“n‚µ‚µ‚Ä 1 –{‚É‚Ü‚Æ‚ß‚éB
+     * @param contours ‘ÎÛ‚Ì—ÖŠs‚Ìˆê——BŒŠ‚Íæ‚èœ‚©‚ê‚éB
+     * @return “‡‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool MergeContourHoles(std::vector<NavigationContour>& contours) const;
+    /**
+     * @brief ŒŠ‚ğˆÍ‚ñ‚Å‚¢‚éŠOü‚Ì—ÖŠs‚ğ’T‚·B
+     * @param hole ŒŠ‚ğ•\‚·—ÖŠsB
+     * @param contours ’Tõ‘ÎÛ‚Ì—ÖŠs‚Ìˆê——B
+     * @param outer_index Œ©‚Â‚©‚Á‚½ŠOü‚Ì—ÖŠs‚ÌˆÊ’uB
+     * @return Œ©‚Â‚©‚Á‚½ê‡‚Í trueB
+     */
     bool FindContainingOuterContour(const NavigationContour& hole, const std::vector<NavigationContour>& contours,
                                     uint32& outer_index) const;
-    bool MergeHoleIntoContour(NavigationContour& outer, const NavigationContour& hole,
+    /**
+     * @brief ŒŠ‚Ì—ÖŠs‚ğAw’è‚µ‚½’¸“_‚Ì‘g‚ÅŠOü‚Ì—ÖŠs‚É‚Â‚È‚®B
+     * @param outer ‚Â‚È‚¬æ‚ÌŠOü‚Ì—ÖŠsB
+     * @param hole ‚Â‚È‚®ŒŠ‚Ì—ÖŠsB
+     * @param outer_index ŠOü‘¤‚Ì‚Â‚È‚®’¸“_B
+     * @param hole_index ŒŠ‘¤‚Ì‚Â‚È‚®’¸“_B
+     */
+    void MergeHoleIntoContour(NavigationContour& outer, const NavigationContour& hole,
                               uint32 outer_index, uint32 hole_index) const;
+    /**
+     * @brief ŒŠ‚ÆŠOü‚ğ‚Â‚È‚°‚éAŒİ‚¢‚ÉŒ©’Ê‚¹‚é’¸“_‚Ì‘g‚ğ’T‚·B
+     * @param outer ŠOü‚Ì—ÖŠsB
+     * @param hole_contour ŒŠ‚Ì—ÖŠsB
+     * @param out_outer_index ŠOü‘¤‚Ì’¸“_B
+     * @param out_hole_index ŒŠ‘¤‚Ì’¸“_B
+     * @return Œ©‚Â‚©‚Á‚½ê‡‚Í trueB
+     */
     bool FindHoleBridge(const NavigationContour& outer, const NavigationContour& hole_contour,
                         uint32& out_outer_index, uint32& out_hole_index) const;
+    /**
+     * @brief 2 ’¸“_‚ğŒ‹‚Ôü‚ªA—ÖŠs‚Ì•Ó‚ÆŒğ·‚¹‚¸‚Éˆø‚¯‚é‚©‚ğ’²‚×‚éB
+     * @param outer ŠOü‚Ì—ÖŠsB
+     * @param outer_index ŠOü‘¤‚Ì’¸“_B
+     * @param hole_contour ŒŠ‚Ì—ÖŠsB
+     * @param hole_index ŒŠ‘¤‚Ì’¸“_B
+     * @return Œğ·‚¹‚¸‚Éˆø‚¯‚éê‡‚Í trueB
+     */
     bool IsHoleBridgeVisible(const NavigationContour& outer, uint32 outer_index,
                              const NavigationContour& hole_contour, uint32 hole_index) const;
+    /**
+     * @brief XZ •½–Ê‚Å 2 ‚Â‚Ìü•ª‚ªŒğ·‚·‚é‚©‚ğ’²‚×‚éB
+     * @param a ˆê•û‚Ìü•ª‚Ì’[“_B
+     * @param b ˆê•û‚Ìü•ª‚Ì’[“_B
+     * @param c ‚à‚¤ˆê•û‚Ìü•ª‚Ì’[“_B
+     * @param d ‚à‚¤ˆê•û‚Ìü•ª‚Ì’[“_B
+     * @return Œğ·‚·‚éê‡‚Í trueB
+     */
     bool DoSegmentsIntersectXZ(const NavigationContourVertex& a, const NavigationContourVertex& b,
                                const NavigationContourVertex& c, const NavigationContourVertex& d) const;
+    /**
+     * @brief XZ •½–Ê‚ÅA“_‚ªü•ªã‚É‚ ‚é‚©‚ğ’²‚×‚éB
+     * @param point ’²‚×‚é“_B
+     * @param start ü•ª‚Ìn“_B
+     * @param end ü•ª‚ÌI“_B
+     * @return ü•ªã‚É‚ ‚éê‡‚Í trueB
+     */
     bool IsPointOnSegmentXZ(const NavigationContourVertex& point, const NavigationContourVertex& start,
                             const NavigationContourVertex& end) const;
+    /**
+     * @brief XZ •½–Ê‚Å‚Ì•„†•t‚«–ÊÏ‚Ì 2 ”{‚ğA®”‚Ì‚Ü‚Ü‹‚ß‚éB
+     * @param a OŠpŒ`‚Ì’¸“_B
+     * @param b OŠpŒ`‚Ì’¸“_B
+     * @param c OŠpŒ`‚Ì’¸“_B
+     * @return •„†•t‚«–ÊÏ‚Ì 2 ”{B”½Œv‰ñ‚è‚È‚ç³‚É‚È‚éB
+     */
     int64 CalcTriangleSignedAreaTwiceXZ(const NavigationContourVertex& a, const NavigationContourVertex& b,
                                         const NavigationContourVertex& c) const;
+    /**
+     * @brief “_‚ª—ÖŠs‚Ì“à‘¤‚É‚ ‚é‚©‚ğ’²‚×‚éB
+     * @param point ’²‚×‚é“_B
+     * @param contour ‘ÎÛ‚Ì—ÖŠsB
+     * @return “à‘¤‚É‚ ‚éê‡‚Í trueB
+     */
     bool IsPointInsideContour(const NavigationContourVertex& point, const NavigationContour& contour) const;
+    /**
+     * @brief —ÖŠs‚Ì•„†•t‚«–ÊÏ‚Ì 2 ”{‚ğ‹‚ß‚éB
+     * @param contour ‘ÎÛ‚Ì—ÖŠsB
+     * @return •„†•t‚«–ÊÏ‚Ì 2 ”{B”½Œv‰ñ‚è‚È‚ç³AŒŠ‚È‚ç•‰‚É‚È‚éB
+     */
     int64 CalcContourSignedAreaTwice(const NavigationContour& contour) const;
+    /**
+     * @brief —ÖŠs‚©‚çAŒ`‚ğ‚Ù‚Ú•Û‚Ä‚é”ÍˆÍ‚Å’¸“_‚ğŠÔˆø‚­B
+     * @param raw_contour Œ³‚É‚È‚é—ÖŠsB
+     * @param max_error_in_cells XZ •ûŒü‚É‹–—e‚·‚é‚¸‚êBƒZƒ‹”‚Åw’è‚·‚éB
+     * @param max_height_error_in_cells ‚‚³•ûŒü‚É‹–—e‚·‚é‚¸‚êBƒZƒ‹”‚Åw’è‚·‚éB
+     * @param max_edge_len 1 –{‚Ì•Ó‚Ì’·‚³‚ÌãŒÀB
+     * @param simplified_contour ŠÔˆø‚¢‚½Œã‚Ì—ÖŠsB
+     * @return ’Pƒ‰»‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool SimplifyContour(const NavigationContour& raw_contour, float max_error_in_cells,
                          float max_height_error_in_cells, float max_edge_len,
                          NavigationContour& simplified_contour) const;
+    /**
+     * @brief “_‚Æü•ª‚Ì‹——£‚Ì 2 æ‚ğ‹‚ß‚éB
+     * @param point ‘ÎÛ‚Ì“_B
+     * @param start ü•ª‚Ìn“_B
+     * @param end ü•ª‚ÌI“_B
+     * @return ‹——£‚Ì 2 æB
+     */
     float CalcPointToSegmentDistanceSquared(const NavigationContourVertex& point, const NavigationContourVertex& start,
                                             const NavigationContourVertex& end) const;
+    /**
+     * @brief “_‚Ì‚‚³‚ªAü•ª‚ğ•âŠÔ‚µ‚½‚‚³‚©‚ç‚Ç‚ê‚¾‚¯—£‚ê‚Ä‚¢‚é‚©‚ğ‹‚ß‚éB
+     * @param point ‘ÎÛ‚Ì“_B
+     * @param start ü•ª‚Ìn“_B
+     * @param end ü•ª‚ÌI“_B
+     * @return ‚‚³‚Ì·B
+     */
     float CalcPointToSegmentHeightError(const NavigationContourVertex& point,
                                         const NavigationContourVertex& start,
                                         const NavigationContourVertex& end) const;
+    /**
+     * @brief —ÖŠs‚Ì’¸“_‚É‚ ‚½‚éƒZƒ‹‚ÌŠp‚Ì‚‚³‚ğ‹‚ß‚éB
+     * @param heightfield ‘ÎÛ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param span_index Šî€‚Æ‚È‚éƒXƒpƒ“‚Ì’Ê‚µ”Ô†B
+     * @param direction Šp‚ğŒˆ‚ß‚é•ûŒüB
+     * @return ‹‚ß‚½‚‚³B
+     */
     uint32 CalcContourCornerHeight(const NavigationCompactHeightfield& heightfield, uint32 span_index,
                                    uint32 direction) const;
+    /**
+     * @brief —Ìˆæ‚Ì‹«ŠE‚ğ’H‚Á‚Ä—ÖŠs‚ğ 1 –{”²‚«o‚·B
+     * @param heightfield ‘ÎÛ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param start_x ’H‚èn‚ß‚éƒZƒ‹‚Ì X À•WB
+     * @param start_z ’H‚èn‚ß‚éƒZƒ‹‚Ì Z À•WB
+     * @param start_span_index ’H‚èn‚ß‚éƒXƒpƒ“‚Ì’Ê‚µ”Ô†B
+     * @param start_direction ’H‚èn‚ß‚é•ûŒüB
+     * @param boundary_masks ‹«ŠE‚Ì•Ó‚ğ‹L˜^‚µ‚½ƒ}ƒXƒNB’H‚Á‚½•Ó‚ÍÁ‚·B
+     * @param contour ”²‚«o‚µ‚½—ÖŠsB
+     * @return ’Šo‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool TraceRegionContour(const NavigationCompactHeightfield& heightfield, uint32 start_x, uint32 start_z,
                             uint32 start_span_index, uint32 start_direction, std::vector<uint8>& boundary_masks,
                             NavigationContour& contour) const;
+    /**
+     * @brief ŠeƒXƒpƒ“‚Ì 4 •ûŒü‚É‚Â‚¢‚ÄA‚»‚±‚ª—Ìˆæ‚Ì‹«ŠE‚©‚Ç‚¤‚©‚ğ’²‚×‚éB
+     * @param heightfield ‘ÎÛ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @return ƒXƒpƒ“‚²‚Æ‚Ì‹«ŠE‚ğ•\‚·ƒ}ƒXƒNB
+     */
     std::vector<uint8> BuildContourBoundaryMasks(NavigationCompactHeightfield& heightfield) const;
+    /**
+     * @brief ¬‚³‚·‚¬‚é—Ìˆæ‚ğA—×‚Ì—Ìˆæ‚É•¹‡‚·‚éB
+     * @param heightfield ‘ÎÛ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param next_id Œ»İ‚Ü‚Å‚ÉŠ„‚è“–‚Ä‚½—Ìˆæ ID ‚ÌŸ‚Ì’lB
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     */
     void MergeSmallRegions(NavigationCompactHeightfield& heightfield, uint32 next_id,
                            const NavigationConfig& config) const;
+    /**
+     * @brief •¹‡‚Å‚«‚È‚¢‚Ù‚Ç¬‚³‚­ŒÇ—§‚µ‚½—Ìˆæ‚ğæ‚èœ‚­B
+     * @param heightfield ‘ÎÛ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param next_region_id Œ»İ‚Ü‚Å‚ÉŠ„‚è“–‚Ä‚½—Ìˆæ ID ‚ÌŸ‚Ì’lB
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     */
     void FilterSmallRegions(NavigationCompactHeightfield& heightfield, uint32 next_region_id,
                             const NavigationConfig& config) const;
+    /**
+     * @brief Šù‘¶‚Ì—Ìˆæ‚ğAw’è‚µ‚½•Ç‚©‚ç‚Ì‹——£‚Ü‚ÅL‚°‚éB
+     * @param compact_heightfield ‘ÎÛ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param min_dist L‚°‚é”ÍˆÍ‚Ì‰ºŒÀ‚Æ‚È‚é•Ç‚©‚ç‚Ì‹——£B
+     */
     void ExpandRegionsAtLevel(NavigationCompactHeightfield& compact_heightfield, uint32 min_dist) const;
+    /**
+     * @brief ‚Ç‚Ì—Ìˆæ‚É‚à‘®‚³‚È‚¢°–Ê‚©‚çAV‚µ‚¢—Ìˆæ‚ğì‚éB
+     * @param heightfield ‘ÎÛ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param min_dist ‘ÎÛ‚É‚·‚é•Ç‚©‚ç‚Ì‹——£‚Ì‰ºŒÀB
+     * @param next_region_id Š„‚è“–‚Ä‚é—Ìˆæ IDBŠ„‚è“–‚Ä‚½•ª‚¾‚¯i‚ŞB
+     */
     void FloodNewRegionsAtLevel(NavigationCompactHeightfield& heightfield, uint32 min_dist,
                                 uint32& next_region_id) const;
+    /**
+     * @brief ƒG[ƒWƒFƒ“ƒg‚Ì”¼Œa‚Ì•ª‚¾‚¯A•à‚¯‚é”ÍˆÍ‚ğ•Ç‚©‚çí‚éB
+     * @param heightfield ‘ÎÛ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     */
     void ErodeWalkableArea(NavigationCompactHeightfield& heightfield, const NavigationConfig& config);
+    /**
+     * @brief —×‚è‡‚¤°–Ê‚Ì‚¤‚¿A’i·‚ğ‰z‚¦‚ç‚ê‚é‚à‚Ì‚ğÚ‘±‚·‚éB
+     * @param heightfield ‘ÎÛ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     * @return Ú‘±‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool BuildCompactConnections(NavigationCompactHeightfield& heightfield, const NavigationConfig& config);
+    /**
+     * @brief ŠR‚Ì‚Ó‚¿‚É‚ ‚½‚éƒXƒpƒ“‚ğ•às•s‰Â‚É‚·‚éB
+     * @param heightfield ‘ÎÛ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     */
     void FilterLedgeSpans(NavigationHeightfield& heightfield, const NavigationConfig& config);
+    /**
+     * @brief “ªã‚ª‹·‚­‚Ä’Ê‚ê‚È‚¢ƒXƒpƒ“‚ğ•às•s‰Â‚É‚·‚éB
+     * @param heightfield ‘ÎÛ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param config \’zƒpƒ‰ƒ[ƒ^B
+     */
     void FilterLowCeilingSpans(NavigationHeightfield& heightfield, const NavigationConfig& config);
+    /**
+     * @brief ƒ[ƒ‹ƒh‹óŠÔ‚Ì‚‚³‚Ì”ÍˆÍ‚©‚çAƒZƒ‹’PˆÊ‚ÌƒXƒpƒ“‚ğì‚éB
+     * @param min_y ”ÍˆÍ‚Ì‰º’[B
+     * @param max_y ”ÍˆÍ‚Ìã’[B
+     * @param height ƒZƒ‹‚Ì‚İ•‚ÌŠî€‚É‚È‚éƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param is_walk •às‰Â”\‚Æ‚µ‚Äì‚éê‡‚Í trueB
+     * @param span ì¬‚µ‚½ƒXƒpƒ“B
+     * @return ì¬‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool CreateSpanFromHeightRange(float min_y, float max_y, const NavigationHeightfield& height,
                                    bool is_walk, NavigationSpan& span) const;
 
-    bool IsWalkableTriangle(const Triangle& tri, const NavigationConfig& config) const;
+    /**
+     * @brief ’nŒ`‚Ìw’èˆÊ’u‚ÌOŠpŒ`‚ğAƒ[ƒ‹ƒh‹óŠÔ‚É•ÏŠ·‚µ‚Äæ‚èo‚·B
+     * @param geometry ‘ÎÛ‚Ì’nŒ`B
+     * @param begin OŠpŒ`‚Ìæ“ª‚É‚ ‚½‚éƒCƒ“ƒfƒbƒNƒX‚ÌˆÊ’uB
+     * @return ƒ[ƒ‹ƒh‹óŠÔ‚ÌOŠpŒ`B
+     */
     Triangle GetWorldTriangle(const NavigationGeometry& geometry, uint32 begin) const;
+    /**
+     * @brief OŠpŒ`‚ğ•ï‚Ş²•½s‚È”ÍˆÍ‚ğ‹‚ß‚éB
+     * @param tri ‘ÎÛ‚ÌOŠpŒ`B
+     * @return OŠpŒ`‚ğ•ï‚Ş”ÍˆÍB
+     */
     Box CalcTriangleBounds(const Triangle& tri) const;
+    /**
+     * @brief w’è‚µ‚½”ÍˆÍ‚ªd‚È‚éƒZƒ‹‚Ì‘–¸”ÍˆÍ‚ğ‹‚ß‚éB
+     * @param b ‘ÎÛ‚Ì”ÍˆÍB
+     * @param height ƒZƒ‹”z’u‚ÌŠî€‚É‚È‚éƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param range ‹‚ß‚½ƒZƒ‹‚Ì”ÍˆÍB
+     * @return ”ÍˆÍ‚ªƒnƒCƒgƒtƒB[ƒ‹ƒh‚Æd‚È‚éê‡‚Í trueB
+     */
     bool CalcCellRange(const Box& b, const NavigationHeightfield& height, CellRange& range) const;
+    /**
+     * @brief 1 ƒZƒ‹‚ªè‚ß‚éƒ[ƒ‹ƒh‹óŠÔ‚Ì”ÍˆÍ‚ğ‹‚ß‚éB
+     * @param height ‘ÎÛ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @param x ƒZƒ‹‚Ì X À•WB
+     * @param z ƒZƒ‹‚Ì Z À•WB
+     * @return ƒZƒ‹‚Ì”ÍˆÍB
+     */
     Box CalcCellBounds(const NavigationHeightfield& height, uint32 x, uint32 z) const;
+    /**
+     * @brief OŠpŒ`‚ğƒZƒ‹‚Ì”ÍˆÍ‚ÅØ‚èæ‚éB
+     * @param tri Ø‚èæ‚éOŠpŒ`B
+     * @param b Ø‚èæ‚è‚Ég‚¤ƒZƒ‹‚Ì”ÍˆÍB
+     * @return Ø‚èæ‚Á‚Ä‚Å‚«‚½ƒ|ƒŠƒSƒ“‚Ì’¸“_—ñB
+     */
     std::vector<Vec3> ClipTriangleToCell(const Triangle& tri, const Box& b) const;
-    std::vector<Vec3> ClipPolygonAgainstMinX(const std::vector<Vec3>& vertices, float min_x) const;
-    std::vector<Vec3> ClipPolygonAgainstMaxX(const std::vector<Vec3>& vertices, float max_x) const;
-    std::vector<Vec3> ClipPolygonAgainstMinZ(const std::vector<Vec3>& vertices, float min_z) const;
-    std::vector<Vec3> ClipPolygonAgainstMaxZ(const std::vector<Vec3>& vertices, float max_z) const;
-    bool CalcPolygonHeightRange(const std::vector<Vec3>& vertices, float& low_height, float& high_height) const;
+    /**
+     * @brief ƒ|ƒŠƒSƒ“‚Ì‚‚³‚Ì”ÍˆÍ‚ğ‹‚ß‚éB
+     * @param vertices ‘ÎÛ‚Ìƒ|ƒŠƒSƒ“‚Ì’¸“_—ñB
+     * @param low_height ”ÍˆÍ‚Ì‰º’[B
+     * @param high_height ”ÍˆÍ‚Ìã’[B
+     */
+    void CalcPolygonHeightRange(const std::vector<Vec3>& vertices, float& low_height, float& high_height) const;
 };

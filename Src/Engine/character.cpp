@@ -1,16 +1,33 @@
-ï»¿#include "Components/skeletal_mesh.h"
+#include "Components/skeletal_mesh.h"
 #include "Components/animation_component.h"
 #include "Components/capsule_collider_comp.h"
 #include "world.h"
 #include "../Core/Math/intersect.h"
 
-// å…ƒ player_common.h ã®é‡åŠ›å®šæ•°ã€‚Engineå´ã¸ç§»ã™ãªã‚‰ã“ã®ãƒ˜ãƒƒãƒ€ã«å®šç¾©ã‚’ç§»å‹•ã™ã‚‹ã€‚
 #include "character.h"
-#include "../Play/Player/player_common.h" 
+// kJumpVel / kGravityUp / kFallMul ‚Ì’è‹`Œ³BEngine‘¤‚ÖˆÚ‚·‚È‚ç‚±‚ÌˆË‘¶‚ğØ‚éB
+#include "../Play/Player/player_common.h"
 #include "Components/static_mesh_component.h"
+
+namespace
+{
+    // ƒAƒjƒ[ƒVƒ‡ƒ“‚ğØ‚è‘Ö‚¦‚é‚Æ‚«‚Ì•âŠÔŠÔ(•b)B
+    // ’Z‚¢‚ÆØ‚è‘Ö‚í‚è‚ªd‚­A’·‚¢‚Æ“ü—Í‚Ö‚Ì”½‰‚ª“İ‚­Œ©‚¦‚éB
+    constexpr float kAnimationCrossFadeTime = 0.2f;
+    // Ú’n”»’è‚ÌƒŒƒC‚ğ‘«Œ³‚©‚ç‚¿ã‚°‚é‚‚³B
+    // ’i·‚ğ“o‚Á‚½’¼Œã‚È‚ÇA°‚É­‚µ‚ß‚è‚ñ‚¾ó‘Ô‚Å‚à°‚ğE‚¦‚é‚æ‚¤‚É‚·‚éB
+    constexpr float kGroundProbeUp = 0.5f;
+    // Ú’n‚Æ‚İ‚È‚·A‘«Œ³‚©‚ç°‚Ü‚Å‚Ì‹–—e‚·‚«ŠÔB
+    // 0‚É‚·‚é‚Æâ‚ğ‰º‚é‚Æ‚«‚ÉÚ’n‚Æ‹ó’†‚ªŒğŒİ‚ÉØ‚è‘Ö‚í‚Á‚Ä‚µ‚Ü‚¤B
+    constexpr float kGroundProbeMargin = 0.1f;
+    // ƒƒbƒVƒ…‚©‚çƒTƒCƒY‚ğæ‚ê‚È‚¢ê‡‚ÌƒJƒvƒZƒ‹‚Ì‚‚³‚Ì”¼•ªB
+    // ”h¶ƒNƒ‰ƒX‚ª SetCapsuleHalfSize ‚Åã‘‚«‚·‚é‘O’ñ‚Ìb’è’lB
+    constexpr float kDefaultCapsuleHalfHeight = 1.0f;
+}
 
 Character::Character(const std::string& mesh_path)
 {
+    // Šg’£q‚ÅŒ©‚½–Ú‚Ìì‚è•û‚ğ•ª‚¯‚éBƒXƒPƒ‹ƒ^ƒ‹‚È‚çƒAƒjƒ[ƒVƒ‡ƒ“‚à‚½‚¹‚éB
     const bool is_skeletal = mesh_path.ends_with(".skmesh");
     if (is_skeletal)
     {
@@ -18,25 +35,29 @@ Character::Character(const std::string& mesh_path)
         materials_ = std::make_unique<MaterialSlot>(sk->GetMaterialDecs());
         AddComponent<SkeletalMeshComponent>(sk, materials_.get());
         animation_ = AddComponent<AnimationComponent>();
-        SetupCapsule(sk);                       // ãƒ¡ãƒƒã‚·ãƒ¥ã‹ã‚‰ã‚µã‚¤ã‚ºå–å¾—
+        SetupCapsule(sk);                       // ƒƒbƒVƒ…‚©‚çƒTƒCƒYæ“¾
     }
     else
     {
         Mesh* mesh = MeshManager::Get().Load(mesh_path);
         materials_ = std::make_unique<MaterialSlot>(mesh->GetMaterialDesc());
         AddComponent<StaticMeshComponent>(mesh, materials_.get());
-        SetupCapsule(nullptr);                  // ã‚«ãƒ—ã‚»ãƒ«ã¯ãƒ‡ãƒ•ã‚©ãƒ«ãƒˆæ§‹ç¯‰
-        capsule_->SetHalfSize(Vec3(radius_, 1.0f, radius_)); // æ´¾ç”ŸãŒSetCapsuleHalfSizeã§ä¸Šæ›¸ã
+        // Ã“IƒƒbƒVƒ…‚©‚ç‚ÍƒJƒvƒZƒ‹‚Ì¡–@‚ğŒˆ‚ß‚ç‚ê‚È‚¢‚Ì‚ÅŠù’è’l‚Åì‚éB
+        SetupCapsule(nullptr);
+        capsule_->SetHalfSize(Vec3(radius_, kDefaultCapsuleHalfHeight, radius_));
     }
 }
 
 void Character::AddMovementInput(const Vec3& world_direction, float scale)
 {
+    // ÀÛ‚É“®‚©‚·‚Ì‚Í Tick ‘¤B‚±‚±‚Å‚Í‘«‚µ‚Ş‚¾‚¯‚È‚Ì‚ÅA
+    // 1ƒtƒŒ[ƒ€‚É•¡”‰ñŒÄ‚Î‚ê‚Ä‚à‡¬‚³‚ê‚½1‚Â‚Ì“ü—Í‚Æ‚µ‚Äˆµ‚í‚ê‚éB
     control_input_ += world_direction * scale;
 }
 
 void Character::Jump()
 {
+    // ‹ó’†‚Å‚Ì“ñ’iƒWƒƒƒ“ƒv‚ÆAƒWƒƒƒ“ƒv’†‚ÌÄ“ü—Í‚É‚æ‚éã¸‚Ì‚â‚è’¼‚µ‚ğ–h‚®B
     if (is_grounded_ && !pressed_jump_)
     {
         pressed_jump_ = true;
@@ -56,6 +77,8 @@ void Character::Tick(float dt)
         return;
     }
 
+    // Ú’n‚ğæ‚ÉŠm’è‚³‚¹‚Ä‚©‚çˆÚ“®‚ğ‰ğŒˆ‚·‚éB‡”Ô‚ğ“ü‚ê‘Ö‚¦‚é‚ÆA
+    // ’…’n‚µ‚½ƒtƒŒ[ƒ€‚É—‰º‘¬“x‚ªæ‚Á‚½‚Ü‚Ü‚É‚È‚è°‚É‚ß‚è‚ŞB
     UpdateGroundProbe();
 
     const Vec3 frame_move = ConsumeMovementInput(dt);
@@ -68,17 +91,16 @@ void Character::Tick(float dt)
 
 void Character::UpdateGroundProbe()
 {
-    // å…ƒ Player::Tick 60-74è¡Œã€‚è¶³å…ƒã¸ãƒ¬ã‚¤ã‚’æ’ƒã¡ã€ã“ã®ãƒ•ãƒ¬ãƒ¼ãƒ ã®é‡åŠ›å‡¦ç†å‰ã«æ¥åœ°ã‚’ç¢ºå®šã™ã‚‹ã€‚
-    constexpr float kProbeMargin = 0.1f;
-    constexpr float kProbeUp = 0.5f;
+    // ‘«Œ³‚Ö‰ºŒü‚«‚ÌƒŒƒC‚ğŒ‚‚¿A‚±‚ÌƒtƒŒ[ƒ€‚Ìd—Íˆ—‚æ‚è‘O‚ÉÚ’n‚ğŠm’è‚·‚éB
     Ray ray;
-    ray.origin = transform_.position + Vec3(0.0f, kProbeUp, 0.0f);
+    ray.origin = transform_.position + Vec3(0.0f, kGroundProbeUp, 0.0f);
     ray.direction = Vec3(0.0f, -1.0f, 0.0f);
-    ray.distance = kProbeUp + kProbeMargin;
+    ray.distance = kGroundProbeUp + kGroundProbeMargin;
     ContactInfo hit;
     is_grounded_ = GetWorld()->GetCollisionWorld().Raycast(ray, hit);
     if (is_grounded_)
     {
+        // °‚Ì‚‚³‚Ö‹z’…‚³‚¹A—‰º‘¬“x‚ğÌ‚Ä‚éB
         transform_.position.y = ray.origin.y - (hit.normal * hit.depth).y;
         vel_.y = 0.0f;
     }
@@ -86,21 +108,23 @@ void Character::UpdateGroundProbe()
 
 Vec3 Character::ConsumeMovementInput(float dt)
 {
-    // è“„ç©ã•ã‚ŒãŸå…¥åŠ›ã‚’æ­£è¦åŒ–ã—ã¦æ°´å¹³ç§»å‹•é‡ã‚’ä½œã‚‹ 
+    // ’~Ï‚³‚ê‚½“ü—Í‚ğ³‹K‰»‚µ‚Ä…•½ˆÚ“®—Ê‚ğì‚éB
+    // ³‹K‰»‚·‚é‚Ì‚ÅAÎ‚ß“ü—Í‚Å‘¬“x‚ª‘¬‚­‚È‚é‚±‚Æ‚Í‚È‚¢B
     Vec3 move;
     if (control_input_.LengthSquared() > kEpsilon)
     {
         const Vec3 dir = control_input_.Normalized();
         move.x = dir.x * move_speed_ * dt;
         move.z = dir.z * move_speed_ * dt;
-        transform_.rotation.y = atan2f(dir.x, dir.z); // é€²è¡Œæ–¹å‘ã¸ä½“ã‚’å‘ã‘ã‚‹
+        transform_.rotation.y = atan2f(dir.x, dir.z); // is•ûŒü‚Ö‘Ì‚ğŒü‚¯‚é
     }
 
+    // ƒWƒƒƒ“ƒv‚Ìã¸B‘¬“x‚ª0ˆÈ‰º‚É‚È‚Á‚½“_‚ª’¸“_‚ÅAˆÈ~‚Í‰º‚Ì—‰ºˆ—‚É”C‚¹‚éB
     if (pressed_jump_)
     {
         if (jump_vel_y_ <= 0.0f)
         {
-            pressed_jump_ = false; 
+            pressed_jump_ = false;
         }
         else
         {
@@ -108,8 +132,9 @@ Vec3 Character::ConsumeMovementInput(float dt)
             move.y += jump_vel_y_ * dt;
         }
     }
-    
-    // ã‚¸ãƒ£ãƒ³ãƒ—å…¥åŠ›ãŒãªã„ç©ºä¸­ã§ã¯è½ä¸‹é€Ÿåº¦ã‚’ç©åˆ†ã™ã‚‹ã€‚
+
+    // ƒWƒƒƒ“ƒv“ü—Í‚ª‚È‚¢‹ó’†‚Å‚Í—‰º‘¬“x‚ğÏ•ª‚·‚éB
+    // —‰º‚Í kFallMul ‚Åd—Í‚ğã‚ßAã¸‚æ‚èŠÉ‚â‚©‚É—‚¿‚é‚æ‚¤‚É‚µ‚Ä‚¢‚éB
     if (!pressed_jump_ && !is_grounded_)
     {
         vel_.y -= kGravityUp * kFallMul * dt;
@@ -121,6 +146,7 @@ Vec3 Character::ConsumeMovementInput(float dt)
     }
 
     transform_.position += move;
+    // Á”ï‚µ‚½‚Ì‚Å‹ó‚É‚·‚éBŸƒtƒŒ[ƒ€‚É“ü—Í‚ª‚È‚¯‚ê‚ÎˆÚ“®—Ê‚Í0‚É‚È‚éB
     control_input_ = Vec3();
     return move;
 }
@@ -129,14 +155,15 @@ void Character::UpdateLocomotionAnimation(const Vec3& frame_move, bool jumping)
 {
     if (animation_ == nullptr)
     {
-        return;   // è¦‹ãŸç›®ãªã—/StaticMeshã‚­ãƒ£ãƒ©ã¯ã‚¢ãƒ‹ãƒ¡é¸æŠãªã—
+        return;   // Œ©‚½–Ú‚È‚µ/StaticMeshƒLƒƒƒ‰‚ÍƒAƒjƒ‘I‘ğ‚È‚µ
     }
 
-    // å…ƒ Player::Tick 103-123è¡Œã€‚
     const bool just_landed = is_grounded_ && !was_grounded_;
     const bool landing_playing =
         (animation_name_ == CharaAnim::kLanding && animation_->IsPlaying());
 
+    // ã‚©‚ç‡‚É—Dæ“x‚ª‚‚¢B’…’n‚ÍÄ¶‚µI‚í‚é‚Ü‚Å‘¼‚ÖˆÚ‚ç‚È‚¢‚æ‚¤A
+    // ’…’n‚µ‚½uŠÔ‚¾‚¯‚Å‚È‚­Ä¶’†‚à‘I‚Ñ‘±‚¯‚éB
     std::string anim_name;
     if (jumping) anim_name = CharaAnim::kJump;
     else if (!is_grounded_) anim_name = CharaAnim::kFall;
@@ -148,14 +175,14 @@ void Character::UpdateLocomotionAnimation(const Vec3& frame_move, bool jumping)
     if (anim_name != animation_name_ && !anim_name.empty())
     {
         animation_name_ = anim_name;
-        animation_->CrossFade(anim_name, 0.2f);
+        animation_->CrossFade(anim_name, kAnimationCrossFadeTime);
     }
 }
 
 void Character::OnHit(ColliderComponent* /*self*/, Actor* /*other_actor*/,
                       ColliderComponent* /*other_coll*/, const ContactInfo& info)
 {
-    //æŠ¼ã—æˆ»ã—ã®ã¿è¡Œã„ã€æ¥åœ°åˆ¤å®šã¯Tickå†’é ­ã®ãƒ¬ã‚¤ã«ä»»ã›ã‚‹ã€‚
+    // ‰Ÿ‚µ–ß‚µ‚Ì‚İs‚¢AÚ’n”»’è‚ÍTick–`“ª‚ÌƒŒƒC‚É”C‚¹‚éB
     transform_.position += info.normal * info.depth;
 }
 

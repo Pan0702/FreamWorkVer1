@@ -1,24 +1,89 @@
-ï»¿#pragma once
+#pragma once
 #include <vector>
 #include "navigation_span.h"
 #include "../../Core/Math/intersect.h"
 
 class NavigationHeightfield;
 
+/**
+ * @brief •às‰Â”\‚È°–Ê‚¾‚¯‚ğ”²‚«o‚µ‚½A—×Úî•ñ•t‚«‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒhB
+ *
+ * NavigationHeightfield ‚ª—§‘Ì‚Ìè—L‹æŠÔ‚ğ‚Â‚Ì‚É‘Î‚µA‚±‚¿‚ç‚Í°–Ê‚¾‚¯‚ğ
+ * 1 –{‚Ì”z—ñ‚É‚Ü‚Æ‚ß‚Ä‚¿AŠeƒZƒ‹‚Í‚»‚Ì”ÍˆÍ‚ğw‚·B—Ìˆæ•ªŠ„‚â—ÖŠs’Šo‚Í
+ * ‚±‚ÌŒ`®‚Ìã‚Ås‚¤B
+ */
 class NavigationCompactHeightfield
 {
 public:
+    /**
+     * @brief ƒ{ƒNƒZƒ‹‰»Ï‚İ‚ÌƒnƒCƒgƒtƒB[ƒ‹ƒh‚©‚çA•às‰Â”\‚È°–Ê‚ğæ‚èo‚·B
+     * @param source_heightfield Œ³‚É‚È‚éƒnƒCƒgƒtƒB[ƒ‹ƒhB
+     * @return ‰Šú‰»‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool Initialize(const NavigationHeightfield& source_heightfield);
+    /**
+     * @brief w’è‚µ‚½ƒZƒ‹‚É°–ÊƒXƒpƒ“‚ğ’Ç‰Á‚·‚éB
+     * @param x ƒZƒ‹‚Ì X À•WB
+     * @param z ƒZƒ‹‚Ì Z À•WB
+     * @param span ’Ç‰Á‚·‚éƒXƒpƒ“B
+     * @return ’Ç‰Á‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool AddSpan(uint32 x, uint32 z, const NavigationCompactSpan& span);
+    /**
+     * @brief w’è‚µ‚½ŠiqÀ•W‚ÌƒZƒ‹‚ğæ“¾‚·‚éB
+     * @param x ƒZƒ‹‚Ì X À•WB
+     * @param z ƒZƒ‹‚Ì Z À•WB
+     * @return ŠY“–‚·‚éƒZƒ‹B”ÍˆÍŠO‚Ìê‡‚Í nullptrB
+     */
     NavigationCompactCell* GetCell(uint32 x, uint32 z);
+    /**
+     * @brief w’è‚µ‚½ŠiqÀ•W‚ÌƒZƒ‹‚ğæ“¾‚·‚éB
+     * @param x ƒZƒ‹‚Ì X À•WB
+     * @param z ƒZƒ‹‚Ì Z À•WB
+     * @return ŠY“–‚·‚éƒZƒ‹B”ÍˆÍŠO‚Ìê‡‚Í nullptrB
+     */
     const NavigationCompactCell* GetCell(uint32 x, uint32 z) const;
+    /**
+     * @brief ’Ê‚µ”Ô†‚ÅƒXƒpƒ“‚ğæ“¾‚·‚éB
+     * @param span_index ƒXƒpƒ“‚Ì’Ê‚µ”Ô†B
+     * @return ŠY“–‚·‚éƒXƒpƒ“B”ÍˆÍŠO‚Ìê‡‚Í nullptrB
+     */
     NavigationCompactSpan* GetSpan(uint32 span_index);
+    /**
+     * @brief ’Ê‚µ”Ô†‚ÅƒXƒpƒ“‚ğæ“¾‚·‚éB
+     * @param span_index ƒXƒpƒ“‚Ì’Ê‚µ”Ô†B
+     * @return ŠY“–‚·‚éƒXƒpƒ“B”ÍˆÍŠO‚Ìê‡‚Í nullptrB
+     */
     const NavigationCompactSpan* GetSpan(uint32 span_index) const;
+    /**
+     * @brief ‚‚³•ûŒü‚ÌƒZƒ‹‚Ì‚İ•‚ğæ“¾‚·‚éB
+     * @return ‚‚³‚Ì‚İ•B
+     */
     float GetCellHeight() const;
+    /**
+     * @brief X •ûŒü‚ÌƒZƒ‹”‚ğæ“¾‚·‚éB
+     * @return ƒZƒ‹”B
+     */
     uint32 GetWidth() const;
+    /**
+     * @brief Z •ûŒü‚ÌƒZƒ‹”‚ğæ“¾‚·‚éB
+     * @return ƒZƒ‹”B
+     */
     uint32 GetDepth() const;
+    /**
+     * @brief XZ •ûŒü‚ÌƒZƒ‹‚Ìˆê•Ó‚Ì’·‚³‚ğæ“¾‚·‚éB
+     * @return ƒZƒ‹‚Ìˆê•Ó‚Ì’·‚³B
+     */
     float GetCellSize() const;
+    /**
+     * @brief ƒ{ƒNƒZƒ‹‰»‚µ‚½”ÍˆÍ‚ğæ“¾‚·‚éB
+     * @return ƒ[ƒ‹ƒh‹óŠÔ‚Å‚Ì”ÍˆÍB
+     */
     const Box& GetWorldBounds() const;
+    /**
+     * @brief ‘S‚Ä‚Ì°–ÊƒXƒpƒ“‚ğæ“¾‚·‚éB
+     * @return ƒXƒpƒ“‚Ì”z—ñBƒZƒ‹‚Í‚±‚Ì”z—ñ‚Ö‚Ì”ÍˆÍ‚Æ‚µ‚Ä°–Ê‚ğw‚·B
+     */
     const std::vector<NavigationCompactSpan>& GetSpans() const;
 private:
     std::vector<NavigationCompactCell> cells_;

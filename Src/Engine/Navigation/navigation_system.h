@@ -1,4 +1,4 @@
-ï»¿#pragma once
+#pragma once
 #include <vector>
 
 #include "navigation_config.h"
@@ -8,28 +8,83 @@
 
 class NavigationSourceComponent;
 
+/**
+ * @brief World ‚ª•Û‚·‚é NavMesh ‚Ì¶¬‚ÆŒo˜H’Tõ‚Ì‘‹ŒûB
+ *
+ * NavMesh ‚ÌŒ³‚É‚È‚é’nŒ`‚Í NavigationSourceComponent ‚ª“o˜^‚·‚éB
+ * “o˜^‚³‚ê‚½’nŒ`‚©‚ç Rebuild ‚Å NavMesh ‚ğ\’z‚µAˆÈ~‚Ì FindPath ‚Ég‚¤B
+ */
 class NavigationSystem
 {
 public:
+    /**
+     * @brief NavMesh ‚ÌŒ³‚É‚È‚é’nŒ`‚ğ“o˜^‚·‚éB
+     * @param component ’nŒ`‚ğ’ñ‹Ÿ‚·‚éƒRƒ“ƒ|[ƒlƒ“ƒgB
+     * @return “o˜^‚ğ¯•Ê‚·‚é IDB‰ğœ‚Ég‚¤B
+     */
     uint32 RegisterSource(NavigationSourceComponent* component);
+    /**
+     * @brief “o˜^Ï‚İ‚Ì’nŒ`‚ğ‰ğœ‚·‚éB
+     * @param source_id RegisterSource ‚ª•Ô‚µ‚½ IDB
+     */
     void UnregisterSource(uint32 source_id);
+    /**
+     * @brief “o˜^‚³‚ê‚Ä‚¢‚é‘S‚Ä‚Ì’nŒ`‚ÌŒ`ó‚ğW‚ß‚éB
+     * @return NavMesh \’z‚Ég‚¤Œ`ó‚Ìˆê——B
+     */
     std::vector<NavigationGeometry> CollectGeometries() const;
+    /**
+     * @brief “o˜^‚³‚ê‚Ä‚¢‚é’nŒ`‚©‚ç NavMesh ‚ğì‚è’¼‚·B
+     * @param config ƒ{ƒNƒZƒ‹‰ğ‘œ“x‚âƒG[ƒWƒFƒ“ƒg¡–@‚È‚Ç‚Ì\’zƒpƒ‰ƒ[ƒ^B
+     * @return \’z‚É¬Œ÷‚µ‚½ê‡‚Í trueB
+     */
     bool Rebuild(const NavigationConfig& config);
+    /**
+     * @brief NavMesh ã‚Å 2 “_ŠÔ‚ÌŒo˜H‚ğ‹‚ß‚éB
+     * @param start_position o”­’n“_‚Ìƒ[ƒ‹ƒhÀ•WB
+     * @param goal_position –Ú“I’n‚Ìƒ[ƒ‹ƒhÀ•WB
+     * @param out_path ‹‚ß‚½Œo˜H‚Ì’Ê‰ß“_B
+     * @param out_polygon_path Œo˜H‚ª’Ê‚Á‚½ƒ|ƒŠƒSƒ“‚Ì—ñB•s—v‚È‚ç nullptrB
+     * @return Œo˜H‚ªŒ©‚Â‚©‚Á‚½ê‡‚Í trueB
+     */
     bool FindPath(const Vec3& start_position, const Vec3& goal_position,
                   std::vector<Vec3>& out_path,
                   std::vector<uint32>* out_polygon_path = nullptr) const;
+    /**
+     * @brief ‚‚³•ûŒü‚Ì’Ç]‚Ég‚¤Ú×ƒƒbƒVƒ…‚ğæ“¾‚·‚éB
+     * @return •Û‚µ‚Ä‚¢‚éÚ×ƒƒbƒVƒ…B
+     */
     const NavigationDetailMeshData& GetDetailMeshData() const;
+    /**
+     * @brief Œo˜H’Tõ‚Ég‚¤ƒ|ƒŠƒSƒ“ƒƒbƒVƒ…‚ğæ“¾‚·‚éB
+     * @return •Û‚µ‚Ä‚¢‚é NavMeshB
+     */
     const NavigationMeshData& GetMeshData() const;
+    /**
+     * @brief NavMesh ‚ÌŒ`ó‚ğƒfƒoƒbƒO•`‰æ‚·‚éB
+     */
     void DrawDebug() const;
+    /**
+     * @brief NavMesh ‚ÌƒfƒoƒbƒO•`‰æ‚Ì—LŒø–³Œø‚ğİ’è‚·‚éB
+     * @param enabled •`‰æ‚·‚éê‡‚Í trueB
+     */
     void SetDebugDrawEnabled(bool enabled) { debug_draw_enabled_ = enabled; }
+    /**
+     * @brief NavMesh ‚ÌƒfƒoƒbƒO•`‰æ‚ª—LŒø‚©‚Ç‚¤‚©‚ğæ“¾‚·‚éB
+     * @return —LŒø‚Èê‡‚Í trueB
+     */
     bool IsDebugDrawEnabled() const { return debug_draw_enabled_; }
 private:
-    bool debug_draw_enabled_ = false;
+    /**
+     * @brief “o˜^‚³‚ê‚½’nŒ`‚ÆA‰ğœ‚Ég‚¤ ID ‚Ì‘gB
+     */
     struct RegisteredSource
     {
         NavigationSourceComponent* component = nullptr;
         uint32 id = 0;
     };
+
+    bool debug_draw_enabled_ = false;
     std::vector<RegisteredSource> sources_;
     uint32 next_id_ = 1;
     NavigationMeshData mesh_data_;
