@@ -44,6 +44,7 @@ public:
      */
     PipelineState* Get(ShaderId shader,VertexFactoryId factory) const;
     
+    PipelineState* GetOutlinePSO() const;
 private:
     /**
      * @brief StaticŒnMesh‚ÆSkinned—p‚ÌRootSignature‚ğ1–{‚¸‚Â¶¬

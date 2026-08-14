@@ -32,6 +32,7 @@ void MeshRenderer::Render(ID3D12GraphicsCommandList* command_list, const std::ve
 {
     for (auto& object : render_objects)
     {
+        
         Mat wvp = Transpose(object->GetTransform() * camera->GetViewMatrix() * camera->GetProjectionMatrix());
         (void)wvp;
 
@@ -124,6 +125,13 @@ void MeshRenderer::Submit(RenderContext& context, const MeshDrawCommand& command
             continue;
         }
 
+        if (mat->GetShaderId() == ShaderId::kToonShader)
+        {
+            context.command_list->SetPipelineState(context.pso_cache->GetOutlinePSO()->GetPipelineState());
+            context.command_list->SetGraphicsRootConstantBufferView(ToIndex(StaticRootParam::kObjectCB), alloc.gpu);
+            context.command_list->DrawIndexedInstanced(sub.index_count, 1, sub.index_start, 0, 0);
+        }
+        
         // PSO と RootSignature はキャッシュから引く。シェーダは Material が決める。
         context.command_list->SetGraphicsRootSignature(
             context.pso_cache->GetRootSignature(VertexFactoryId::kStatic));

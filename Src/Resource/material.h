@@ -155,6 +155,6 @@ private:
     Vec4 mid_color_    = Vec4(0.75f, 0.72f, 0.78f, 0.0f);
     float threshold0_  = 0.3f;
     float threshold1_  = 0.7f;
-    float rim_power_    = 3.0f;
-    float rim_strength_ = 0.5f;
+    float rim_power_    = 5.0f;
+    float rim_strength_ = 1.0f;
 };

@@ -68,6 +68,11 @@ PipelineState* PipelineStateCache::Get(ShaderId shader, VertexFactoryId factory)
     return pso_[ToIndex(shader)][ToIndex(factory)].get();
 }
 
+PipelineState* PipelineStateCache::GetOutlinePSO() const
+{
+    return outline_pso_.get();  
+}
+
 bool PipelineStateCache::BuidRootSignature(ID3D12Device* device)
 {
     // static 系（Static/Instanced 共有）。t6 はインスタンス行列用の root SRV。
