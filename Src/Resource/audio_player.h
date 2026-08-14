@@ -31,10 +31,10 @@ public:
     
     /**
      * @brief 利用前に必要な参照とリソースを初期化する。
-     * @param xaudio2 ボイス作成に使う XAudio2 インスタンス。
+     * @param audio ボイス作成に使う XAudio2 インスタンス。
      * @return 必要なリソースを作成し、使用可能な状態にできた場合は true。
      */
-    bool Initialize(IXAudio2* xaudio2);
+    bool Initialize(IXAudio2* audio);
     /**
      * @brief ファイルや外部データを読み込んで内部表現へ変換する。
      * @param filename 読み書きするファイルパス。

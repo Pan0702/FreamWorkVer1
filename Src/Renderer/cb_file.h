@@ -44,6 +44,10 @@ namespace CB
         float metallic; // 1 = ‹à‘® //
         float roughness; // 0 = ‚Â‚é‚Â‚é@// 
         float height_scale; // 1 = “Ê‰š@// 
+        
+        Vec4 shadow_color;
+        Vec4 mid_color;
+        Vec4 toon_param;
     };
 
     /**

@@ -23,6 +23,8 @@ public:
      * @return マテリアル。見つからない、または未作成の場合は nullptr。
      */
     Material* GetMaterial(uint32_t index) const;
+    
+    void SetShaders(ShaderId id);
 private:
     std::vector<std::unique_ptr<Material>> materials_;
 };

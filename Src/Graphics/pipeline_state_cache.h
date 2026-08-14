@@ -8,6 +8,7 @@ class PipelineState;
 enum class ShaderId : uint32
 {
     kPbr,
+    kToonShader,
     kCount,
 };
 
@@ -34,7 +35,7 @@ public:
      * @param factory 取得したいRootSignatureのVertexFactory
      * @return 対応するRootSignature。なければNullptr
      */
-    ID3D12RootSignature* GetRootSignature(VertexFactoryId factory);
+    ID3D12RootSignature* GetRootSignature(VertexFactoryId factory) const;
     /**
      * @brief 生成済みの配列から指定した組み合わせのPSOを返す。
      * @param shader 使用するShader

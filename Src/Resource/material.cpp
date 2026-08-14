@@ -174,10 +174,44 @@ MaterialBinding Material::GetBinding() const
     binding.cb.metallic = metallic_;
     binding.cb.roughness = roughness_;
     binding.cb.height_scale = height_scale_;
+    binding.cb.shadow_color = shadow_color_;
+    binding.cb.mid_color    = mid_color_;
+    binding.cb.toon_param   = Vec4(threshold0_, threshold1_, rim_power_, rim_strength_);
     return binding;
 }
 
 ShaderId Material::GetShaderId() const
 {
     return shader_id_;
+}
+
+void Material::SetShaderId(ShaderId id)
+{
+    shader_id_ = id;
+}
+
+void Material::SetShadowColor(const Vec4& color)
+{
+    shadow_color_ = color;
+}
+
+void Material::SetMidColor(const Vec4& color)
+{
+    mid_color_ = color;
+}
+
+void Material::SetThreshold(float threshold0, float threshold1)
+{
+    threshold0_ = threshold0;
+    threshold1_ = threshold1;
+}
+
+void Material::SetRimPower(float power)
+{
+    rim_power_ = power;
+}
+
+void Material::SetRimStrength(float strength)
+{
+    rim_strength_ = strength;
 }

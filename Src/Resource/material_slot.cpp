@@ -19,3 +19,11 @@ Material* MaterialSlot::GetMaterial(uint32_t index) const
     }
     return materials_[index].get();
 }
+
+void MaterialSlot::SetShaders(ShaderId id)
+{
+    for (auto& material : materials_)
+    {
+        material->SetShaderId(id);
+    }   
+}

@@ -19,14 +19,14 @@ AudioPlayer::~AudioPlayer()
     DestroyVoice();
 }
 
-bool AudioPlayer::Initialize(IXAudio2* xaudio2)
+bool AudioPlayer::Initialize(IXAudio2* audio)
 {
-    if (xaudio2 == nullptr)
+    if (audio == nullptr)
     {
         return false;
     }
 
-    xaudio2_ = xaudio2;
+    xaudio2_ = audio;
     return true;
 }
 

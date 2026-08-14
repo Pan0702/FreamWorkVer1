@@ -131,6 +131,13 @@ public:
      */
     MaterialBinding GetBinding() const;
     ShaderId GetShaderId() const;
+    void SetShaderId(ShaderId id);
+    
+    void SetShadowColor(const Vec4& color);
+    void SetMidColor(const Vec4& color);
+    void SetThreshold(float threshold0, float threshold1);
+    void SetRimPower(float power);
+    void SetRimStrength(float strength);
 
 private:
     Texture2D* diffuse_ = nullptr;
@@ -143,4 +150,11 @@ private:
     float roughness_ = 0.8f;
     float metallic_ = 0.0f;
     float height_scale_ = 1.0f;
+    
+    Vec4 shadow_color_ = Vec4(0.35f, 0.32f, 0.45f, 0.0f);
+    Vec4 mid_color_    = Vec4(0.75f, 0.72f, 0.78f, 0.0f);
+    float threshold0_  = 0.3f;
+    float threshold1_  = 0.7f;
+    float rim_power_    = 3.0f;
+    float rim_strength_ = 0.5f;
 };

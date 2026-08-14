@@ -30,7 +30,7 @@ bool PipelineStateCache::Initialize(ID3D12Device* device)
     return true;
 }
 
-ID3D12RootSignature* PipelineStateCache::GetRootSignature(VertexFactoryId factory)
+ID3D12RootSignature* PipelineStateCache::GetRootSignature(VertexFactoryId factory) const
 {
     switch (factory)
     {
@@ -121,6 +121,7 @@ bool PipelineStateCache::BuildPipelineState(ID3D12Device* device, ShaderId shade
     
     static const wchar_t* kPixelShader[] = {
         L"Shaders/triangle.ps.hlsl",
+        L"Shaders/toon.ps.hlsl"
     };
     
     const FactoryDecs& fd = kFactories[ToIndex(factory)];
