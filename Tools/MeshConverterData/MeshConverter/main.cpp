@@ -108,9 +108,8 @@ namespace
         Vec4 base_color; // マテリアルの基本色。
         std::wstring diffuse_path; // ディフューズテクスチャへのパス。
         std::wstring normal_path;
-        std::wstring specular_path;  
-        std::wstring height_path; 
-        
+        std::wstring specular_path;
+        std::wstring height_path;
     };
 
     /**
@@ -300,8 +299,12 @@ namespace
     bool ConvertMesh(const char* in_path, const char* out_path, const std::string& tex_folder)
     {
         Assimp::Importer importer;
+        importer.SetPropertyInteger(AI_CONFIG_PP_RVC_FLAGS, aiComponent_NORMALS);
+        importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE, 60.0f);
+        
         const unsigned int flags =
             aiProcess_Triangulate |
+            aiProcess_RemoveComponent |
             aiProcess_GenSmoothNormals |
             aiProcess_CalcTangentSpace |
             aiProcess_ConvertToLeftHanded |
@@ -359,7 +362,7 @@ namespace
             }
             aiString tex;
             aiString diffuse_tex;
-            const std::filesystem::path tex_dir = BuildTextureRefDir( tex_folder);
+            const std::filesystem::path tex_dir = BuildTextureRefDir(tex_folder);
             if (material->GetTexture(aiTextureType_DIFFUSE, 0, &tex) == AI_SUCCESS)
             {
                 data.diffuse_path = BuildTexturePathResolved(scene, tex, tex_dir);
@@ -472,15 +475,15 @@ namespace
             if (!mat.diffuse_path.empty())
                 ofs.write(reinterpret_cast<const char*>(mat.diffuse_path.c_str()),
                           static_cast<std::streamsize>(mat.diffuse_path.size() * sizeof(std::wstring::value_type)));
-            if (!mat.normal_path.empty())  
+            if (!mat.normal_path.empty())
                 ofs.write(reinterpret_cast<const char*>(mat.normal_path.c_str()),
-                    static_cast<std::streamsize>(mat.normal_path.size() * sizeof(std::wstring::value_type)));
+                          static_cast<std::streamsize>(mat.normal_path.size() * sizeof(std::wstring::value_type)));
             if (!mat.specular_path.empty())
                 ofs.write(reinterpret_cast<const char*>(mat.specular_path.c_str()),
-                    static_cast<std::streamsize>(mat.specular_path.size() * sizeof(std::wstring::value_type)));
+                          static_cast<std::streamsize>(mat.specular_path.size() * sizeof(std::wstring::value_type)));
             if (!mat.height_path.empty())
                 ofs.write(reinterpret_cast<const char*>(mat.height_path.c_str()),
-                    static_cast<std::streamsize>(mat.height_path.size() * sizeof(std::wstring::value_type)));
+                          static_cast<std::streamsize>(mat.height_path.size() * sizeof(std::wstring::value_type)));
             printf("write %ls\n", mat.diffuse_path.c_str());
         }
 
@@ -700,7 +703,7 @@ namespace
 
         return true;
     }
-    
+
     /**
      * @brief スキニングメッシュ、マテリアル、サブメッシュ、スケルトン階層を .skmesh に書き出す。
      * @param out_path 書き出し先 .skmesh ファイルのパス。
@@ -788,15 +791,15 @@ namespace
             if (!mat.diffuse_path.empty())
                 ofs.write(reinterpret_cast<const char*>(mat.diffuse_path.c_str()),
                           static_cast<std::streamsize>(mat.diffuse_path.size() * sizeof(std::wstring::value_type)));
-            if (!mat.normal_path.empty())  
+            if (!mat.normal_path.empty())
                 ofs.write(reinterpret_cast<const char*>(mat.normal_path.c_str()),
-                    static_cast<std::streamsize>(mat.normal_path.size() * sizeof(std::wstring::value_type)));
+                          static_cast<std::streamsize>(mat.normal_path.size() * sizeof(std::wstring::value_type)));
             if (!mat.specular_path.empty())
                 ofs.write(reinterpret_cast<const char*>(mat.specular_path.c_str()),
-                    static_cast<std::streamsize>(mat.specular_path.size() * sizeof(std::wstring::value_type)));
+                          static_cast<std::streamsize>(mat.specular_path.size() * sizeof(std::wstring::value_type)));
             if (!mat.height_path.empty())
                 ofs.write(reinterpret_cast<const char*>(mat.height_path.c_str()),
-                    static_cast<std::streamsize>(mat.height_path.size() * sizeof(std::wstring::value_type)));
+                          static_cast<std::streamsize>(mat.height_path.size() * sizeof(std::wstring::value_type)));
             printf("write %ls\n", mat.diffuse_path.c_str());
         }
 
@@ -1037,11 +1040,15 @@ namespace
     bool ConvertSkMesh(const char* in_path, const char* out_path, const std::string& tex_folder, bool in_place)
     {
         Assimp::Importer importer;
+        importer.SetPropertyInteger(AI_CONFIG_PP_RVC_FLAGS, aiComponent_NORMALS);
+        importer.SetPropertyFloat(AI_CONFIG_PP_GSN_MAX_SMOOTHING_ANGLE, 60.0f);
+
         // スキンド用フラグの方針:
         //  - PreTransformVertices は使わない(階層がつぶれるため)。
         //  - ConvertToLeftHanded は使わない(offset/transform/anim/頂点を一括変換すると崩れやすいため)。
         const unsigned int flags =
             aiProcess_Triangulate |
+            aiProcess_RemoveComponent |
             aiProcess_GenSmoothNormals |
             aiProcess_CalcTangentSpace |
             aiProcess_JoinIdenticalVertices |
