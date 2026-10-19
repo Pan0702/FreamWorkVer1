@@ -117,6 +117,9 @@
     <ClCompile Include="Src\Debug\ImGui\imgui_widgets.cpp">
       <Filter>Src\Debug\ImGui</Filter>
     </ClCompile>
+    <ClCompile Include="Src\Debug\cpu_profiler.cpp">
+      <Filter>Src\Debug</Filter>
+    </ClCompile>
     <ClCompile Include="Src\Debug\parformance.cpp">
       <Filter>Src\Debug</Filter>
     </ClCompile>
@@ -463,6 +466,9 @@
     </ClInclude>
     <ClInclude Include="Src\Debug\ImGui\imstb_truetype.h">
       <Filter>Src\Debug\ImGui</Filter>
+    </ClInclude>
+    <ClInclude Include="Src\Debug\cpu_profiler.h">
+      <Filter>Src\Debug</Filter>
     </ClInclude>
     <ClInclude Include="Src\Debug\parformance.h">
       <Filter>Src\Debug</Filter>

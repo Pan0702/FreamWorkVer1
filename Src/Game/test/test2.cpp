@@ -3,6 +3,7 @@
 #include "objects/constant.h"
 #include "objects/plane.h"
 #include "objects/tree.h"
+#include "objects/instance_trees.h"
 #include "../../Play/Player/player_camera.h"
 #include "../../Play/Player/player.h"
 
@@ -18,11 +19,18 @@ void Test2::OnEnter()
     SpawnActor<Player>();
     SpawnActor<PlayerCamera>();
     SpawnActor<Plane>();
-    for (int w = kRange; w > -kRange; --w)
+    if (kUseInstancedTrees)
     {
-        for (int h = kRange; h > -kRange; --h)
+        SpawnActor<InstanceTrees>();
+    }
+    else
+    {
+        for (int w = kRange; w > -kRange; --w)
         {
-            SpawnActor<Tree>(Vec3(w, 0.0f, h));
+            for (int h = kRange; h > -kRange; --h)
+            {
+                SpawnActor<Tree>(Vec3(w, 0.0f, h));
+            }
         }
     }
     LevelBase::OnEnter();

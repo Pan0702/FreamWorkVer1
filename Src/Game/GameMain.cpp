@@ -8,6 +8,7 @@
 #include "../Resource/mesh_manager.h"
 #include "../Resource/skeltal_mesh_manager.h"
 #include "../Resource/animator_manager.h"
+#include "../Debug/cpu_profiler.h"
 GameMain* game_main = nullptr;
 
 namespace
@@ -194,15 +195,20 @@ void GameMain::Tick()
     performance_profiler_.BeginCpuUpdate();
 #endif
 
-    input_.Update();
-    game_instance_.Tick(delta_time_);
+    {
+        CPU_PROFILE_SCOPE(CpuSection::kGameTick);
+        input_.Update();
+        game_instance_.Tick(delta_time_);
+    }
 
 #ifdef _DEBUG
     performance_profiler_.EndCpuUpdate();
     performance_window_.Draw(performance_profiler_.GetSnapshot());
 #endif
+    CpuProfiler::Get().DrawWindow();
 
     render_system->AllCollect(camera_);
+    CpuProfiler::Get().EndFrame();
 }
 
 

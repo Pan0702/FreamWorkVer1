@@ -27,6 +27,7 @@
     <None Include="Shaders\outline.ps.hlsl" />
     <None Include="Shaders\outline.vs.hlsl" />
     <ClCompile Include="Src\Debug\navigation_debug_renderer.cpp" />
+    <ClCompile Include="Src\Debug\cpu_profiler.cpp" />
     <ClCompile Include="Src\Debug\parformance.cpp" />
     <ClCompile Include="Src\Engine\ai_controller.cpp" />
     <ClCompile Include="Src\Engine\character.cpp" />
@@ -85,6 +86,7 @@
     <ClInclude Include="Src\Debug\ImGui\imstb_textedit.h" />
     <ClInclude Include="Src\Debug\ImGui\imstb_truetype.h" />
     <ClInclude Include="Src\Debug\navigation_debug_renderer.h" />
+    <ClInclude Include="Src\Debug\cpu_profiler.h" />
     <ClInclude Include="Src\Debug\parformance.h" />
     <ClInclude Include="Src\Engine\actor.h" />
     <ClInclude Include="Src\Engine\ai_controller.h" />
