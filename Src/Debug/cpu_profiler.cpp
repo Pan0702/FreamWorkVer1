@@ -2,6 +2,8 @@
 
 #include <iterator>
 
+#include <psapi.h>
+
 #include "ImGui/imgui.h"
 
 namespace
@@ -23,6 +25,32 @@ namespace
         "Instances",
     };
     static_assert(std::size(kCounterNames) == static_cast<size_t>(CpuCounter::kCount));
+
+    constexpr double kBytesPerMb = 1024.0 * 1024.0;
+
+    double ToMb(uint64_t bytes)
+    {
+        return static_cast<double>(bytes) / kBytesPerMb;
+    }
+
+    void MemoryRow(const char* name, uint64_t current, uint64_t baseline, bool has_baseline)
+    {
+        ImGui::TableNextRow();
+        ImGui::TableNextColumn();
+        ImGui::TextUnformatted(name);
+        ImGui::TableNextColumn();
+        ImGui::Text("%.1f", ToMb(current));
+        if (has_baseline)
+        {
+            ImGui::TableNextColumn();
+            ImGui::Text("%.1f", ToMb(baseline));
+            ImGui::TableNextColumn();
+            const double diff = ToMb(current) - ToMb(baseline);
+            const ImVec4 color = diff <= 0.0 ? ImVec4(0.4f, 1.0f, 0.4f, 1.0f)
+                                             : ImVec4(1.0f, 0.4f, 0.4f, 1.0f);
+            ImGui::TextColored(color, "%+.1f", diff);
+        }
+    }
 }
 
 CpuProfiler& CpuProfiler::Get()
@@ -34,6 +62,70 @@ CpuProfiler& CpuProfiler::Get()
 CpuProfiler::CpuProfiler()
 {
     window_start_ = Clock::now();
+}
+
+bool CpuProfiler::InitializeGpuMemory(ID3D12Device* device)
+{
+    ShutdownGpuMemory();
+    if (device == nullptr)
+    {
+        return false;
+    }
+
+    ComPtr<IDXGIFactory4> factory;
+    if (FAILED(CreateDXGIFactory1(IID_PPV_ARGS(&factory))))
+    {
+        return false;
+    }
+
+    // device を作ったアダプタを LUID で引き当てる。
+    if (FAILED(factory->EnumAdapterByLuid(device->GetAdapterLuid(), IID_PPV_ARGS(&adapter_))))
+    {
+        adapter_.Reset();
+        return false;
+    }
+    return true;
+}
+
+void CpuProfiler::ShutdownGpuMemory()
+{
+    adapter_.Reset();
+    memory_.vram_usage = 0;
+    memory_.vram_budget = 0;
+    memory_.shared_usage = 0;
+    memory_.shared_budget = 0;
+}
+
+void CpuProfiler::UpdateMemoryStats()
+{
+    PROCESS_MEMORY_COUNTERS_EX counters = {};
+    counters.cb = sizeof(counters);
+    if (GetProcessMemoryInfo(GetCurrentProcess(),
+                             reinterpret_cast<PROCESS_MEMORY_COUNTERS*>(&counters), sizeof(counters)))
+    {
+        memory_.working_set = counters.WorkingSetSize;
+        memory_.peak_working_set = counters.PeakWorkingSetSize;
+        memory_.private_bytes = counters.PrivateUsage;
+    }
+
+    if (adapter_ == nullptr)
+    {
+        return;
+    }
+
+    DXGI_QUERY_VIDEO_MEMORY_INFO local = {};
+    if (SUCCEEDED(adapter_->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_LOCAL, &local)))
+    {
+        memory_.vram_usage = local.CurrentUsage;
+        memory_.vram_budget = local.Budget;
+    }
+
+    DXGI_QUERY_VIDEO_MEMORY_INFO non_local = {};
+    if (SUCCEEDED(adapter_->QueryVideoMemoryInfo(0, DXGI_MEMORY_SEGMENT_GROUP_NON_LOCAL, &non_local)))
+    {
+        memory_.shared_usage = non_local.CurrentUsage;
+        memory_.shared_budget = non_local.Budget;
+    }
 }
 
 bool CpuProfiler::IsEnabled() const
@@ -86,6 +178,8 @@ void CpuProfiler::EndFrame()
     }
     window_frames_ = 0;
     window_start_ = now;
+
+    UpdateMemoryStats();
 }
 
 void CpuProfiler::ResetAccumulation()
@@ -127,6 +221,7 @@ void CpuProfiler::DrawWindow()
         {
             baseline_counters_[i] = counters_[i].load(std::memory_order_relaxed);
         }
+        baseline_memory_ = memory_;
         has_baseline_ = true;
     }
     if (has_baseline_)
@@ -204,6 +299,32 @@ void CpuProfiler::DrawWindow()
                 ImGui::TableNextColumn();
                 ImGui::Text("%u", baseline_counters_[i]);
             }
+        }
+        ImGui::EndTable();
+    }
+
+    if (ImGui::BeginTable("memory", has_baseline_ ? 4 : 2,
+                          ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg))
+    {
+        ImGui::TableSetupColumn("Memory (MB)");
+        ImGui::TableSetupColumn("Current");
+        if (has_baseline_)
+        {
+            ImGui::TableSetupColumn("Baseline");
+            ImGui::TableSetupColumn("Diff");
+        }
+        ImGui::TableHeadersRow();
+
+        const MemoryStats& b = baseline_memory_;
+        MemoryRow("Working Set", memory_.working_set, b.working_set, has_baseline_);
+        MemoryRow("Peak Working Set", memory_.peak_working_set, b.peak_working_set, has_baseline_);
+        MemoryRow("Private Bytes", memory_.private_bytes, b.private_bytes, has_baseline_);
+        if (adapter_ != nullptr)
+        {
+            MemoryRow("VRAM Usage", memory_.vram_usage, b.vram_usage, has_baseline_);
+            MemoryRow("VRAM Budget", memory_.vram_budget, b.vram_budget, has_baseline_);
+            MemoryRow("Shared Usage", memory_.shared_usage, b.shared_usage, has_baseline_);
+            MemoryRow("Shared Budget", memory_.shared_budget, b.shared_budget, has_baseline_);
         }
         ImGui::EndTable();
     }

@@ -4,6 +4,8 @@
 #include <chrono>
 #include <cstdint>
 
+#include "../Core/common.h"
+
 // CPU 計測器の初期状態。false にすると計測処理をすべてスキップする。
 // 実行中も Performance ウィンドウのチェックボックスで On/Off できる。
 inline constexpr bool kCpuProfilerDefaultEnabled = true;
@@ -30,10 +32,26 @@ enum class CpuCounter : uint8_t
     kCount
 };
 
+// メモリ使用量 (バイト)。VRAM はアダプタ未設定なら 0。
+struct MemoryStats
+{
+    uint64_t working_set = 0;      // 物理メモリに載っている量
+    uint64_t peak_working_set = 0; // 起動してからの Working Set 最大値
+    uint64_t private_bytes = 0;    // プロセスが確保した専用メモリ
+    uint64_t vram_usage = 0;       // LOCAL (VRAM) の使用量
+    uint64_t vram_budget = 0;      // LOCAL (VRAM) の予算
+    uint64_t shared_usage = 0;     // NON_LOCAL (システムメモリ側) の GPU リソース使用量
+    uint64_t shared_budget = 0;    // NON_LOCAL の予算
+};
+
 class CpuProfiler
 {
 public:
     static CpuProfiler& Get();
+
+    // VRAM 使用量を取得するため、device と同じアダプタを保持する。
+    bool InitializeGpuMemory(ID3D12Device* device);
+    void ShutdownGpuMemory();
 
     bool IsEnabled() const;
     void SetEnabled(bool enabled);
@@ -53,6 +71,7 @@ private:
 
     CpuProfiler();
     void ResetAccumulation();
+    void UpdateMemoryStats();
 
     std::atomic<bool> enabled_{kCpuProfilerDefaultEnabled};
     std::array<std::atomic<int64_t>, kSectionCount> accum_ns_{};
@@ -65,6 +84,10 @@ private:
     std::array<float, kSectionCount> baseline_ms_{};
     std::array<uint32_t, kCounterCount> baseline_counters_{};
     bool has_baseline_ = false;
+
+    ComPtr<IDXGIAdapter3> adapter_;
+    MemoryStats memory_{};
+    MemoryStats baseline_memory_{};
 };
 
 class CpuProfileScope

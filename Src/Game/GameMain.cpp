@@ -80,6 +80,11 @@ bool GameMain::Initialize(const wchar_t* title, int32_t width, int32_t height)
         return false;
     }
 
+    if (!CpuProfiler::Get().InitializeGpuMemory(render_system_->GetDevice()))
+    {
+        DEBUG_LOG("VRAM usage is unavailable");
+    }
+
 #ifdef _DEBUG
     if (!performance_profiler_.InitializeGpu(
         render_system_->GetDevice(), render_system_->GetD3D12CommandQueue(), kFrameCount))
@@ -174,6 +179,7 @@ void GameMain::Shutdown()
     performance_profiler_.ShutdownGpu();
 #endif
 
+    CpuProfiler::Get().ShutdownGpuMemory();
     Debug::Get().Shutdown();
     TextureManager::Get().Shutdown();
     MeshManager::Get().Shutdown();
