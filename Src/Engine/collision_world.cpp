@@ -368,5 +368,8 @@ bool ContactBoxCapsule(const Box& b, const Capsule& c, ContactInfo& out)
     {
         return false;
     }
+    // Contact(球, 箱) の法線は球(カプセル)を押し出す向き。
+    // ComputeContact の規約は第1引数(箱)を押し出す向きなので反転する。//
+    out.normal = out.normal * -1.0f;
     return true;
 }

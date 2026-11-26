@@ -17,6 +17,7 @@
 #include "../Resource/texture_manager.h"
 #include "../Graphics/constant_buffer_allocator.h"
 #include "../Graphics/pipeline_state_cache.h"
+#include "../Debug/cpu_profiler.h"
 
 namespace
 {
@@ -99,6 +100,7 @@ bool SceneRenderer::Initialize(ID3D12Device* device, HWND hwnd, ID3D12CommandQue
 
 void SceneRenderer::Render(const RendererData& renderer_data)
 {
+    CPU_PROFILE_SCOPE(CpuSection::kRenderTotal);
     const int index = 1 - write_index_;
     RenderContext context = {};
     context.command_list = renderer_data.command_list->GetCommandList();
@@ -113,8 +115,11 @@ void SceneRenderer::Render(const RendererData& renderer_data)
 
     auto& s = frame_snaps_[index];
     //影はバックバッファに書くため、メインバッファに書き込む前に書き込む//
-    shadow_renderer_->RenderShadowPass(context, mesh_renderer_.get(),
-                                       skinned_mesh_renderer_.get(), instanced_mesh_renderer_.get(), s);
+    {
+        CPU_PROFILE_SCOPE(CpuSection::kShadowPass);
+        shadow_renderer_->RenderShadowPass(context, mesh_renderer_.get(),
+                                           skinned_mesh_renderer_.get(), instanced_mesh_renderer_.get(), s);
+    }
     context.shadow_srv_index = shadow_renderer_->GetShadowMapIndex();
 
     // ImGui::ShowDemoWindow();
@@ -122,24 +127,27 @@ void SceneRenderer::Render(const RendererData& renderer_data)
     PrepareLight(context, s);
     sky_renderer_->Render(context, s);
 
-    for (const auto& item : s.draw_items)
     {
-        switch (item.type)
+        CPU_PROFILE_SCOPE(CpuSection::kMainPass);
+        for (const auto& item : s.draw_items)
         {
-        case DrawType::kSprite:
-            sprite_renderer_->Submit(context, s.sprite_commands[item.command_index], s.camera);
-            break;
-        case DrawType::kMesh:
-            mesh_renderer_->Submit(context, s.mesh_commands[item.command_index], s.camera);
-            break;
-        case DrawType::kSkinnedMesh:
-            skinned_mesh_renderer_->Submit(context, s.skinned_commands[item.command_index], s.camera);
-            break;
-        case DrawType::kInstancedMesh:
-            instanced_mesh_renderer_->Submit(context, s.instanced_mesh_commands[item.command_index], s);
-            break;
-        default:
-            break;
+            switch (item.type)
+            {
+            case DrawType::kSprite:
+                sprite_renderer_->Submit(context, s.sprite_commands[item.command_index], s.camera);
+                break;
+            case DrawType::kMesh:
+                mesh_renderer_->Submit(context, s.mesh_commands[item.command_index], s.camera);
+                break;
+            case DrawType::kSkinnedMesh:
+                skinned_mesh_renderer_->Submit(context, s.skinned_commands[item.command_index], s.camera);
+                break;
+            case DrawType::kInstancedMesh:
+                instanced_mesh_renderer_->Submit(context, s.instanced_mesh_commands[item.command_index], s);
+                break;
+            default:
+                break;
+            }
         }
     }
     debug_renderer_->Submit(context, s);
@@ -151,6 +159,7 @@ void SceneRenderer::Render(const RendererData& renderer_data)
 
 void SceneRenderer::AllCollect(Camera& c)
 {
+    CPU_PROFILE_SCOPE(CpuSection::kCollectTotal);
     FrameSnap& snap = frame_snaps_[write_index_];
     snap.draw_items.clear();
     snap.camera.pos = c.pos_;
@@ -167,8 +176,14 @@ void SceneRenderer::AllCollect(Camera& c)
     const Mat light_proj = OrthographicLH(kShadowOrthoWidth, kShadowOrthoHeight, kShadowNearZ, kShadowFarZ); 
         snap.light.lvp = light_view * light_proj;
 
-    mesh_renderer_->Collect(snap);
-    instanced_mesh_renderer_->Collect(snap);
+    {
+        CPU_PROFILE_SCOPE(CpuSection::kCollectMesh);
+        mesh_renderer_->Collect(snap);
+    }
+    {
+        CPU_PROFILE_SCOPE(CpuSection::kCollectInstanced);
+        instanced_mesh_renderer_->Collect(snap);
+    }
     debug_renderer_->Collect(snap);
     sprite_renderer_->Collect(snap);
     skinned_mesh_renderer_->Collect(snap);
@@ -177,6 +192,12 @@ void SceneRenderer::AllCollect(Camera& c)
 
     std::ranges::stable_sort(
         snap.draw_items, {}, &SceneDrawItem::draw_order);
+
+    CpuProfiler& cpu_profiler = CpuProfiler::Get();
+    cpu_profiler.SetCounter(CpuCounter::kMeshCommands, static_cast<uint32_t>(snap.mesh_commands.size()));
+    cpu_profiler.SetCounter(CpuCounter::kInstancedCommands,
+                            static_cast<uint32_t>(snap.instanced_mesh_commands.size()));
+    cpu_profiler.SetCounter(CpuCounter::kInstances, static_cast<uint32_t>(snap.gpu_instances.size()));
 
     imgui_manager_.FreeDrawData(snap.imgui_draw_data);
     snap.imgui_draw_data = imgui_manager_.CloneCurrentData();

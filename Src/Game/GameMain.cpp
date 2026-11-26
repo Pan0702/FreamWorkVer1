@@ -8,6 +8,7 @@
 #include "../Resource/mesh_manager.h"
 #include "../Resource/skeltal_mesh_manager.h"
 #include "../Resource/animator_manager.h"
+#include "../Debug/cpu_profiler.h"
 GameMain* game_main = nullptr;
 
 namespace
@@ -77,6 +78,11 @@ bool GameMain::Initialize(const wchar_t* title, int32_t width, int32_t height)
     {
         MessageBox(nullptr, L"Failed to initialize render system", L"Error", MB_OK);
         return false;
+    }
+
+    if (!CpuProfiler::Get().InitializeGpuMemory(render_system_->GetDevice()))
+    {
+        DEBUG_LOG("VRAM usage is unavailable");
     }
 
 #ifdef _DEBUG
@@ -173,6 +179,7 @@ void GameMain::Shutdown()
     performance_profiler_.ShutdownGpu();
 #endif
 
+    CpuProfiler::Get().ShutdownGpuMemory();
     Debug::Get().Shutdown();
     TextureManager::Get().Shutdown();
     MeshManager::Get().Shutdown();
@@ -194,15 +201,20 @@ void GameMain::Tick()
     performance_profiler_.BeginCpuUpdate();
 #endif
 
-    input_.Update();
-    game_instance_.Tick(delta_time_);
+    {
+        CPU_PROFILE_SCOPE(CpuSection::kGameTick);
+        input_.Update();
+        game_instance_.Tick(delta_time_);
+    }
 
 #ifdef _DEBUG
     performance_profiler_.EndCpuUpdate();
     performance_window_.Draw(performance_profiler_.GetSnapshot());
 #endif
+    CpuProfiler::Get().DrawWindow();
 
     render_system->AllCollect(camera_);
+    CpuProfiler::Get().EndFrame();
 }
 
 

@@ -38,6 +38,7 @@ void BoxColliderComponent::DrawDebug() const
     Box box = GetColliderBoxData();
     
     Vec3 center = (box.min + box.max) * kHalfSize;
-    Vec3 size = (box.max - box.min) * kHalfSize;
+    // DrawBox3D ‚Í‘S’·‚ğó‚¯æ‚é‚Ì‚Å”¼•ª‚É‚µ‚È‚¢B
+    Vec3 size = box.max - box.min;
     Debug::Get().DrawBox3D(center, size, color_,Vec3(0,0,0));
 }
